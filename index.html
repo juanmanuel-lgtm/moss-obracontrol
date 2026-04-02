@@ -6713,3 +6713,29 @@ render();
 </script>
 </body>
 </html>
+function abrirCalendarioActividad(obraId, fase, fI, fF){
+  var o=null;for(var i=0;i<S.obras.length;i++){if(S.obras[i].id===obraId){o=S.obras[i];break;}}
+  if(!o||!fI)return;
+  var fi=fI.replace(/-/g,"");
+  var d=new Date(fF||fI);d.setDate(d.getDate()+1);
+  var ffExcl=d.toISOString().slice(0,10).replace(/-/g,"");
+  var guests=[
+    "juanmanuel@mosscolombia.com.co",
+    "coordinacionproyectos@mosscolombia.com.co",
+    "camilo.fuentes@mosscolombia.com.co",
+  ].join(",");
+  if(o.res&&o.res.indexOf("@")>-1)guests+=","+o.res;
+  var url="https://calendar.google.com/calendar/render?action=TEMPLATE"+
+    "&text="+encodeURIComponent("[MOSS] "+o.cod+" "+o.nom+" — "+fase)+
+    "&dates="+fi+"/"+ffExcl+
+    "&details="+encodeURIComponent("Obra: "+o.nom+"
+Cliente: "+o.cli+"
+Actividad: "+fase)+
+    "&add="+encodeURIComponent(guests);
+  window.open(url,"_blank","noopener,noreferrer");
+}
+
+render();
+</script>
+</body>
+</html>
