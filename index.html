@@ -219,7 +219,18 @@ function driveCreate(obra){
 }
 
 function syncDrive(){
-  driveGet(function(obras){S.obras=obras;S.driveOk=true;S.ultimo=new Date();render();});
+  driveGet(function(obras){
+    S.obras=obras;S.driveOk=true;S.ultimo=new Date();
+    // No hacer render si el usuario esta escribiendo en un input
+    var activo=document.activeElement;
+    var escribiendo=activo&&(activo.tagName==="INPUT"||activo.tagName==="TEXTAREA"||activo.tagName==="SELECT");
+    if(!escribiendo)render();
+    else{
+      // Solo actualizar el indicador de sync sin borrar lo que escribe
+      var db=document.querySelector(".dbadge");
+      if(db){db.className="dbadge dok";db.innerHTML='<span class="dot" style="background:#3A6B45"></span>Sync OK '+(S.ultimo?S.ultimo.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}):"");}
+    }
+  });
 }
 
 function cargarCache(){
@@ -242,10 +253,15 @@ function guardar(){
     var ok=res.every(function(r){return r===true;});
     S.pending={};S.saving=false;
     S.saveMsg=ok?"Guardado para todos":"Error - reintenta";
-    render();
+    var sc=document.getElementById("save-count");
+    if(sc)sc.textContent=S.saveMsg;
+    else render();
     setTimeout(function(){S.saveMsg="";render();},2500);
   }).catch(function(){
-    S.saving=false;S.saveMsg="Error de conexion";render();
+    S.saving=false;S.saveMsg="Error de conexion";
+    var sc=document.getElementById("save-count");
+    if(sc)sc.textContent=S.saveMsg;
+    else render();
     setTimeout(function(){S.saveMsg="";render();},2500);
   });
 }
@@ -306,7 +322,7 @@ function rTopbar(){
 // Navbar
 function rNavbar(){
   var nch=Object.keys(S.pending).length;
-  var items=[{k:"dash",ic:"[KPI]",lb:"Inicio"},{k:"nuevo",ic:"[+]",lb:"Nuevo"},{k:"ejec",ic:"[OBR]",lb:"Obras"},{k:"log",ic:"[BOX]",lb:"Logistica"},{k:"ent",ic:"[OK]",lb:"Entrega"},{k:"gar",ic:"[GAR]",lb:"Garantias"},{k:"equipo",ic:"[EQP]",lb:"Equipo"},{k:"ia",ic:"[IA]",lb:"IA"}];
+  var items=[{k:"dash",ic:"[KPI]",lb:"Inicio"},{k:"hoy",ic:"[HOY]",lb:"Hoy"},{k:"nuevo",ic:"[+]",lb:"Nuevo"},{k:"ejec",ic:"[OBR]",lb:"Obras"},{k:"log",ic:"[BOX]",lb:"Logistica"},{k:"ent",ic:"[OK]",lb:"Entrega"},{k:"gar",ic:"[GAR]",lb:"Garantias"},{k:"equipo",ic:"[EQP]",lb:"Equipo"},{k:"ia",ic:"[IA]",lb:"IA"}];
   var nb=div("navbar",items.map(function(n){return h("div",{"class":"nitem"+(S.vista===n.k||(S.osel&&n.k==="ejec")?" on":""),"onclick":"nav('"+n.k+"')"},h("span",{"class":"nic"},n.ic)+h("span",{"class":"nlb"},n.lb));}).join(""));
   var bar="";
   if(nch>0||S.saveMsg){
@@ -320,6 +336,7 @@ function rNavbar(){
 function rContent(){
   if(S.osel!==null)return rDetalle();
   if(S.vista==="dash")return rDash();
+  if(S.vista==="hoy")return rHoy();
   if(S.vista==="nuevo")return rNuevo();
   if(S.vista==="ejec")return rEjec();
   if(S.vista==="log")return rLog();
@@ -374,6 +391,129 @@ function rDash(){
   return kpis+linkCard+div("card",h("div",{"class":"chd"},h("span",{},"ESTADO DE OBRAS"))+h("div",{"style":"padding:8px"},obraRows))+div("card",h("div",{"class":"chd"},h("span",{},"ALERTAS")+h("small",{},als.length+" activas"))+h("div",{"style":"padding:8px"},alertRows));
 }
 function abrirObra(id){S.osel=id;S.otab="kpi";S.vista="ejec";render();}
+
+// HOY - Tips, noticias, capacitacion, comunicados
+var HOY_DATA={
+  tips:[
+    "Verifica siempre que el maestro tenga todos los materiales antes de iniciar cada fase. El 80% de los retrasos ocurren por falta de material.",
+    "Al iniciar Obra blanca, toma fotos del estado inicial de cada espacio. Son clave para resolver disputas con el cliente.",
+    "La carpinteria debe pedirse en el dia 10 de obra como maximo. Si no esta pedida hoy, es una alerta roja.",
+    "Antes de instalar ceramica o piso, verifica que el nivel este perfecto. Un error aqui cuesta el doble corregirlo despues.",
+    "Comunica al cliente el avance cada semana con fotos. Un cliente informado no genera problemas en la entrega.",
+    "El estuco debe curarse minimo 3 dias antes de pintar. No aceleres este proceso o la pintura se descascara.",
+    "Revisa que todas las instalaciones electricas e hidraulicas esten probadas ANTES de cerrar paredes.",
+    "El orden en obra es productividad. Un maestro que trabaja en desorden pierde entre 1 y 2 horas diarias buscando herramientas.",
+    "Al hacer el corte de obra, fotografa cada actividad terminada con referencia de escala. Esas fotos son tu garantia.",
+    "Nunca entregues una obra sin hacer el recorrido de punch list con el cliente presente. Lo que el cliente firma, no regresa.",
+  ],
+  capacitacion:[
+    {tema:"Lectura de planos arquitectonicos",desc:"Aprende a interpretar plantas, cortes y fachadas. Fundamental para ejecutar correctamente cualquier diseno.",url:"https://www.youtube.com/results?search_query=lectura+de+planos+arquitectonicos+basico"},
+    {tema:"Calculo de cantidades de obra",desc:"Como calcular metros cuadrados, cubicos y lineales para presupuestar con precision.",url:"https://www.youtube.com/results?search_query=calculo+de+cantidades+obra+civil"},
+    {tema:"Instalacion de ceramica y porcelanato",desc:"Tecnicas correctas de instalacion para evitar fisuras y garantizar durabilidad.",url:"https://www.youtube.com/results?search_query=como+instalar+ceramica+porcelanato+correctamente"},
+    {tema:"Carpinteria para remodelacion",desc:"Materiales, tipos de tableros y acabados. Lo que todo residente debe saber.",url:"https://www.youtube.com/results?search_query=carpinteria+muebles+cocina+remodelacion"},
+    {tema:"Atencion al cliente en obra",desc:"Como comunicarse con el cliente durante la ejecucion para evitar conflictos y generar confianza.",url:"https://www.youtube.com/results?search_query=atencion+cliente+construccion+obra"},
+    {tema:"Control de presupuesto en obra",desc:"Tecnicas para no sobrepasar el presupuesto y mantener la utilidad del proyecto.",url:"https://www.youtube.com/results?search_query=control+presupuesto+obra+construccion"},
+    {tema:"Diseno de interiores basico",desc:"Principios de color, proporcion y distribucion de espacios para proyectos residenciales.",url:"https://www.youtube.com/results?search_query=principios+diseno+interiores+basico"},
+    {tema:"Instalaciones hidraulicas residenciales",desc:"Tuberias, sifones, valvulas y pruebas de presion en apartamentos.",url:"https://www.youtube.com/results?search_query=instalaciones+hidraulicas+residenciales+basico"},
+  ],
+  noticias:[
+    {titulo:"Nuevas normas NSR-10 para remodelaciones",desc:"El Ministerio de Vivienda actualizo los requisitos sismoresistentes para obras de remodelacion en Colombia.",tag:"Normativa"},
+    {titulo:"Tendencias de diseno 2026 en Colombia",desc:"Madera natural, tonos tierra y espacios multifuncionales dominan las preferencias en Bogota.",tag:"Diseno"},
+    {titulo:"Materiales en alza: porcelanato y carpinteria",desc:"Los precios de porcelanato importado subieron un 8% en el primer trimestre. Importante para presupuestar.",tag:"Materiales"},
+    {titulo:"CAMACOL: crecimiento del sector remodelacion",desc:"El sector de remodelacion residencial crecio 12% en 2025 segun el ultimo reporte de CAMACOL Bogota.",tag:"Sector"},
+    {titulo:"Creditos Fna para remodelacion aumentan",desc:"El FNA amplio la linea de credito para remodelacion hasta $150 millones con tasas preferenciales.",tag:"Financiacion"},
+  ],
+};
+
+function rHoy(){
+  var hoy=new Date();
+  var dias=["Domingo","Lunes","Martes","Miercoles","Jueves","Viernes","Sabado"];
+  var meses=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  var fechaStr=dias[hoy.getDay()]+" "+hoy.getDate()+" de "+meses[hoy.getMonth()]+" de "+hoy.getFullYear();
+  // Tip del dia basado en el dia del mes
+  var tipIdx=hoy.getDate()%HOY_DATA.tips.length;
+  var tip=HOY_DATA.tips[tipIdx];
+  // Capacitacion del dia
+  var capIdx=hoy.getDate()%HOY_DATA.capacitacion.length;
+  var cap=HOY_DATA.capacitacion[capIdx];
+
+  var headerCard=h("div",{"style":"background:var(--v);border-radius:12px;padding:16px 18px;margin-bottom:12px"},
+    h("div",{"style":"font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px"},fechaStr)+
+    h("div",{"style":"font-size:18px;font-weight:700;color:#fff;margin-bottom:4px"},"Buenos dias, "+S.user.nombre.split(" ")[0]+"!")+
+    h("div",{"style":"font-size:12px;color:rgba(255,255,255,.7)"},"Aqui tienes lo mas importante para hoy"));
+
+  var tipCard=div("card","<div class='cp'>"+
+    h("div",{"style":"display:flex;align-items:center;gap:8px;margin-bottom:10px"},
+      h("div",{"style":"width:32px;height:32px;background:#FDF0E0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"},"[TIP]")+
+      h("div",{"style":"font-size:13px;font-weight:600;color:var(--d)"},"Tip del dia"))+
+    h("div",{"style":"font-size:13px;line-height:1.7;color:#1C1C1A;background:var(--cr);border-radius:9px;padding:12px"},tip)+
+    "</div>");
+
+  var capCard=div("card","<div class='cp'>"+
+    h("div",{"style":"display:flex;align-items:center;gap:8px;margin-bottom:10px"},
+      h("div",{"style":"width:32px;height:32px;background:var(--vc);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"},"[CAP]")+
+      h("div",{"style":"font-size:13px;font-weight:600;color:var(--v)"},"Capacitacion del dia"))+
+    h("div",{"style":"background:var(--cr);border-radius:9px;padding:12px;margin-bottom:10px"},
+      h("div",{"style":"font-size:13px;font-weight:600;color:#1C1C1A;margin-bottom:4px"},cap.tema)+
+      h("div",{"style":"font-size:12px;color:var(--g);line-height:1.6"},cap.desc))+
+    h("a",{"href":cap.url,"target":"_blank","rel":"noopener","style":"display:block;text-align:center;background:var(--v);color:#fff;border-radius:8px;padding:9px;font-size:12px;font-weight:600;text-decoration:none"},"Ver videos en YouTube")+
+    "</div>");
+
+  var noticiaCards=HOY_DATA.noticias.map(function(n){
+    var tagCol=n.tag==="Normativa"?"#B5362A":n.tag==="Diseno"?"#A67C52":n.tag==="Materiales"?"#C17B2A":n.tag==="Sector"?"#2D4A35":"#2D5A8A";
+    return h("div",{"style":"padding:11px 0;border-bottom:1px solid var(--b)"},
+      h("div",{"style":"display:flex;align-items:center;gap:7px;margin-bottom:5px"},
+        h("span",{"style":"font-size:9px;padding:2px 7px;border-radius:8px;font-weight:600;background:"+tagCol+"20;color:"+tagCol},n.tag)+
+        h("div",{"style":"font-size:12px;font-weight:600;color:#1C1C1A"},n.titulo))+
+      h("div",{"style":"font-size:11px;color:var(--g);line-height:1.5"},n.desc));
+  }).join("");
+  var noticiasCard=div("card",h("div",{"class":"chd"},h("span",{},"Noticias del sector"))+h("div",{"style":"padding:0 14px 8px"},noticiaCards));
+
+  // Comunicados del admin (solo admin puede agregar)
+  var comunicadosHTML="";
+  var coms=[];
+  try{var c=localStorage.getItem("moss_comunicados");if(c)coms=JSON.parse(c);}catch(e){}
+  var comRows="";
+  if(coms.length===0){
+    comRows=h("div",{"style":"padding:11px;text-align:center;font-size:12px;color:var(--gc)"},"Sin comunicados activos");
+  }else{
+    comRows=coms.map(function(c,i){
+      var bg=i%2===0?"var(--bc)":"var(--cr)";
+      var delBtn=S.user.rol==="admin"?h("button",{"style":"font-size:10px;background:transparent;border:1px solid var(--b);border-radius:6px;padding:2px 8px;cursor:pointer;color:#B5362A;font-family:inherit;margin-left:8px;flex-shrink:0","onclick":"elimComunicado("+i+")"},"X"):"";
+      return h("div",{"style":"padding:10px;border-bottom:1px solid var(--b);background:"+bg},
+        h("div",{"style":"display:flex;justify-content:space-between;align-items:flex-start"},
+          h("div",{"style":"flex:1"},h("div",{"style":"font-size:11px;font-weight:600;color:var(--v);margin-bottom:3px"},c.titulo)+h("div",{"style":"font-size:12px;color:#1C1C1A;line-height:1.6"},c.texto)+h("div",{"style":"font-size:9px;color:var(--gc);margin-top:3px"},"Publicado: "+c.fecha))+
+          delBtn));
+    }).join("");
+  }
+  var addComHTML=S.user.rol==="admin"?
+    h("div",{"style":"padding:12px 14px;background:var(--ba);border-top:1px solid var(--b)"},
+      h("div",{"style":"font-size:10px;color:var(--g);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px"},"Agregar comunicado")+
+      div("fr",h("input",{"id":"com-titulo","placeholder":"Titulo del comunicado","style":"margin-bottom:7px"},""))+
+      div("fr",h("textarea",{"id":"com-texto","rows":"3","placeholder":"Escribe el comunicado, recordatorio o instruccion para el equipo..."},""))+
+      h("button",{"class":"bp","style":"width:100%;margin-top:8px","onclick":"addComunicado()"},"Publicar comunicado")):"";
+  comunicadosHTML=div("card",h("div",{"class":"chd"},h("span",{},"Comunicados MOSS")+h("small",{},coms.length+" activos"))+comRows+addComHTML);
+
+  return headerCard+tipCard+capCard+noticiasCard+comunicadosHTML;
+}
+
+function addComunicado(){
+  var t=document.getElementById("com-titulo");
+  var tx=document.getElementById("com-texto");
+  if(!t||!tx||!t.value.trim()||!tx.value.trim()){alert("Escribe el titulo y el contenido.");return;}
+  var coms=[];
+  try{var c=localStorage.getItem("moss_comunicados");if(c)coms=JSON.parse(c);}catch(e){}
+  coms.unshift({titulo:t.value.trim(),texto:tx.value.trim(),fecha:new Date().toLocaleDateString("es-CO"),autor:S.user.nombre});
+  try{localStorage.setItem("moss_comunicados",JSON.stringify(coms));}catch(e){}
+  nav("hoy");
+}
+function elimComunicado(idx){
+  var coms=[];
+  try{var c=localStorage.getItem("moss_comunicados");if(c)coms=JSON.parse(c);}catch(e){}
+  coms.splice(idx,1);
+  try{localStorage.setItem("moss_comunicados",JSON.stringify(coms));}catch(e){}
+  nav("hoy");
+}
 
 // NUEVO PROYECTO - FIX: formulario persistente sin re-render
 function rNuevo(){
@@ -611,7 +751,20 @@ function guardarNotas(id){
   var v=ta.value;
   for(var i=0;i<S.obras.length;i++){if(S.obras[i].id===+id){S.obras[i].notas=v;marcar(id);break;}}
   try{localStorage.setItem("moss_obras",JSON.stringify(S.obras));}catch(e){}
-  guardar();
+  // Guardar sin perder el foco del textarea
+  var ids=Object.keys(S.pending);
+  var promesas=ids.map(function(pid){
+    var o=null;for(var i=0;i<S.obras.length;i++){if(S.obras[i].id===+pid){o=S.obras[i];break;}}
+    return o?drivePost(o):Promise.resolve(false);
+  });
+  var btn=document.querySelector("button.bp");
+  if(btn)btn.textContent="Guardando...";
+  Promise.all(promesas).then(function(res){
+    S.pending={};
+    var ok=res.every(function(r){return r===true;});
+    if(btn)btn.textContent=ok?"Guardado correctamente":"Error - reintenta";
+    setTimeout(function(){if(btn)btn.textContent="Guardar notas";},2000);
+  }).catch(function(){if(btn)btn.textContent="Error";});
 }
 function cambiarFase(id,fase){
   var av=FASE_AV[fase]!==undefined?FASE_AV[fase]:null;
