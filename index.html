@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.13-v14-materiales+">
+<meta name="version" content="2026.05.13-v15-semaforofix">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.13-v14-materiales+";
+var APP_VERSION="2026.05.13-v15-semaforofix";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -2518,7 +2518,7 @@ function rDetalle(){
           var bgB=activo?ec.col:"#fff";
           var colB=activo?"#fff":(puede?ec.col:"#CCC");
           var cursor=puede?"pointer":"not-allowed";
-          var onclickB=puede?("setPedidoEstado("+o.id+","+capM.n+","+mat.id+",\""+est+"\")"):"";
+          var onclickB=puede?("setPedidoEstado("+o.id+","+capM.n+","+mat.id+",&quot;"+est+"&quot;)"):"";
           btnsEst+=h("button",{
             "style":"font-size:9px;padding:3px 6px;margin:0 2px;border:1px solid "+ec.col+";background:"+bgB+";color:"+colB+";border-radius:5px;cursor:"+cursor+";font-family:inherit;font-weight:600",
             "onclick":onclickB,
@@ -2601,7 +2601,7 @@ function rDetalle(){
     var bgEnt=(puedeEditFechas&&fEditManual)?"":";background:#F5F5F5";
     var valEntregaShow=(fEditManual&&o.fE)?o.fE:(fechaEntregaCalculada||o.fE||"");
     var fechasObraHTML=div("card","<div class='cp' style='background:#FAF7F3;border:2px solid var(--v)'>"+
-      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v14</span></div>"+
+      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v15</span></div>"+
       "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px'>"+
         "<div>"+
           "<label style='font-size:11px;color:var(--g);font-weight:600'>Fecha de inicio de obra *</label>"+
@@ -3043,7 +3043,7 @@ function rLog(){
               h("div",{"style":"font-size:12px;font-weight:600"},it.mat.nom)+
               h("div",{"style":"font-size:10px;color:var(--g)"},"Cap. "+it.capN+" | "+it.obra.nom+" | "+it.pedido.cantidad+" "+it.mat.uni)
             )+
-            (estadoBtn?h("button",{"class":"bp","style":"font-size:10px;padding:4px 10px","onclick":"setPedidoEstado("+it.obra.id+","+it.capN+","+it.mat.id+",\""+estadoBtn+"\")"},estadoBtn==="en_camino"?"Marcar en camino":"Marcar en obra"):"")
+            (estadoBtn?h("button",{"class":"bp","style":"font-size:10px;padding:4px 10px","onclick":"setPedidoEstado("+it.obra.id+","+it.capN+","+it.mat.id+",&quot;"+estadoBtn+"&quot;)"},estadoBtn==="en_camino"?"Marcar en camino":"Marcar en obra"):"")
           )
         );
       }
