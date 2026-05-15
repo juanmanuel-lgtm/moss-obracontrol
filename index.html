@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.12-v11-tripleshield">
+<meta name="version" content="2026.05.12-v12-migrado">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.12-v11-tripleshield";
+var APP_VERSION="2026.05.12-v12-migrado";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -130,7 +130,7 @@ var JSONBIN_URL="https://api.jsonbin.io/v3/b/"+JSONBIN_ID;
 var JSONBIN_CRON_ID="69fcddb5250b1311c31a8a2e";
 var JSONBIN_CRON_URL="https://api.jsonbin.io/v3/b/"+JSONBIN_CRON_ID;
 // Estado en memoria de cronograma y videos (sincronizado con JSONBin)
-var CRON={cronograma:{},videos:{},garantias:null,estados:{},drives:{},materiales:null,pedidos:{}};
+var CRON={cronograma:{},videos:{},garantias:null,estados:{},drives:{},materiales:null,pedidos:{},obras:null};
 
 // Festivos Colombia 2024-2027
 var FEST={"2024":["01-01","01-08","03-25","03-28","03-29","05-01","05-13","05-27","06-03","06-10","07-01","07-20","08-07","08-19","10-14","11-04","11-11","12-08","12-25"],"2025":["01-01","01-06","03-24","04-17","04-18","05-01","06-02","06-23","06-30","07-20","08-07","08-18","10-13","11-03","11-17","12-08","12-25"],"2026":["01-01","01-12","04-02","04-03","05-01","05-18","06-08","06-29","07-20","08-07","08-17","10-12","11-02","11-16","12-08","12-25"],"2027":["01-01","01-11","03-25","04-01","05-01","05-17","05-31","06-07","07-05","07-20","08-07","08-16","10-18","11-01","11-15","12-08","12-25"]};
@@ -694,12 +694,13 @@ function normObra(o){
   return{
     id:+o.id,cod:String(o.cod||"").trim(),nom:String(o.nom||"").trim(),cli:String(o.cli||"").trim(),
     plan:normPlan(o.plan),res:String(o.res||"").trim(),maestro:String(o.maestro||"").trim(),
-    fI:nF(o.fI),fE:nF(o.fE),dias:+o.dias||45,pres:+o.pres||0,av:+o.av||0,
+    fI:nF(o.fI),fE:nF(o.fE),fl:nF(o.fl||o.fI),dias:+o.dias||45,pres:+o.pres||0,av:+o.av||0,
     act:String(o.act||"Sin iniciar").trim(),notas:String(o.notas||"").trim(),
     gC:+o.gC||0,gM:+o.gM||0,gO:+o.gO||0,gA:+o.gA||0,cal:+o.cal||0,
     calFases:nCalF(o.calFases),nps:+o.nps||0,etapa:String(o.etapa||"ejecucion").trim(),
     punch:nPunch(o.punch),emails:String(o.emails||"").trim(),
     actFI:nF(o.actFI),actFF:nF(o.actFF),fIDiseno:nF(o.fIDiseno),fEDiseno:nF(o.fEDiseno),
+    m2:+o.m2||0,
   };
 }
 
@@ -751,22 +752,52 @@ function driveCreate(obra){
 }
 
 function syncDrive(){
-  driveGet(function(obras){
-    S.obras=obras;S.driveOk=true;S.ultimo=new Date();
-    // No hacer render si el usuario esta escribiendo en un input
-    var activo=document.activeElement;
-    var escribiendo=activo&&(activo.tagName==="INPUT"||activo.tagName==="TEXTAREA"||activo.tagName==="SELECT");
-    if(!escribiendo)render();
-    else{
-      // Solo actualizar el indicador de sync sin borrar lo que escribe
-      var db=document.querySelector(".dbadge");
-      if(db){db.className="dbadge dok";db.innerHTML='<span class="dot" style="background:#3A6B45"></span>Sync OK '+(S.ultimo?S.ultimo.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}):"");}
+  // MIGRACION: Sincronizar PRIMERO desde JSONBin (fuente de verdad)
+  cargarComunicadosRemoto();
+  cargarCronogramaRemoto(function(){
+    // Despues de cargar JSONBin, verificar si tenemos obras
+    if(!CRON.obras||Object.keys(CRON.obras).length===0){
+      // PRIMERA VEZ: importar del Sheet via Apps Script
+      console.log("[MOSS] JSONBin sin obras, importando del Sheet...");
+      driveGet(function(obras){
+        S.obras=obras;S.driveOk=true;S.ultimo=new Date();
+        // Copiar a CRON.obras para guardar en JSONBin
+        if(!CRON.obras)CRON.obras={};
+        for(var i=0;i<obras.length;i++){CRON.obras[obras[i].id]=obras[i];}
+        // Subir a JSONBin inmediatamente
+        guardarCronogramaRemoto();
+        var activo=document.activeElement;
+        var escribiendo=activo&&(activo.tagName==="INPUT"||activo.tagName==="TEXTAREA"||activo.tagName==="SELECT");
+        if(!escribiendo)render();
+      });
+    }else{
+      // YA HAY OBRAS EN JSONBIN: solo actualizar timestamp, NO leer del Sheet
+      S.driveOk=true;S.ultimo=new Date();
+      var activo=document.activeElement;
+      var escribiendo=activo&&(activo.tagName==="INPUT"||activo.tagName==="TEXTAREA"||activo.tagName==="SELECT");
+      if(!escribiendo)render();
+      else{
+        var db=document.querySelector(".dbadge");
+        if(db){db.className="dbadge dok";db.innerHTML='<span class="dot" style="background:#3A6B45"></span>Sync OK '+(S.ultimo?S.ultimo.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}):"");}
+      }
     }
   });
-  // Sincronizar comunicados compartidos del equipo (JSONBin)
-  cargarComunicadosRemoto();
-  // Sincronizar cronograma + videos semanales (JSONBin separado)
-  cargarCronogramaRemoto(function(){if(S.tab==="cron"||S.otab==="cron"||S.otab==="videos"||S.tab==="videos"||S.vista==="gar")render();});
+}
+
+// Funcion de emergencia: re-importar todas las obras desde el Sheet
+// Sobreescribe CRON.obras con los datos del Sheet
+function reimportarDelSheet(){
+  if(!puedeCerrarObra()){alert("Solo CEO/Operaciones/Coordinacion pueden re-importar.");return;}
+  if(!confirm("EMERGENCIA: Re-importar TODAS las obras desde el Google Sheet?\n\nEsto SOBREESCRIBIRA los datos actuales en JSONBin con lo que haya en el Sheet.\n\nUsalo solo si los datos en JSONBin se corrompieron.\n\nContinuar?"))return;
+  driveGet(function(obras){
+    if(obras.length===0){alert("El Sheet no devolvio obras. Verifica el Apps Script.");return;}
+    CRON.obras={};
+    for(var i=0;i<obras.length;i++){CRON.obras[obras[i].id]=obras[i];}
+    S.obras=obras;
+    guardarCronogramaRemoto();
+    alert("Re-importadas "+obras.length+" obras del Sheet a JSONBin.");
+    render();
+  });
 }
 
 function cargarCache(){
@@ -781,25 +812,27 @@ function guardar(){
   if(ids.length===0)return;
   try{localStorage.setItem("moss_obras",JSON.stringify(S.obras));}catch(e){}
   S.saving=true;S.saveMsg="Guardando...";render();
-  var promesas=ids.map(function(id){
-    var o=null;for(var i=0;i<S.obras.length;i++){if(S.obras[i].id===+id){o=S.obras[i];break;}}
-    return o?drivePost(o):Promise.resolve(false);
-  });
-  Promise.all(promesas).then(function(res){
-    var ok=res.every(function(r){return r===true;});
-    S.pending={};S.saving=false;
-    S.saveMsg=ok?"Guardado para todos":"Error - reintenta";
+  
+  // MIGRACION: guardar en JSONBin (no en Apps Script)
+  // Sincronizar S.obras -> CRON.obras (objeto indexado por id)
+  if(!CRON.obras)CRON.obras={};
+  for(var oi=0;oi<S.obras.length;oi++){
+    var ob=S.obras[oi];
+    CRON.obras[ob.id]=ob;
+  }
+  // Guardar a JSONBin (con todas las protecciones de race condition)
+  guardarCronogramaRemoto();
+  
+  // Limpiar pending despues de un breve delay (que guarde primero)
+  setTimeout(function(){
+    S.pending={};
+    S.saving=false;
+    S.saveMsg="Guardado para todos";
     var sc=document.getElementById("save-count");
     if(sc)sc.textContent=S.saveMsg;
     else render();
     setTimeout(function(){S.saveMsg="";render();},2500);
-  }).catch(function(){
-    S.saving=false;S.saveMsg="Error de conexion";
-    var sc=document.getElementById("save-count");
-    if(sc)sc.textContent=S.saveMsg;
-    else render();
-    setTimeout(function(){S.saveMsg="";render();},2500);
-  });
+  },200);
 }
 
 // Render
@@ -1418,6 +1451,12 @@ function cargarCronogramaRemoto(cb){
         CRON.drives=backup.drives||{};
         CRON.materiales=backup.materiales||null;
         CRON.pedidos=backup.pedidos||{};
+        if(backup.obras){
+          CRON.obras=backup.obras;
+          var arrObras3=[];
+          for(var oId3 in backup.obras){arrObras3.push(backup.obras[oId3]);}
+          if(arrObras3.length>0){S.obras=arrObras3.map(normObra);S.driveOk=true;}
+        }
         if(backup.garantias&&backup.garantias.length>0){S.gars=backup.garantias;CRON.garantias=backup.garantias;}
       }
       throw new Error("HTTP "+r.status);
@@ -1441,6 +1480,13 @@ function cargarCronogramaRemoto(cb){
         CRON.drives=backup.drives||rem.drives||{};
         CRON.materiales=backup.materiales||rem.materiales||null;
         CRON.pedidos=backup.pedidos||rem.pedidos||{};
+        // Recovery de obras
+        if(backup.obras||rem.obras){
+          CRON.obras=backup.obras||rem.obras;
+          var arrObras2=[];
+          for(var oId2 in CRON.obras){arrObras2.push(CRON.obras[oId2]);}
+          if(arrObras2.length>0){S.obras=arrObras2.map(normObra);S.driveOk=true;}
+        }
         guardarCronogramaRemoto(); // Re-subir
       }else{
         CRON.cronograma=rem.cronograma||{};
@@ -1449,6 +1495,17 @@ function cargarCronogramaRemoto(cb){
         CRON.drives=rem.drives||{};
         CRON.materiales=rem.materiales||null;
         CRON.pedidos=rem.pedidos||{};
+        // NUEVO: cargar obras desde JSONBin (fuente de verdad)
+        if(rem.obras&&typeof rem.obras==="object"){
+          CRON.obras=rem.obras;
+          // Convertir objeto a array para S.obras
+          var arrObras=[];
+          for(var oId in rem.obras){arrObras.push(rem.obras[oId]);}
+          if(arrObras.length>0){
+            S.obras=arrObras.map(normObra);
+            S.driveOk=true;
+          }
+        }
         if(rem.garantias){
           CRON.garantias=rem.garantias;
           S.gars=rem.garantias;
@@ -1474,6 +1531,7 @@ function _localBackup(){
       drives:CRON.drives||{},
       materiales:CRON.materiales,
       pedidos:CRON.pedidos||{},
+      obras:CRON.obras||{},
       ts:Date.now()
     }));
   }catch(e){}
@@ -1488,7 +1546,7 @@ function guardarCronogramaRemoto(){
   // Debounce corto: 100ms (era 400ms - causaba race conditions)
   if(_cronTimer)clearTimeout(_cronTimer);
   _cronTimer=setTimeout(function(){
-    var payload=JSON.stringify({cronograma:CRON.cronograma||{},videos:CRON.videos||{},garantias:S.gars||[],estados:CRON.estados||{},drives:CRON.drives||{},materiales:CRON.materiales,pedidos:CRON.pedidos||{}});
+    var payload=JSON.stringify({cronograma:CRON.cronograma||{},videos:CRON.videos||{},garantias:S.gars||[],estados:CRON.estados||{},drives:CRON.drives||{},materiales:CRON.materiales,pedidos:CRON.pedidos||{},obras:CRON.obras||{}});
     fetch(JSONBIN_CRON_URL,{
       method:"PUT",
       headers:{"Content-Type":"application/json","X-Master-Key":JSONBIN_KEY},
@@ -1963,7 +2021,7 @@ function rDetalle(){
     var bgEnt=(puedeEditFechas&&fEditManual)?"":";background:#F5F5F5";
     var valEntregaShow=(fEditManual&&o.fE)?o.fE:(fechaEntregaCalculada||o.fE||"");
     var fechasObraHTML=div("card","<div class='cp' style='background:#FAF7F3;border:2px solid var(--v)'>"+
-      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v11</span></div>"+
+      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v12</span></div>"+
       "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px'>"+
         "<div>"+
           "<label style='font-size:11px;color:var(--g);font-weight:600'>Fecha de inicio de obra *</label>"+
@@ -2305,6 +2363,14 @@ function rLog(){
         h("div",{"style":"display:flex;align-items:center;justify-content:space-between"},h("span",{"class":"bdg "+cfg.cls},cfg.lbl)+h("select",{"style":"font-size:10px;padding:3px 7px;width:auto","onchange":"updLog("+l.id+",this.value)"},opts)));
     }).join("");
     contenido=div("kgrid",kpiC(conf,"Confirmados","ok","#3A6B45")+kpiC(pend,"Pendientes","sin confirmar","#C17B2A")+kpiC(ret,"Retrasados","accion req.","#B5362A"))+div("card",h("div",{"class":"chd"},h("span",{},"PEDIDOS GENERALES"))+rows);
+    // Boton de emergencia: re-importar del Sheet
+    if(puedeCerrarObra()){
+      contenido+=div("card","<div class='cp' style='background:#FAEBE9;border:1px solid #E8C5BE'>"+
+        h("div",{"style":"font-size:11px;color:#B5362A;font-weight:600;margin-bottom:4px"},"Zona de administracion")+
+        h("div",{"style":"font-size:10px;color:var(--g);margin-bottom:8px"},"Si los datos de obras se corrompen, puedes re-importar desde el Google Sheet. Esta opcion es de emergencia y sobreescribe los datos actuales.")+
+        h("button",{"style":"background:#fff;border:1px solid #B5362A;color:#B5362A;border-radius:7px;padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit","onclick":"reimportarDelSheet()"},"Re-importar obras del Sheet")+
+        "</div>");
+    }
   }
   else if(subTab==="catalogo"){
     // Catalogo maestro de materiales por capitulo
