@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.12-v12-migrado">
+<meta name="version" content="2026.05.13-v13-planilla">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.12-v12-migrado";
+var APP_VERSION="2026.05.13-v13-planilla";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -516,6 +516,193 @@ function setPedidoEstado(obraId,capN,matId,estado){
   render();
 }
 
+// === PLANILLA DE DESPACHO (Fase 2.5) ===
+// Genera ventana imprimible con los materiales seleccionados para despacho
+
+// Estado de seleccion para generar planilla (los chequea Sandra antes de generar)
+var SDP={obraId:null,seleccion:{}}; // {capN_matId: true}
+
+// Iniciar flujo de generar planilla para una obra
+function abrirGenerarPlanilla(obraId){
+  if(!puedeCerrarObra()){alert("Solo CEO/Operaciones/Coordinacion pueden generar planillas de despacho.");return;}
+  SDP.obraId=obraId;
+  SDP.seleccion={};
+  // Pre-seleccionar todos los solicitados de esta obra
+  var ped=CRON.pedidos[obraId]||{};
+  for(var capK in ped){
+    var lst=ped[capK]||[];
+    for(var pi=0;pi<lst.length;pi++){
+      var p=lst[pi];
+      if(p.estado==="solicitado"||p.estado==="en_bodega"){
+        SDP.seleccion[capK+"_"+p.matId]=true;
+      }
+    }
+  }
+  render();
+}
+
+function cerrarPlanilla(){
+  SDP.obraId=null;SDP.seleccion={};
+  render();
+}
+
+function toggleSelPlanilla(capN,matId){
+  var k=capN+"_"+matId;
+  if(SDP.seleccion[k])delete SDP.seleccion[k];
+  else SDP.seleccion[k]=true;
+  render();
+}
+
+// Generar e imprimir la planilla
+function imprimirPlanilla(){
+  if(!SDP.obraId)return;
+  var o=null;
+  for(var i=0;i<S.obras.length;i++)if(S.obras[i].id===SDP.obraId){o=S.obras[i];break;}
+  if(!o){alert("Obra no encontrada");return;}
+  
+  // Recolectar materiales seleccionados
+  var items=[];
+  var ped=CRON.pedidos[o.id]||{};
+  for(var capK in ped){
+    var lst=ped[capK]||[];
+    for(var pi=0;pi<lst.length;pi++){
+      var p=lst[pi];
+      var key=capK+"_"+p.matId;
+      if(SDP.seleccion[key]){
+        // Buscar nombre del material en catalogo
+        var matCat=null;
+        var listaM=(CRON.materiales[capK]||[]);
+        for(var lm=0;lm<listaM.length;lm++)if(listaM[lm].id===p.matId){matCat=listaM[lm];break;}
+        if(matCat){
+          items.push({capN:capK,nombre:matCat.nom,cantidad:p.cantidad,unidad:matCat.uni,matId:p.matId});
+        }
+      }
+    }
+  }
+  
+  if(items.length===0){alert("No hay materiales seleccionados para despachar.");return;}
+  
+  // Marcar los materiales como "en_camino"
+  for(var ii=0;ii<items.length;ii++){
+    setPedidoEstadoSinRender(o.id,+items[ii].capN,items[ii].matId,"en_camino");
+  }
+  guardarCronogramaRemoto();
+  
+  // Generar HTML imprimible
+  var hoyP=new Date();
+  var fechaStr=hoyP.toLocaleDateString("es-CO",{day:"2-digit",month:"long",year:"numeric"});
+  var horaStr=hoyP.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
+  var nroPlanilla="DP-"+o.cod.replace(/\s/g,"")+"-"+hoyP.getFullYear()+(hoyP.getMonth()+1+"").padStart(2,"0")+(hoyP.getDate()+"").padStart(2,"0")+(hoyP.getHours()+"").padStart(2,"0")+(hoyP.getMinutes()+"").padStart(2,"0");
+  
+  var rowsHtml="";
+  for(var k=0;k<items.length;k++){
+    var it=items[k];
+    rowsHtml+="<tr>"+
+      "<td style=\"text-align:center;border:1px solid #555;padding:8px;width:40px;\"><div style=\"width:18px;height:18px;border:2px solid #555;display:inline-block\"></div></td>"+
+      "<td style=\"border:1px solid #555;padding:8px\">"+(k+1)+"</td>"+
+      "<td style=\"border:1px solid #555;padding:8px\">"+it.nombre+"</td>"+
+      "<td style=\"border:1px solid #555;padding:8px;text-align:right\">"+it.cantidad+"</td>"+
+      "<td style=\"border:1px solid #555;padding:8px;text-align:center\">"+it.unidad+"</td>"+
+      "<td style=\"border:1px solid #555;padding:8px\">Cap. "+it.capN+"</td>"+
+      "</tr>";
+  }
+  
+  var w=window.open("","_blank","width=800,height=900");
+  if(!w){alert("El navegador bloqueo la ventana. Autoriza pop-ups para generar la planilla.");return;}
+  
+  var docHtml="<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Planilla Despacho "+nroPlanilla+"</title>"+
+    "<style>"+
+      "body{font-family:Arial,sans-serif;margin:0;padding:20px;color:#1B2A4A;font-size:11pt}"+
+      ".header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1B2A4A;padding-bottom:10px;margin-bottom:14px}"+
+      ".logo{display:flex;align-items:center;gap:10px}"+
+      ".logo-box{width:50px;height:50px;background:#1B2A4A;color:#E8A020;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px;border-radius:8px}"+
+      ".empresa{font-size:14pt;font-weight:bold;color:#1B2A4A}"+
+      ".empresa-sub{font-size:9pt;color:#666}"+
+      ".titulo{text-align:right}"+
+      ".titulo h1{font-size:16pt;margin:0;color:#1B2A4A}"+
+      ".titulo .nro{font-size:10pt;color:#E8A020;font-weight:bold}"+
+      ".info-obra{background:#F5F2EC;padding:10px 12px;border-left:4px solid #E8A020;margin-bottom:14px}"+
+      ".info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10pt}"+
+      ".info-grid div{display:flex;gap:5px}"+
+      ".info-grid b{color:#1B2A4A;min-width:75px}"+
+      "table{width:100%;border-collapse:collapse;margin:12px 0;font-size:10pt}"+
+      "th{background:#1B2A4A;color:#fff;padding:9px;text-align:left;border:1px solid #1B2A4A;font-weight:bold;font-size:10pt}"+
+      ".instrucciones{background:#FFF8E7;border:1px solid #E8A020;padding:8px 12px;font-size:9pt;color:#666;margin:12px 0}"+
+      ".firmas{display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;margin-top:30px}"+
+      ".firma{border-top:2px solid #555;padding-top:6px;font-size:9pt}"+
+      ".firma-title{font-weight:bold;color:#1B2A4A;font-size:10pt}"+
+      ".firma-line{height:35px}"+
+      ".firma-label{color:#888;font-size:8pt;margin-top:4px}"+
+      ".footer{text-align:center;font-size:8pt;color:#999;margin-top:25px;border-top:1px solid #DDD;padding-top:8px}"+
+      "@media print{body{margin:0;padding:15px}.no-print{display:none}}"+
+      ".no-print{margin:18px 0;text-align:center}"+
+      ".btn-print{background:#1B2A4A;color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:11pt;cursor:pointer;font-weight:bold}"+
+    "</style></head><body>"+
+    "<div class=\"header\">"+
+      "<div class=\"logo\">"+
+        "<div class=\"logo-box\">M</div>"+
+        "<div><div class=\"empresa\">MOSS Arquitectura</div><div class=\"empresa-sub\">y Mobiliario S.A.S. - NIT 901.159.078-6</div></div>"+
+      "</div>"+
+      "<div class=\"titulo\"><h1>PLANILLA DE DESPACHO</h1><div class=\"nro\">N° "+nroPlanilla+"</div><div style=\"font-size:9pt;color:#666\">Generada: "+fechaStr+" - "+horaStr+"</div></div>"+
+    "</div>"+
+    "<div class=\"info-obra\">"+
+      "<div class=\"info-grid\">"+
+        "<div><b>Obra:</b> "+o.cod+" - "+o.nom+"</div>"+
+        "<div><b>Cliente:</b> "+(o.cli||"-")+"</div>"+
+        "<div><b>Residente:</b> "+(o.res||"-")+"</div>"+
+        "<div><b>Maestro:</b> "+(o.maestro||"-")+"</div>"+
+      "</div>"+
+    "</div>"+
+    "<div class=\"instrucciones\"><b>Instrucciones para el maestro:</b> Marca con X en la casilla cada material recibido. Si hay diferencias en cantidad o calidad, anota en la columna correspondiente. Firma al final y devuelve esta planilla al transportador.</div>"+
+    "<table>"+
+      "<thead><tr><th style=\"width:40px;text-align:center\">OK</th><th style=\"width:30px\">#</th><th>Material</th><th style=\"width:60px;text-align:right\">Cant.</th><th style=\"width:60px;text-align:center\">Unidad</th><th style=\"width:80px\">Capitulo</th></tr></thead>"+
+      "<tbody>"+rowsHtml+"</tbody>"+
+    "</table>"+
+    "<div class=\"firmas\">"+
+      "<div class=\"firma\"><div class=\"firma-title\">Despacha (Sandra)</div><div class=\"firma-line\"></div><div class=\"firma-label\">Firma y nombre</div><div class=\"firma-label\">C.C: ____________________</div></div>"+
+      "<div class=\"firma\"><div class=\"firma-title\">Transportador</div><div class=\"firma-line\"></div><div class=\"firma-label\">Firma y nombre</div><div class=\"firma-label\">C.C: ____________________</div></div>"+
+      "<div class=\"firma\"><div class=\"firma-title\">Recibe (Maestro)</div><div class=\"firma-line\"></div><div class=\"firma-label\">Firma y nombre</div><div class=\"firma-label\">C.C: ____________________</div></div>"+
+    "</div>"+
+    "<div class=\"firmas\" style=\"grid-template-columns:1fr;margin-top:15px\">"+
+      "<div class=\"firma\"><div class=\"firma-title\">Observaciones / Novedades</div><div style=\"height:50px;border-bottom:1px dashed #999\"></div><div style=\"height:25px;border-bottom:1px dashed #999\"></div></div>"+
+    "</div>"+
+    "<div class=\"footer\">MOSS Arquitectura y Mobiliario S.A.S. - Documento generado por ObraControl - "+nroPlanilla+"</div>"+
+    "<div class=\"no-print\"><button class=\"btn-print\" onclick=\"window.print()\">Imprimir / Guardar PDF</button></div>"+
+    "</body></html>";
+  
+  w.document.open();
+  w.document.write(docHtml);
+  w.document.close();
+  
+  // Cerrar modal y limpiar
+  cerrarPlanilla();
+  alert("Planilla generada. Los materiales pasaron a estado 'En camino'.\n\nEn la nueva ventana puedes imprimir o guardar como PDF.");
+}
+
+// Cambiar estado sin disparar render (para batch)
+function setPedidoEstadoSinRender(obraId,capN,matId,estado){
+  if(!CRON.pedidos[obraId])CRON.pedidos[obraId]={};
+  if(!CRON.pedidos[obraId][capN])CRON.pedidos[obraId][capN]=[];
+  var lista=CRON.pedidos[obraId][capN];
+  var found=false;
+  for(var i=0;i<lista.length;i++){
+    if(lista[i].matId===matId){
+      lista[i].estado=estado;
+      lista[i].fechaUpd=new Date().toISOString().slice(0,10);
+      lista[i].actor=S.user.nombre;
+      found=true;break;
+    }
+  }
+  if(!found){
+    lista.push({
+      matId:matId,cantidad:calcularCantidadMaterial(obraId,capN,matId),
+      estado:estado,fechaSolicitud:new Date().toISOString().slice(0,10),
+      fechaUpd:new Date().toISOString().slice(0,10),actor:S.user.nombre,notas:""
+    });
+  }
+}
+
+
 // Cambiar cantidad personalizada de un pedido en una obra
 function setPedidoCantidad(obraId,capN,matId,cantidad){
   if(!CRON.pedidos[obraId])CRON.pedidos[obraId]={};
@@ -542,15 +729,18 @@ function setPedidoCantidad(obraId,capN,matId,cantidad){
   guardarCronogramaRemoto();
 }
 
-// Permisos para cambiar estado segun rol
+// Permisos para cambiar estado segun rol y flujo del semaforo
+// Flujo: Pendiente -> Solicitado (residente/admin) -> En bodega/En camino (sandra/admin) -> En obra (sandra/admin tras firma)
 function puedeCambiarEstadoMat(estadoActual,estadoNuevo){
   if(!S.user)return false;
   var rol=S.user.rol;
-  // CEO/Admin/Coordinacion pueden todo
+  // CEO/Admin/Coordinacion: cualquier transicion
   if(rol==="admin"||rol==="coordinadora")return true;
-  // Residentes solo pueden marcar "en_obra" (recibir)
+  // Residente: solo puede SOLICITAR (pendiente->solicitado) y MARCAR RECIBIDO si llego en camino
   if(rol==="residente"){
-    return estadoNuevo==="en_obra";
+    if(estadoActual==="pendiente"&&estadoNuevo==="solicitado")return true;
+    if(estadoActual==="en_camino"&&estadoNuevo==="en_obra")return true;
+    return false;
   }
   return false;
 }
@@ -839,7 +1029,101 @@ function guardar(){
 function render(){
   var el=document.getElementById("root");
   if(!S.user){el.innerHTML=rLogin();bLogin();return;}
-  el.innerHTML=rTopbar()+rNavbar()+h("div",{"class":"content"},rContent())+rDriveEditModal();
+  el.innerHTML=rTopbar()+rNavbar()+h("div",{"class":"content"},rContent())+rDriveEditModal()+rPlanillaModal();
+}
+
+// Modal de seleccion de materiales para planilla de despacho
+function rPlanillaModal(){
+  if(!SDP.obraId)return "";
+  var o=null;
+  for(var i=0;i<S.obras.length;i++)if(S.obras[i].id===SDP.obraId){o=S.obras[i];break;}
+  if(!o)return "";
+  
+  // Recolectar materiales solicitados o en bodega
+  var grupos={};
+  var ped=CRON.pedidos[o.id]||{};
+  for(var capK in ped){
+    var lst=ped[capK]||[];
+    for(var pi=0;pi<lst.length;pi++){
+      var p=lst[pi];
+      if(p.estado==="solicitado"||p.estado==="en_bodega"){
+        if(!grupos[capK])grupos[capK]=[];
+        var matCat=null;
+        var listaM=(CRON.materiales[capK]||[]);
+        for(var lm=0;lm<listaM.length;lm++)if(listaM[lm].id===p.matId){matCat=listaM[lm];break;}
+        if(matCat)grupos[capK].push({pedido:p,mat:matCat});
+      }
+    }
+  }
+  
+  var capKeys=Object.keys(grupos).sort(function(a,b){return +a-+b;});
+  if(capKeys.length===0){
+    var vacio=h("div",{"style":"text-align:center;padding:30px;color:var(--g)"},
+      h("div",{"style":"font-size:14px;font-weight:600;margin-bottom:8px"},"No hay materiales pendientes")+
+      h("div",{"style":"font-size:11px"},"Esta obra no tiene materiales en estado 'Solicitado' o 'En bodega'.")
+    );
+    return h("div",{"style":"position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto"},
+      h("div",{"style":"background:#fff;border-radius:12px;max-width:600px;width:100%;padding:18px;margin-top:30px"},
+        h("div",{"style":"display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"},
+          h("div",{"style":"font-size:15px;font-weight:700;color:var(--v)"},"Generar planilla de despacho")+
+          h("button",{"style":"background:transparent;border:none;font-size:22px;cursor:pointer;color:var(--g)","onclick":"cerrarPlanilla()"},"&times;")
+        )+vacio+
+        h("div",{"style":"margin-top:14px;text-align:right"},
+          h("button",{"class":"bg","onclick":"cerrarPlanilla()"},"Cerrar")
+        )
+      )
+    );
+  }
+  
+  // Construir lista de materiales agrupados por capitulo
+  var capsHTML="";
+  var selCount=0;
+  for(var ck=0;ck<capKeys.length;ck++){
+    var capN=capKeys[ck];
+    var capName="";
+    for(var ci=0;ci<CAPITULOS.length;ci++)if(CAPITULOS[ci].n===+capN){capName=CAPITULOS[ci].nom;break;}
+    var rowsM="";
+    for(var ri=0;ri<grupos[capN].length;ri++){
+      var item=grupos[capN][ri];
+      var k=capN+"_"+item.mat.id;
+      var checked=SDP.seleccion[k]?true:false;
+      if(checked)selCount++;
+      var estCfg=EST_MAT[item.pedido.estado]||EST_MAT.pendiente;
+      rowsM+=h("label",{"style":"display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #EEE;cursor:pointer;background:"+(checked?"#E8F0EB":"#fff")},
+        h("input",{"type":"checkbox","onchange":"toggleSelPlanilla("+capN+","+item.mat.id+")","checked":checked?"checked":null,"style":"transform:scale(1.2)"},"")+
+        h("div",{"style":"flex:1"},
+          h("div",{"style":"font-size:12px;font-weight:600"},item.mat.nom)+
+          h("div",{"style":"font-size:10px;color:var(--g)"},item.pedido.cantidad+" "+item.mat.uni+" - "+estCfg.lbl)
+        )
+      );
+    }
+    capsHTML+=h("div",{"style":"margin-bottom:10px"},
+      h("div",{"style":"font-size:11px;font-weight:700;color:var(--v);padding:6px 0"},"Cap. "+capN+" - "+capName)+
+      h("div",{"style":"border:1px solid var(--b);border-radius:6px;overflow:hidden"},rowsM)
+    );
+  }
+  
+  var btnGenerar=selCount>0?
+    h("button",{"class":"bp","style":"font-size:12px;padding:9px 18px","onclick":"imprimirPlanilla()"},"&#x1F4C4; Generar planilla ("+selCount+" items)"):
+    h("button",{"style":"font-size:12px;padding:9px 18px;background:#CCC;color:#666;border:none;border-radius:7px;font-family:inherit","disabled":"disabled"},"Selecciona al menos 1 material");
+  
+  return h("div",{"style":"position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto"},
+    h("div",{"style":"background:#fff;border-radius:12px;max-width:700px;width:100%;padding:18px;margin-top:20px;max-height:90vh;overflow-y:auto"},
+      h("div",{"style":"display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"},
+        h("div",{},
+          h("div",{"style":"font-size:15px;font-weight:700;color:var(--v)"},"Generar planilla de despacho")+
+          h("div",{"style":"font-size:11px;color:var(--g)"},o.cod+" - "+o.nom)
+        )+
+        h("button",{"style":"background:transparent;border:none;font-size:22px;cursor:pointer;color:var(--g)","onclick":"cerrarPlanilla()"},"&times;")
+      )+
+      h("div",{"style":"font-size:10px;color:var(--g);background:#FFF8E7;border-left:3px solid var(--d);padding:7px 10px;margin:8px 0 12px"},"Selecciona los materiales que vas a despachar. Al generar la planilla, los materiales seleccionados pasaran al estado 'En camino' automaticamente.")+
+      capsHTML+
+      h("div",{"style":"display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--b)"},
+        h("button",{"class":"bg","style":"font-size:11px;padding:8px 14px","onclick":"cerrarPlanilla()"},"Cancelar")+
+        btnGenerar
+      )
+    )
+  );
 }
 
 // Modal de edicion de carpetas de Drive (se muestra cuando S.driveEdit existe)
@@ -1930,12 +2214,31 @@ function rDetalle(){
     var esResid=esRes();
     var m2obra=parseFloat(o.m2)||0;
     var avisoM2=m2obra===0?h("div",{"style":"font-size:11px;color:#B5362A;background:#FAE5E2;padding:8px 12px;border-radius:8px;margin-bottom:10px"},"&#x26A0; Esta obra no tiene m2 totales asignados. Edita la obra para agregar este dato y poder calcular cantidades automaticamente."):"";
+    // Contar solicitados para mostrar en boton
+    var pedObra=CRON.pedidos[o.id]||{};
+    var solicitados=0,enCamino=0,enObra=0;
+    for(var ck in pedObra){
+      var lstx=pedObra[ck]||[];
+      for(var li=0;li<lstx.length;li++){
+        if(lstx[li].estado==="solicitado")solicitados++;
+        else if(lstx[li].estado==="en_camino")enCamino++;
+        else if(lstx[li].estado==="en_obra")enObra++;
+      }
+    }
+    var btnPlanilla=puedeEdit?h("button",{"class":"bp","style":"font-size:11px;padding:7px 14px;margin-top:8px","onclick":"abrirGenerarPlanilla("+o.id+")"},"&#x1F4C4; Generar planilla de despacho"+(solicitados>0?" ("+solicitados+" solicitados)":"")):"";
+    var resumenSem=h("div",{"style":"display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:10px"},
+      h("span",{"style":"background:#FDF0E0;color:#C17B2A;padding:3px 8px;border-radius:5px;font-weight:600"},"&#x1F7E1; "+solicitados+" solicitados")+
+      h("span",{"style":"background:#FDF0E0;color:#C17B2A;padding:3px 8px;border-radius:5px;font-weight:600"},"&#x1F69A; "+enCamino+" en camino")+
+      h("span",{"style":"background:#E8F0EB;color:#3A6B45;padding:3px 8px;border-radius:5px;font-weight:600"},"&#x2705; "+enObra+" en obra")
+    );
     var infoObra=div("card","<div class='cp'>"+
       h("div",{"style":"display:flex;justify-content:space-between;align-items:center"},
         h("span",{"style":"font-size:13px;font-weight:700;color:var(--v)"},"Plan de materiales - "+o.cod)+
         h("span",{"style":"font-size:11px;color:var(--g)"},m2obra>0?(m2obra+" m2 totales"):"sin m2")
       )+
       avisoM2+
+      resumenSem+
+      btnPlanilla+
       "</div>");
     // Por cada capitulo con materiales en catalogo
     var capsHTML="";
@@ -1951,7 +2254,7 @@ function rDetalle(){
         var cantActual=pedido?pedido.cantidad:cantSugerida;
         var estadoActual=pedido?pedido.estado:"pendiente";
         var estCfg=EST_MAT[estadoActual]||EST_MAT.pendiente;
-        // Botones de cambio de estado
+        // Botones de cambio de estado (semaforo)
         var estadosOrden=["pendiente","solicitado","en_bodega","en_camino","en_obra"];
         var btnsEst="";
         for(var ei=0;ei<estadosOrden.length;ei++){
@@ -1966,8 +2269,16 @@ function rDetalle(){
           btnsEst+=h("button",{
             "style":"font-size:9px;padding:3px 6px;margin:0 2px;border:1px solid "+ec.col+";background:"+bgB+";color:"+colB+";border-radius:5px;cursor:"+cursor+";font-family:inherit;font-weight:600",
             "onclick":onclickB,
-            "title":ec.lbl
+            "title":(puede?"Click para cambiar a ":"Sin permiso para ")+ec.lbl
           },ec.lbl);
+        }
+        // Metadata del pedido (quien solicito, cuando)
+        var metaPedido="";
+        if(pedido){
+          var actorTxt=pedido.actor?(" por "+pedido.actor):"";
+          if(estadoActual==="solicitado")metaPedido=h("div",{"style":"font-size:9px;color:var(--g);font-style:italic;margin-top:3px"},"Solicitado el "+(pedido.fechaSolicitud||pedido.fechaUpd)+actorTxt);
+          else if(estadoActual==="en_camino")metaPedido=h("div",{"style":"font-size:9px;color:#C17B2A;font-style:italic;margin-top:3px"},"En camino desde el "+pedido.fechaUpd+actorTxt);
+          else if(estadoActual==="en_obra")metaPedido=h("div",{"style":"font-size:9px;color:#3A6B45;font-style:italic;margin-top:3px;font-weight:600"},"Recibido el "+pedido.fechaUpd+actorTxt);
         }
         // Notas del material
         var notasMat=mat.notas?h("div",{"style":"font-size:10px;color:var(--g);margin-top:2px;font-style:italic"},mat.notas):"";
@@ -1986,7 +2297,7 @@ function rDetalle(){
           h("div",{"style":"margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"},
             h("span",{"style":"font-size:10px;color:"+estCfg.col+";background:"+estCfg.bg+";padding:3px 8px;border-radius:5px;font-weight:600;margin-right:4px"},estCfg.ic+" "+estCfg.lbl)+
             btnsEst
-          )
+          )+metaPedido
         );
       }
       capsHTML+=div("card","<div class='cp'>"+
@@ -2021,7 +2332,7 @@ function rDetalle(){
     var bgEnt=(puedeEditFechas&&fEditManual)?"":";background:#F5F5F5";
     var valEntregaShow=(fEditManual&&o.fE)?o.fE:(fechaEntregaCalculada||o.fE||"");
     var fechasObraHTML=div("card","<div class='cp' style='background:#FAF7F3;border:2px solid var(--v)'>"+
-      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v12</span></div>"+
+      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v13</span></div>"+
       "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px'>"+
         "<div>"+
           "<label style='font-size:11px;color:var(--g);font-weight:600'>Fecha de inicio de obra *</label>"+
