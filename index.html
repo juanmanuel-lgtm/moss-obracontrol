@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.13-v13-planilla">
+<meta name="version" content="2026.05.13-v14-materiales+">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.13-v13-planilla";
+var APP_VERSION="2026.05.13-v14-materiales+";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -527,13 +527,13 @@ function abrirGenerarPlanilla(obraId){
   if(!puedeCerrarObra()){alert("Solo CEO/Operaciones/Coordinacion pueden generar planillas de despacho.");return;}
   SDP.obraId=obraId;
   SDP.seleccion={};
-  // Pre-seleccionar todos los solicitados de esta obra
+  // Pre-seleccionar materiales con cantidad > 0 en estado solicitado o en_bodega
   var ped=CRON.pedidos[obraId]||{};
   for(var capK in ped){
     var lst=ped[capK]||[];
     for(var pi=0;pi<lst.length;pi++){
       var p=lst[pi];
-      if(p.estado==="solicitado"||p.estado==="en_bodega"){
+      if(p.cantidad>0&&(p.estado==="solicitado"||p.estado==="en_bodega")){
         SDP.seleccion[capK+"_"+p.matId]=true;
       }
     }
@@ -568,7 +568,7 @@ function imprimirPlanilla(){
     for(var pi=0;pi<lst.length;pi++){
       var p=lst[pi];
       var key=capK+"_"+p.matId;
-      if(SDP.seleccion[key]){
+      if(SDP.seleccion[key]&&p.cantidad>0){
         // Buscar nombre del material en catalogo
         var matCat=null;
         var listaM=(CRON.materiales[capK]||[]);
@@ -701,6 +701,151 @@ function setPedidoEstadoSinRender(obraId,capN,matId,estado){
     });
   }
 }
+
+// === AGREGAR MATERIAL RAPIDO DESDE OBRA ===
+// Estado del agregar material por obra (capN actual)
+var ADDM={obraId:null,capN:null,buscar:"",modo:"nuevo"}; // modo: "nuevo" o "catalogo"
+
+function abrirAgregarMaterial(obraId,capN){
+  if(!puedeCerrarObra()){alert("Solo CEO/Operaciones/Coordinacion pueden agregar materiales.");return;}
+  ADDM.obraId=obraId;
+  ADDM.capN=capN;
+  ADDM.buscar="";
+  ADDM.modo="nuevo";
+  render();
+}
+
+function cerrarAgregarMaterial(){
+  ADDM.obraId=null;ADDM.capN=null;ADDM.buscar="";
+  render();
+}
+
+function changeAddModo(modo){
+  ADDM.modo=modo;
+  // Sincronizar el buscador del DOM al estado
+  var inp=document.getElementById("addm-buscar");
+  if(inp)ADDM.buscar=inp.value||"";
+  render();
+}
+
+function updAddBuscar(v){
+  ADDM.buscar=v||"";
+  // Re-render solo el listado de catalogo si estamos en ese modo
+  if(ADDM.modo==="catalogo")render();
+}
+
+// Crear material en catalogo + asignarlo a la obra con cantidad
+function crearMaterialNuevo(){
+  if(!ADDM.obraId||!ADDM.capN)return;
+  var nom=document.getElementById("addm-nom").value.trim();
+  var uni=document.getElementById("addm-uni").value.trim()||"unidad";
+  var cant=parseFloat(document.getElementById("addm-cant").value)||0;
+  if(!nom){alert("El nombre es obligatorio");return;}
+  if(cant<=0){alert("La cantidad debe ser mayor a 0");return;}
+  initCatalogoMateriales();
+  if(!CRON.materiales[ADDM.capN])CRON.materiales[ADDM.capN]=[];
+  // Verificar duplicado (case-insensitive)
+  var dupId=null;
+  var nomLower=nom.toLowerCase();
+  for(var k in CRON.materiales){
+    for(var i=0;i<CRON.materiales[k].length;i++){
+      if(CRON.materiales[k][i].nom.toLowerCase()===nomLower){
+        dupId={cap:k,id:CRON.materiales[k][i].id,nom:CRON.materiales[k][i].nom};
+        break;
+      }
+    }
+    if(dupId)break;
+  }
+  if(dupId){
+    if(!confirm("Ya existe un material llamado \""+dupId.nom+"\" en el Cap. "+dupId.cap+".\n\nQuieres usarlo en lugar de crear duplicado?")){
+      return;
+    }
+    // Usar el existente: agregar pedido a esta obra
+    if(!CRON.pedidos[ADDM.obraId])CRON.pedidos[ADDM.obraId]={};
+    if(!CRON.pedidos[ADDM.obraId][dupId.cap])CRON.pedidos[ADDM.obraId][dupId.cap]=[];
+    var lista=CRON.pedidos[ADDM.obraId][dupId.cap];
+    // Buscar si ya hay pedido
+    var found=false;
+    for(var li=0;li<lista.length;li++){
+      if(lista[li].matId===dupId.id){lista[li].cantidad=cant;found=true;break;}
+    }
+    if(!found){
+      lista.push({
+        matId:dupId.id,cantidad:cant,estado:"pendiente",
+        fechaSolicitud:new Date().toISOString().slice(0,10),
+        fechaUpd:new Date().toISOString().slice(0,10),
+        actor:S.user.nombre,notas:""
+      });
+    }
+    guardarCronogramaRemoto();
+    cerrarAgregarMaterial();
+    return;
+  }
+  // Crear nuevo: generar id unico
+  var maxId=0;
+  for(var k2 in CRON.materiales){
+    for(var j=0;j<CRON.materiales[k2].length;j++){
+      if(CRON.materiales[k2][j].id>maxId)maxId=CRON.materiales[k2][j].id;
+    }
+  }
+  var newMat={id:maxId+1,nom:nom,uni:uni,cant_m2:0,origen:"compra",lead:0,critico:false,notas:""};
+  CRON.materiales[ADDM.capN].push(newMat);
+  // Crear pedido en la obra
+  if(!CRON.pedidos[ADDM.obraId])CRON.pedidos[ADDM.obraId]={};
+  if(!CRON.pedidos[ADDM.obraId][ADDM.capN])CRON.pedidos[ADDM.obraId][ADDM.capN]=[];
+  CRON.pedidos[ADDM.obraId][ADDM.capN].push({
+    matId:newMat.id,cantidad:cant,estado:"pendiente",
+    fechaSolicitud:new Date().toISOString().slice(0,10),
+    fechaUpd:new Date().toISOString().slice(0,10),
+    actor:S.user.nombre,notas:""
+  });
+  guardarCronogramaRemoto();
+  cerrarAgregarMaterial();
+}
+
+// Agregar desde catalogo existente (selector)
+function addDesdeCatalogo(capDeMatN,matId){
+  if(!ADDM.obraId)return;
+  var cantInput=document.getElementById("addmcat-"+capDeMatN+"-"+matId);
+  var cant=parseFloat(cantInput?cantInput.value:0)||0;
+  if(cant<=0){alert("Ingresa una cantidad mayor a 0");return;}
+  if(!CRON.pedidos[ADDM.obraId])CRON.pedidos[ADDM.obraId]={};
+  if(!CRON.pedidos[ADDM.obraId][capDeMatN])CRON.pedidos[ADDM.obraId][capDeMatN]=[];
+  var lista=CRON.pedidos[ADDM.obraId][capDeMatN];
+  var found=false;
+  for(var li=0;li<lista.length;li++){
+    if(lista[li].matId===matId){
+      lista[li].cantidad+=cant; // sumar a lo que ya habia
+      found=true;break;
+    }
+  }
+  if(!found){
+    lista.push({
+      matId:matId,cantidad:cant,estado:"pendiente",
+      fechaSolicitud:new Date().toISOString().slice(0,10),
+      fechaUpd:new Date().toISOString().slice(0,10),
+      actor:S.user.nombre,notas:""
+    });
+  }
+  guardarCronogramaRemoto();
+  // Limpiar el campo pero NO cerrar (para poder agregar mas)
+  if(cantInput)cantInput.value="";
+  // Mostrar feedback
+  var btn=document.getElementById("btnaddcat-"+capDeMatN+"-"+matId);
+  if(btn){btn.textContent="Agregado!";setTimeout(function(){if(btn)btn.textContent="+ Agregar";},1500);}
+}
+
+// Eliminar pedido de la obra (no del catalogo)
+function elimPedidoObra(obraId,capN,matId){
+  if(!puedeCerrarObra()){alert("Sin permisos");return;}
+  if(!confirm("Eliminar este material del plan de esta obra?\n\nEl material seguira en el catalogo general."))return;
+  if(CRON.pedidos[obraId]&&CRON.pedidos[obraId][capN]){
+    CRON.pedidos[obraId][capN]=CRON.pedidos[obraId][capN].filter(function(p){return p.matId!==matId;});
+  }
+  guardarCronogramaRemoto();
+  render();
+}
+
 
 
 // Cambiar cantidad personalizada de un pedido en una obra
@@ -1029,7 +1174,108 @@ function guardar(){
 function render(){
   var el=document.getElementById("root");
   if(!S.user){el.innerHTML=rLogin();bLogin();return;}
-  el.innerHTML=rTopbar()+rNavbar()+h("div",{"class":"content"},rContent())+rDriveEditModal()+rPlanillaModal();
+  el.innerHTML=rTopbar()+rNavbar()+h("div",{"class":"content"},rContent())+rDriveEditModal()+rPlanillaModal()+rAgregarMaterialModal();
+}
+
+// Modal: agregar material a una obra (nuevo o desde catalogo)
+function rAgregarMaterialModal(){
+  if(!ADDM.obraId||!ADDM.capN)return "";
+  var o=null;
+  for(var i=0;i<S.obras.length;i++)if(S.obras[i].id===ADDM.obraId){o=S.obras[i];break;}
+  if(!o)return "";
+  var capNom="";
+  for(var ci=0;ci<CAPITULOS.length;ci++)if(CAPITULOS[ci].n===ADDM.capN){capNom=CAPITULOS[ci].nom;break;}
+  
+  var tabs=h("div",{"style":"display:flex;gap:4px;margin-bottom:12px;background:var(--bc);padding:4px;border-radius:8px"},
+    h("button",{
+      "style":"flex:1;font-size:11px;padding:7px;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;background:"+(ADDM.modo==="nuevo"?"var(--v)":"transparent")+";color:"+(ADDM.modo==="nuevo"?"#fff":"var(--g)"),
+      "onclick":"changeAddModo('nuevo')"
+    },"+ Crear nuevo material")+
+    h("button",{
+      "style":"flex:1;font-size:11px;padding:7px;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;background:"+(ADDM.modo==="catalogo"?"var(--v)":"transparent")+";color:"+(ADDM.modo==="catalogo"?"#fff":"var(--g)"),
+      "onclick":"changeAddModo('catalogo')"
+    },"Agregar del catalogo")
+  );
+  
+  var contenido="";
+  if(ADDM.modo==="nuevo"){
+    contenido=h("div",{"style":"margin-bottom:10px;padding:10px;background:var(--bc);border-radius:7px"},
+      h("div",{"style":"font-size:10px;color:var(--g);margin-bottom:8px"},"Este material se agregara al catalogo general y a esta obra. Si ya existe uno con el mismo nombre, te avisare.")+
+      h("div",{"style":"display:grid;grid-template-columns:1fr 80px 80px;gap:8px;margin-bottom:6px"},
+        h("div",{},
+          h("label",{"style":"font-size:10px;color:var(--g);font-weight:600;display:block;margin-bottom:2px"},"Nombre del material *")+
+          h("input",{"type":"text","id":"addm-nom","placeholder":"Ej: Soldadura para tuberia PVC","style":"width:100%;font-size:12px;padding:7px","autofocus":"autofocus"},"")
+        )+
+        h("div",{},
+          h("label",{"style":"font-size:10px;color:var(--g);font-weight:600;display:block;margin-bottom:2px"},"Unidad")+
+          h("input",{"type":"text","id":"addm-uni","value":"unidad","style":"width:100%;font-size:12px;padding:7px"},"")
+        )+
+        h("div",{},
+          h("label",{"style":"font-size:10px;color:var(--g);font-weight:600;display:block;margin-bottom:2px"},"Cantidad *")+
+          h("input",{"type":"number","id":"addm-cant","placeholder":"0","step":"0.1","style":"width:100%;font-size:12px;padding:7px"},"")
+        )
+      )+
+      h("div",{"style":"font-size:10px;color:var(--g);font-style:italic"},"Ejemplos: \"Soldadura PVC\" + \"galon\" + 2 | \"Panel LED 60x60\" + \"unidad\" + 8")+
+      h("button",{"class":"bp","style":"margin-top:10px;font-size:12px;padding:9px 20px","onclick":"crearMaterialNuevo()"},"Crear y agregar a obra")
+    );
+  }
+  else if(ADDM.modo==="catalogo"){
+    // Listar materiales del catalogo, filtrar por buscador, excluir los que ya tienen pedido en esta obra
+    var pedObra=CRON.pedidos[ADDM.obraId]||{};
+    var yaEnObra={};
+    for(var ck in pedObra){
+      for(var pi=0;pi<pedObra[ck].length;pi++){
+        if(pedObra[ck][pi].cantidad>0)yaEnObra[ck+"_"+pedObra[ck][pi].matId]=true;
+      }
+    }
+    var buscarLow=(ADDM.buscar||"").toLowerCase().trim();
+    var capRows="";
+    for(var cci=0;cci<CAPITULOS.length;cci++){
+      var capX=CAPITULOS[cci];
+      var listaC=(CRON.materiales[capX.n]||[]);
+      var rowsM="";
+      for(var mi=0;mi<listaC.length;mi++){
+        var mat=listaC[mi];
+        // Excluir si ya esta en esta obra con cantidad
+        if(yaEnObra[capX.n+"_"+mat.id])continue;
+        // Filtrar por busqueda
+        if(buscarLow&&mat.nom.toLowerCase().indexOf(buscarLow)<0)continue;
+        rowsM+=h("div",{"style":"display:grid;grid-template-columns:1fr 80px 90px;gap:6px;align-items:center;padding:7px 10px;border-bottom:1px solid #EEE"},
+          h("div",{"style":"font-size:11px"},mat.nom+h("span",{"style":"color:var(--g);font-size:9px;margin-left:4px"},"("+mat.uni+")"))+
+          h("input",{"type":"number","id":"addmcat-"+capX.n+"-"+mat.id,"placeholder":"Cant","step":"0.1","style":"font-size:11px;padding:5px;text-align:right"},"")+
+          h("button",{"id":"btnaddcat-"+capX.n+"-"+mat.id,"class":"bp","style":"font-size:10px;padding:5px 10px","onclick":"addDesdeCatalogo("+capX.n+","+mat.id+")"},"+ Agregar")
+        );
+      }
+      if(rowsM){
+        capRows+=h("div",{"style":"margin-bottom:8px"},
+          h("div",{"style":"font-size:11px;font-weight:700;color:var(--v);background:var(--vc);padding:5px 10px;border-radius:5px"},"Cap. "+capX.n+" - "+capX.nom)+
+          rowsM
+        );
+      }
+    }
+    contenido=h("div",{},
+      h("input",{"type":"text","id":"addm-buscar","value":ADDM.buscar||"","placeholder":"Buscar material en el catalogo...","style":"width:100%;font-size:12px;padding:8px;margin-bottom:10px","oninput":"updAddBuscar(this.value)"},"")+
+      (capRows||h("div",{"style":"text-align:center;padding:25px;color:var(--g);font-size:11px"},buscarLow?("No hay materiales que coincidan con \""+ADDM.buscar+"\""):"Todos los materiales del catalogo ya estan en esta obra. Usa la pestana 'Crear nuevo material' para agregar uno distinto."))+
+      h("div",{"style":"margin-top:8px;font-size:10px;color:var(--g);font-style:italic"},"Tip: Escribe cantidad en cada item y haz clic en + Agregar. Puedes agregar varios sin cerrar este modal.")
+    );
+  }
+  
+  return h("div",{"style":"position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto"},
+    h("div",{"style":"background:#fff;border-radius:12px;max-width:650px;width:100%;padding:18px;margin-top:20px;max-height:90vh;overflow-y:auto"},
+      h("div",{"style":"display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px"},
+        h("div",{},
+          h("div",{"style":"font-size:14px;font-weight:700;color:var(--v)"},"Agregar material")+
+          h("div",{"style":"font-size:10px;color:var(--g)"},o.cod+" - "+o.nom+" | Cap. "+ADDM.capN+" - "+capNom)
+        )+
+        h("button",{"style":"background:transparent;border:none;font-size:22px;cursor:pointer;color:var(--g)","onclick":"cerrarAgregarMaterial()"},"&times;")
+      )+
+      tabs+
+      contenido+
+      h("div",{"style":"margin-top:12px;text-align:right"},
+        h("button",{"class":"bg","style":"font-size:11px;padding:8px 14px","onclick":"cerrarAgregarMaterial()"},"Cerrar")
+      )
+    )
+  );
 }
 
 // Modal de seleccion de materiales para planilla de despacho
@@ -1046,7 +1292,8 @@ function rPlanillaModal(){
     var lst=ped[capK]||[];
     for(var pi=0;pi<lst.length;pi++){
       var p=lst[pi];
-      if(p.estado==="solicitado"||p.estado==="en_bodega"){
+      // Solo incluir si tiene cantidad > 0
+      if(p.cantidad>0&&(p.estado==="solicitado"||p.estado==="en_bodega")){
         if(!grupos[capK])grupos[capK]=[];
         var matCat=null;
         var listaM=(CRON.materiales[capK]||[]);
@@ -2245,10 +2492,16 @@ function rDetalle(){
     for(var cci=0;cci<CAPITULOS.length;cci++){
       var capM=CAPITULOS[cci];
       var listaMat=(CRON.materiales[capM.n]||[]);
-      if(listaMat.length===0)continue;
+      // FILTRO: solo materiales que tienen cantidad > 0 (ya pedidos en esta obra)
+      var listaFiltrada=[];
+      for(var mfi=0;mfi<listaMat.length;mfi++){
+        var matF=listaMat[mfi];
+        var pedF=getPedidoMat(o.id,capM.n,matF.id);
+        if(pedF&&pedF.cantidad>0)listaFiltrada.push(matF);
+      }
       var rowsM="";
-      for(var mi=0;mi<listaMat.length;mi++){
-        var mat=listaMat[mi];
+      for(var mi=0;mi<listaFiltrada.length;mi++){
+        var mat=listaFiltrada[mi];
         var pedido=getPedidoMat(o.id,capM.n,mat.id);
         var cantSugerida=calcularCantidadMaterial(o.id,capM.n,mat.id);
         var cantActual=pedido?pedido.cantidad:cantSugerida;
@@ -2282,10 +2535,11 @@ function rDetalle(){
         }
         // Notas del material
         var notasMat=mat.notas?h("div",{"style":"font-size:10px;color:var(--g);margin-top:2px;font-style:italic"},mat.notas):"";
+        var btnElim=puedeEdit?h("button",{"style":"background:transparent;border:none;color:#B5362A;cursor:pointer;font-size:14px;padding:2px 6px;line-height:1","onclick":"elimPedidoObra("+o.id+","+capM.n+","+mat.id+")","title":"Quitar de esta obra"},"&times;"):"";
         rowsM+=h("div",{"style":"padding:9px 12px;border-bottom:1px solid #EEE;background:"+(mi%2===0?"var(--bc)":"#fff")},
           h("div",{"style":"display:flex;justify-content:space-between;align-items:flex-start;gap:6px"},
             h("div",{"style":"flex:1;min-width:0"},
-              h("div",{"style":"font-size:12px;font-weight:600;color:var(--v)"},mat.nom+(mat.critico?" <span style='color:#B5362A;font-size:10px'>&#x26A0; CRITICO</span>":""))+
+              h("div",{"style":"font-size:12px;font-weight:600;color:var(--v);display:flex;align-items:center;gap:4px"},h("span",{},mat.nom+(mat.critico?" <span style='color:#B5362A;font-size:10px'>&#x26A0; CRITICO</span>":""))+btnElim)+
               h("div",{"style":"font-size:10px;color:var(--g);margin-top:2px"},"Cant sugerida: "+cantSugerida+" "+mat.uni+" | Origen: "+(mat.origen==="bodega"?"Bodega":mat.origen==="compra"?"Compra":"Mixto")+(mat.lead>0?" | Lead "+mat.lead+"d":""))+
               notasMat
             )+
@@ -2300,10 +2554,25 @@ function rDetalle(){
           )+metaPedido
         );
       }
-      capsHTML+=div("card","<div class='cp'>"+
-        h("div",{"style":"font-size:13px;font-weight:700;color:var(--v);margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--b)"},"Cap. "+capM.n+" - "+capM.nom)+
-        rowsM+
-        "</div>");
+      // Siempre mostrar tarjeta del capitulo, con boton "+ Agregar material"
+      var btnAddCap=puedeEdit?h("button",{"style":"font-size:11px;padding:6px 12px;margin-top:8px;background:var(--vc);color:var(--v);border:1px solid var(--v);border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600","onclick":"abrirAgregarMaterial("+o.id+","+capM.n+")"},"+ Agregar material a este capitulo"):"";
+      if(listaFiltrada.length===0){
+        // Solo mostrar si hay materiales del catalogo Y el usuario puede editar
+        // Si no, omitir capitulos sin items
+        if(puedeEdit){
+          capsHTML+=div("card","<div class='cp'>"+
+            h("div",{"style":"font-size:13px;font-weight:700;color:var(--v);margin-bottom:4px;padding-bottom:6px;border-bottom:2px solid var(--b)"},"Cap. "+capM.n+" - "+capM.nom)+
+            h("div",{"style":"font-size:11px;color:var(--gc);padding:8px 0;font-style:italic"},"Sin materiales asignados a esta obra")+
+            btnAddCap+
+            "</div>");
+        }
+      }else{
+        capsHTML+=div("card","<div class='cp'>"+
+          h("div",{"style":"font-size:13px;font-weight:700;color:var(--v);margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--b);display:flex;justify-content:space-between;align-items:center"},h("span",{},"Cap. "+capM.n+" - "+capM.nom)+h("span",{"style":"font-size:10px;color:var(--g);font-weight:normal"},listaFiltrada.length+" items"))+
+          rowsM+
+          btnAddCap+
+          "</div>");
+      }
     }
     body=infoObra+capsHTML;
 
@@ -2332,7 +2601,7 @@ function rDetalle(){
     var bgEnt=(puedeEditFechas&&fEditManual)?"":";background:#F5F5F5";
     var valEntregaShow=(fEditManual&&o.fE)?o.fE:(fechaEntregaCalculada||o.fE||"");
     var fechasObraHTML=div("card","<div class='cp' style='background:#FAF7F3;border:2px solid var(--v)'>"+
-      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v13</span></div>"+
+      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v14</span></div>"+
       "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px'>"+
         "<div>"+
           "<label style='font-size:11px;color:var(--g);font-weight:600'>Fecha de inicio de obra *</label>"+
