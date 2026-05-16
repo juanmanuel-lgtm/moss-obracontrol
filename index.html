@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.13-v15-semaforofix">
+<meta name="version" content="2026.05.13-v16-autoguardado">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.13-v15-semaforofix";
+var APP_VERSION="2026.05.13-v16-autoguardado";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -1140,7 +1140,19 @@ function cargarCache(){
 }
 
 // Cambios pendientes
-function marcar(id){S.pending[id]=true;}
+function marcar(id){
+  S.pending[id]=true;
+  // Sincronizar CRON.obras con S.obras inmediatamente (fuente de verdad para JSONBin)
+  for(var i=0;i<S.obras.length;i++){
+    if(S.obras[i].id===+id){
+      if(!CRON.obras)CRON.obras={};
+      CRON.obras[id]=S.obras[i];
+      break;
+    }
+  }
+  // Disparar guardado a JSONBin (debounce 100ms, junta multiples cambios)
+  guardarCronogramaRemoto();
+}
 
 function guardar(){
   var ids=Object.keys(S.pending);
@@ -2601,7 +2613,7 @@ function rDetalle(){
     var bgEnt=(puedeEditFechas&&fEditManual)?"":";background:#F5F5F5";
     var valEntregaShow=(fEditManual&&o.fE)?o.fE:(fechaEntregaCalculada||o.fE||"");
     var fechasObraHTML=div("card","<div class='cp' style='background:#FAF7F3;border:2px solid var(--v)'>"+
-      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v15</span></div>"+
+      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v16</span></div>"+
       "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px'>"+
         "<div>"+
           "<label style='font-size:11px;color:var(--g);font-weight:600'>Fecha de inicio de obra *</label>"+
@@ -2803,22 +2815,29 @@ function guardarNotas(id){
   var ta=document.getElementById("notasTA");
   if(!ta)return;
   var v=ta.value;
-  for(var i=0;i<S.obras.length;i++){if(S.obras[i].id===+id){S.obras[i].notas=v;marcar(id);break;}}
+  // Actualizar S.obras
+  for(var i=0;i<S.obras.length;i++){
+    if(S.obras[i].id===+id){
+      S.obras[i].notas=v;
+      break;
+    }
+  }
+  // Sincronizar a CRON.obras (fuente de verdad en JSONBin)
+  if(!CRON.obras)CRON.obras={};
+  CRON.obras[id]=S.obras.find(function(o){return o.id===+id;})||CRON.obras[id];
+  // Persistencia local
   try{localStorage.setItem("moss_obras",JSON.stringify(S.obras));}catch(e){}
-  // Guardar sin perder el foco del textarea
-  var ids=Object.keys(S.pending);
-  var promesas=ids.map(function(pid){
-    var o=null;for(var i=0;i<S.obras.length;i++){if(S.obras[i].id===+pid){o=S.obras[i];break;}}
-    return o?drivePost(o):Promise.resolve(false);
-  });
+  // Guardar en JSONBin (NO Apps Script, que esta roto)
   var btn=document.querySelector("button.bp");
   if(btn)btn.textContent="Guardando...";
-  Promise.all(promesas).then(function(res){
-    S.pending={};
-    var ok=res.every(function(r){return r===true;});
-    if(btn)btn.textContent=ok?"Guardado correctamente":"Error - reintenta";
-    setTimeout(function(){if(btn)btn.textContent="Guardar notas";},2000);
-  }).catch(function(){if(btn)btn.textContent="Error";});
+  guardarCronogramaRemoto();
+  // Feedback visual al usuario
+  setTimeout(function(){
+    if(btn){
+      btn.textContent="Guardado correctamente";
+      setTimeout(function(){if(btn)btn.textContent="Guardar notas";},2000);
+    }
+  },300);
 }
 function cambiarFase(id,fase){
   var av=FASE_AV[fase]!==undefined?FASE_AV[fase]:null;
