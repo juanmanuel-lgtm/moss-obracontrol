@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.19-v18-roles">
+<meta name="version" content="2026.05.19-v20-contrato">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.19-v18-roles";
+var APP_VERSION="2026.05.19-v20-contrato";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -658,6 +658,388 @@ function exportarTodoCalendar(obraId){
 
 // Inicializar catalogo desde el pre-cargado si esta vacio
 // Usa MAT_CATALOGO_SANDRA (datos reales del Excel) + MAT_CATALOGO_INICIAL como fallback
+
+// === PRESUPUESTO MOSS 2026 - PRECIOS POR M2 POR CAPITULO ===
+// Estos son precios BASE REFERENCIALES. Juan Manuel/Sandra los ajustan en el dashboard
+// Mat = costo de materiales por m2 de obra
+// MdO = costo de mano de obra POR M2 (precio mercado - sin markup)
+// El sistema aplica markup configurable (default 20%) sobre MdO para "venta"
+var PRECIOS_BASE_2026={
+  "1":{nom:"Diseno",mat:0,mdo:35000,notas:"Honorarios diseno arquitectonico"},
+  "2":{nom:"Redes electricas e hidrosanitarias",mat:78000,mdo:62000,notas:"Tendido completo: PVC, cable, accesorios"},
+  "3":{nom:"Obra blanca",mat:52000,mdo:48000,notas:"Drywall, estuco, yeso, mortero, masillas"},
+  "4":{nom:"Pisos y enchapes",mat:95000,mdo:55000,notas:"SPC + ceramica banos/cocina + pegacor"},
+  "5":{nom:"Instalacion de carpinteria",mat:180000,mdo:75000,notas:"Closets, cocina integral, mueble bano (variable segun complejidad)"},
+  "6":{nom:"Remates y acabados",mat:32000,mdo:42000,notas:"Estuco, pintura 2 manos, lampara"},
+  "7":{nom:"Instalaciones",mat:85000,mdo:38000,notas:"Griferia, sanitarios, division bano"},
+  "8":{nom:"Electrodomesticos",mat:0,mdo:15000,notas:"Solo instalacion (electros los pone cliente)"},
+  "9":{nom:"Aseo y entrega",mat:8000,mdo:18000,notas:"Limpieza profesional, retiro escombros"},
+  "10":{nom:"Pre-entrega",mat:0,mdo:12000,notas:"Detalles, retoques, punch list"},
+  "11":{nom:"Entrega",mat:0,mdo:5000,notas:"Acta entrega, capacitacion cliente"},
+};
+
+// Markup global default (en %) - aplicado a mano de obra
+var PRESUP_MARKUP_DEFAULT=20;
+
+// Inicializar presupuesto base en CRON si no existe
+function initPresupuestoBase(){
+  if(!CRON.presupuesto){
+    CRON.presupuesto={
+      precios:{}, // {capN: {mat:X, mdo:X, markup:20}}
+      ultimaActualizacion:new Date().toISOString().slice(0,10)
+    };
+    // Cargar precios base
+    for(var n in PRECIOS_BASE_2026){
+      var pb=PRECIOS_BASE_2026[n];
+      CRON.presupuesto.precios[n]={mat:pb.mat,mdo:pb.mdo,markup:PRESUP_MARKUP_DEFAULT,notas:pb.notas};
+    }
+    guardarCronogramaRemoto();
+  }
+}
+
+// Calcular presupuesto de una obra segun sus m2
+function calcularPresupuestoObra(obraId){
+  var o=null;
+  for(var i=0;i<S.obras.length;i++)if(S.obras[i].id===obraId){o=S.obras[i];break;}
+  if(!o||!o.m2||o.m2<=0)return null;
+  initPresupuestoBase();
+  var m2=o.m2;
+  var resultado={
+    obra:o,
+    m2:m2,
+    capitulos:[],
+    totalMat:0,totalMdoCosto:0,totalMdoVenta:0,total:0
+  };
+  for(var ci=0;ci<CAPITULOS.length;ci++){
+    var cap=CAPITULOS[ci];
+    var precios=CRON.presupuesto.precios[cap.n];
+    if(!precios)continue;
+    var mat=precios.mat*m2;
+    var mdoCosto=precios.mdo*m2;
+    var mdoVenta=mdoCosto*(1+(precios.markup||0)/100);
+    var subtotal=mat+mdoVenta;
+    resultado.capitulos.push({
+      n:cap.n,nom:cap.nom,
+      mat_unit:precios.mat,mdo_unit:precios.mdo,markup:precios.markup||0,
+      mat:mat,mdo_costo:mdoCosto,mdo_venta:mdoVenta,total:subtotal,
+      notas:precios.notas||""
+    });
+    resultado.totalMat+=mat;
+    resultado.totalMdoCosto+=mdoCosto;
+    resultado.totalMdoVenta+=mdoVenta;
+    resultado.total+=subtotal;
+  }
+  return resultado;
+}
+
+// Comparar presupuesto vs ejecutado (gastado en materiales reales)
+function compararPresupuestoEjecutado(obraId){
+  var presup=calcularPresupuestoObra(obraId);
+  if(!presup)return null;
+  // Calcular gastado real en materiales segun pedidos en estado en_obra
+  var gastadoMatPorCap={};
+  var pedObra=CRON.pedidos[obraId]||{};
+  for(var capK in pedObra){
+    var lst=pedObra[capK]||[];
+    for(var pi=0;pi<lst.length;pi++){
+      var p=lst[pi];
+      if(p.cantidad<=0)continue;
+      // Buscar precio del material en catalogo
+      var matCat=null;
+      var lstCat=(CRON.materiales[capK]||[]);
+      for(var lm=0;lm<lstCat.length;lm++)if(lstCat[lm].id===p.matId){matCat=lstCat[lm];break;}
+      if(matCat&&matCat.precio>0){
+        if(!gastadoMatPorCap[capK])gastadoMatPorCap[capK]=0;
+        gastadoMatPorCap[capK]+=p.cantidad*matCat.precio;
+      }
+    }
+  }
+  // Agregar la comparacion a cada capitulo
+  for(var ci=0;ci<presup.capitulos.length;ci++){
+    var c=presup.capitulos[ci];
+    c.mat_gastado=gastadoMatPorCap[c.n]||0;
+    c.mat_diff=c.mat-c.mat_gastado; // positivo = ahorro, negativo = sobrecosto
+  }
+  return presup;
+}
+
+// === RENDER DE PRESUPUESTO PROFESIONAL ===
+// Tab estado: 'detalle' (vista por obra) | 'config' (editar precios base)
+var PRESUP_VIEW={tab:"detalle"};
+
+function presupSetTab(t){PRESUP_VIEW.tab=t;render();}
+
+// Actualizar precio base de un capitulo
+function updPrecioBase(capN,campo,valor){
+  if(!puedeVerPrecios()){alert("Sin permisos para editar precios.");return;}
+  initPresupuestoBase();
+  if(!CRON.presupuesto.precios[capN])CRON.presupuesto.precios[capN]={mat:0,mdo:0,markup:20};
+  var v=parseFloat(valor)||0;
+  CRON.presupuesto.precios[capN][campo]=v;
+  CRON.presupuesto.ultimaActualizacion=new Date().toISOString().slice(0,10);
+  guardarCronogramaRemoto();
+}
+
+// Vista DETALLE de presupuesto de una obra
+function rPresupDetalle(o){
+  if(!o.m2||o.m2<=0){
+    return div("card","<div class='cp'>"+
+      h("div",{"style":"font-size:13px;font-weight:700;color:var(--v);margin-bottom:8px"},"Presupuesto de obra")+
+      h("div",{"style":"background:#FFF8E7;border-left:3px solid var(--d);padding:10px;font-size:11px;color:var(--g)"},"Esta obra no tiene m2 asignados. Para calcular el presupuesto automatico, asigna los m2 en la pestana de edicion de obra.")+
+      "</div>");
+  }
+  
+  initPresupuestoBase();
+  var presup=compararPresupuestoEjecutado(o.id);
+  if(!presup)return "";
+  
+  // Boton generar contrato maestro (solo CEO/Coord/Ops)
+  var btnContrato="";
+  if(puedeVerPrecios()&&o.maestro&&o.m2>0){
+    btnContrato=h("div",{"style":"display:flex;justify-content:flex-end;margin-bottom:10px"},
+      h("button",{
+        "class":"bp",
+        "style":"font-size:11px;padding:9px 18px;background:#1B2A4A;color:#fff",
+        "onclick":"generarContratoMaestro("+o.id+")",
+        "title":"Genera contrato profesional para "+o.maestro
+      },"&#x1F4DC; Generar contrato maestro de obra")
+    );
+  }
+  // Header con totales
+  var headerTotal=btnContrato+h("div",{"style":"background:linear-gradient(135deg,#1B2A4A,#2D4055);border-radius:10px;padding:14px;color:#fff;margin-bottom:12px"},
+    h("div",{"style":"display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px"},
+      h("div",{},
+        h("div",{"style":"font-size:10px;opacity:0.7;text-transform:uppercase;letter-spacing:1px"},"Presupuesto calculado")+
+        h("div",{"style":"font-size:11px;opacity:0.9"},o.m2+" m2 x precios MOSS 2026")
+      )+
+      h("div",{"style":"text-align:right"},
+        h("div",{"style":"font-size:22px;font-weight:700;color:#E8A020"},fpc(presup.total))+
+        h("div",{"style":"font-size:10px;opacity:0.8"},fpc(presup.total/o.m2)+" / m2")
+      )
+    )+
+    h("div",{"style":"display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.2)"},
+      h("div",{"style":"text-align:center"},
+        h("div",{"style":"font-size:10px;opacity:0.7"},"Materiales")+
+        h("div",{"style":"font-size:13px;font-weight:600"},fpc(presup.totalMat))
+      )+
+      h("div",{"style":"text-align:center"},
+        h("div",{"style":"font-size:10px;opacity:0.7"},"MdO costo")+
+        h("div",{"style":"font-size:13px;font-weight:600"},fpc(presup.totalMdoCosto))
+      )+
+      h("div",{"style":"text-align:center"},
+        h("div",{"style":"font-size:10px;opacity:0.7"},"MdO con markup")+
+        h("div",{"style":"font-size:13px;font-weight:600;color:#E8A020"},fpc(presup.totalMdoVenta))
+      )
+    )
+  );
+  
+  // Tabla por capitulo
+  var rowsTabla="";
+  for(var ci=0;ci<presup.capitulos.length;ci++){
+    var cap=presup.capitulos[ci];
+    if(cap.mat===0&&cap.mdo_costo===0)continue; // Ocultar capitulos sin precio
+    var diff=cap.mat_diff;
+    var diffColor=diff>=0?"#3A6B45":"#B5362A";
+    var diffIcon=diff>=0?"":"";
+    var diffTxt=cap.mat_gastado>0?(diff>=0?"Ahorro "+fpc(diff):"Sobrecosto "+fpc(-diff)):"";
+    
+    rowsTabla+=h("div",{"style":"display:grid;grid-template-columns:30px 1fr 90px 90px 90px 110px;gap:8px;padding:9px 10px;border-bottom:1px solid #EEE;align-items:center;background:"+(ci%2===0?"var(--bc)":"#fff")},
+      h("div",{"style":"font-size:10px;color:var(--g);font-weight:600"},"Cap."+cap.n)+
+      h("div",{},
+        h("div",{"style":"font-size:12px;font-weight:600;color:var(--v)"},cap.nom)+
+        h("div",{"style":"font-size:9px;color:var(--g);font-style:italic"},"Mat: "+fpc(cap.mat_unit)+"/m2 + MdO: "+fpc(cap.mdo_unit)+"/m2 +"+cap.markup+"%")
+      )+
+      h("div",{"style":"text-align:right"},
+        h("div",{"style":"font-size:11px;font-weight:600"},fpc(cap.mat))+
+        h("div",{"style":"font-size:9px;color:var(--g)"},"materiales")
+      )+
+      h("div",{"style":"text-align:right"},
+        h("div",{"style":"font-size:11px;font-weight:600;color:var(--d)"},fpc(cap.mdo_venta))+
+        h("div",{"style":"font-size:9px;color:var(--g)"},"MdO con markup")
+      )+
+      h("div",{"style":"text-align:right"},
+        h("div",{"style":"font-size:12px;font-weight:700;color:var(--v)"},fpc(cap.total))+
+        h("div",{"style":"font-size:9px;color:var(--g)"},"total cap.")
+      )+
+      h("div",{"style":"text-align:right"},
+        h("div",{"style":"font-size:10px;font-weight:600;color:"+diffColor},diffTxt||"-")+
+        h("div",{"style":"font-size:9px;color:var(--g)"},cap.mat_gastado>0?"Gastado "+fpc(cap.mat_gastado):"Sin compras")
+      )
+    );
+  }
+  
+  var hdrTabla=h("div",{"style":"display:grid;grid-template-columns:30px 1fr 90px 90px 90px 110px;gap:8px;padding:8px 10px;background:#1B2A4A;color:#fff;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;border-radius:6px 6px 0 0"},
+    h("div",{},"#")+h("div",{},"Capitulo")+h("div",{"style":"text-align:right"},"Materiales")+h("div",{"style":"text-align:right"},"MdO + markup")+h("div",{"style":"text-align:right"},"Total")+h("div",{"style":"text-align:right"},"Diff Real")
+  );
+  
+  var tablaPresupuesto=div("card","<div class='cp'>"+
+    h("div",{"style":"font-size:13px;font-weight:700;color:var(--v);margin-bottom:8px"},"Detalle por capitulo")+
+    h("div",{"style":"border:1px solid var(--b);border-radius:6px;overflow:hidden"},hdrTabla+rowsTabla)+
+    h("div",{"style":"font-size:10px;color:var(--g);margin-top:8px;font-style:italic"},"La columna 'Diff Real' compara el presupuesto de materiales vs lo que efectivamente se ha gastado (calculado del catalogo de pedidos en estado En obra). Verde = ahorro, Rojo = sobrecosto.")+
+    "</div>");
+  
+  // Comparativo con contrato y meta de utilidad
+  var sectComparativo="";
+  if(o.pres&&o.pres>0){
+    var margenContrato=o.pres-presup.total;
+    var pctMargenContrato=Math.round(margenContrato/o.pres*100);
+    var colorMargen=pctMargenContrato>=30?"#3A6B45":pctMargenContrato>=15?"#C17B2A":"#B5362A";
+    sectComparativo=div("card","<div class='cp'>"+
+      h("div",{"style":"font-size:13px;font-weight:700;color:var(--v);margin-bottom:8px"},"Comparativo vs Contrato")+
+      h("div",{"style":"display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px"},
+        h("div",{"style":"background:var(--bc);padding:10px;border-radius:7px;text-align:center"},
+          h("div",{"style":"font-size:10px;color:var(--g);margin-bottom:3px"},"Valor contrato")+
+          h("div",{"style":"font-size:15px;font-weight:700;color:var(--v)"},fpc(o.pres))
+        )+
+        h("div",{"style":"background:var(--bc);padding:10px;border-radius:7px;text-align:center"},
+          h("div",{"style":"font-size:10px;color:var(--g);margin-bottom:3px"},"Costo MOSS")+
+          h("div",{"style":"font-size:15px;font-weight:700;color:var(--v)"},fpc(presup.total))
+        )+
+        h("div",{"style":"background:"+(pctMargenContrato>=30?"#E8F0EB":pctMargenContrato>=15?"#FDF0E0":"#FBE3DE")+";padding:10px;border-radius:7px;text-align:center"},
+          h("div",{"style":"font-size:10px;color:var(--g);margin-bottom:3px"},"Margen estimado")+
+          h("div",{"style":"font-size:15px;font-weight:700;color:"+colorMargen},fpc(margenContrato))+
+          h("div",{"style":"font-size:11px;font-weight:600;color:"+colorMargen,"style":"font-size:11px;font-weight:600;color:"+colorMargen+";margin-top:2px"},pctMargenContrato+"%"+(pctMargenContrato>=30?" - OK":pctMargenContrato>=15?" - Bajo":" - CRITICO"))
+        )
+      )+
+      h("div",{"style":"font-size:10px;color:var(--g);margin-top:8px;font-style:italic"},"Meta MOSS: margen >= 30% sobre contrato. Si esta abajo, revisar precios de venta o reducir costos.")+
+      "</div>");
+  }
+  
+  return headerTotal+tablaPresupuesto+sectComparativo;
+}
+
+// Vista CONFIG: editar precios base por capitulo (solo CEO/Coord/Operaciones)
+function rPresupConfig(){
+  initPresupuestoBase();
+  var canEdit=puedeVerPrecios();
+  
+  var hdr=h("div",{"style":"display:grid;grid-template-columns:30px 1fr 100px 100px 70px 1fr;gap:8px;padding:8px 10px;background:#1B2A4A;color:#fff;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;border-radius:6px 6px 0 0"},
+    h("div",{},"#")+h("div",{},"Capitulo")+h("div",{"style":"text-align:right"},"Mat $/m2")+h("div",{"style":"text-align:right"},"MdO $/m2")+h("div",{"style":"text-align:right"},"Markup %")+h("div",{},"Notas / referencia")
+  );
+  
+  var rows="";
+  for(var ci=0;ci<CAPITULOS.length;ci++){
+    var cap=CAPITULOS[ci];
+    var p=CRON.presupuesto.precios[cap.n]||{mat:0,mdo:0,markup:20,notas:""};
+    rows+=h("div",{"style":"display:grid;grid-template-columns:30px 1fr 100px 100px 70px 1fr;gap:8px;padding:8px 10px;border-bottom:1px solid #EEE;align-items:center;background:"+(ci%2===0?"var(--bc)":"#fff")},
+      h("div",{"style":"font-size:10px;color:var(--g);font-weight:600"},"Cap."+cap.n)+
+      h("div",{"style":"font-size:11px;font-weight:600;color:var(--v)"},cap.nom)+
+      h("input",{"type":"number","value":p.mat,"step":"500","onchange":"updPrecioBase("+cap.n+",&quot;mat&quot;,this.value)","style":"font-size:11px;padding:5px;text-align:right","disabled":canEdit?null:"disabled"},"")+
+      h("input",{"type":"number","value":p.mdo,"step":"500","onchange":"updPrecioBase("+cap.n+",&quot;mdo&quot;,this.value)","style":"font-size:11px;padding:5px;text-align:right","disabled":canEdit?null:"disabled"},"")+
+      h("input",{"type":"number","value":p.markup,"step":"1","min":"0","max":"100","onchange":"updPrecioBase("+cap.n+",&quot;markup&quot;,this.value)","style":"font-size:11px;padding:5px;text-align:right","disabled":canEdit?null:"disabled"},"")+
+      h("div",{"style":"font-size:10px;color:var(--g);font-style:italic"},p.notas||"-")
+    );
+  }
+  
+  var avisoEdicion=canEdit?h("div",{"style":"background:#E8F0EB;border-left:3px solid #3A6B45;padding:8px 12px;font-size:10px;color:var(--g);margin-bottom:10px"},
+    h("b",{"style":"color:#3A6B45"},"Tienes permisos de edicion.")+" Ajusta los precios base segun referencia Camacol o tu informacion de mercado. El sistema usa estos valores para calcular automaticamente el presupuesto de cada obra segun sus m2."
+  ):h("div",{"style":"background:#FBE3DE;border-left:3px solid #B5362A;padding:8px 12px;font-size:10px;color:var(--g);margin-bottom:10px"},
+    "Solo CEO, Coordinacion y Operaciones pueden editar precios."
+  );
+  
+  return div("card","<div class='cp'>"+
+    h("div",{"style":"display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"},
+      h("div",{},
+        h("div",{"style":"font-size:14px;font-weight:700;color:var(--v)"},"Configuracion de precios MOSS 2026")+
+        h("div",{"style":"font-size:10px;color:var(--g);margin-top:2px"},"Ultima actualizacion: "+(CRON.presupuesto.ultimaActualizacion||"-"))
+      )+
+      ""
+    )+
+    avisoEdicion+
+    h("div",{"style":"border:1px solid var(--b);border-radius:6px;overflow:hidden"},hdr+rows)+
+    h("div",{"style":"font-size:10px;color:var(--g);margin-top:10px;padding:8px;background:var(--bc);border-radius:5px"},
+      h("b",{},"Como funciona el calculo:")+
+      h("ul",{"style":"margin:5px 0 0 18px;padding:0"},
+        h("li",{},"<b>Mat $/m2:</b> costo de materiales por m2 de obra (lo que MOSS paga al proveedor)")+
+        h("li",{},"<b>MdO $/m2:</b> costo de mano de obra POR M2 (precio mercado Camacol)")+
+        h("li",{},"<b>Markup %:</b> margen sobre la MdO (recomendado 20% para atraer mejores oficios)")+
+        h("li",{},"<b>Formula:</b> Total cap. = (Mat x m2) + (MdO x m2 x (1 + Markup/100))")
+      )
+    )+
+    "</div>");
+}
+
+// Vista de contrato simple (para roles sin permisos de precios)
+// Solo muestra contrato y avance, NO precios desglosados
+function rPresupContratoSimple(o){
+  if(!o.pres||o.pres<=0){
+    return div("card","<div class='cp'>"+
+      h("div",{"style":"font-size:13px;font-weight:700;color:var(--v);margin-bottom:8px"},"Presupuesto")+
+      h("div",{"style":"font-size:11px;color:var(--g)"},"Sin contrato registrado. Solicita a Coordinacion o CEO la informacion del contrato.")+
+      "</div>");
+  }
+  // Solo mostrar valor del contrato y avance porcentual
+  return div("card","<div class='cp'>"+
+    h("div",{"style":"font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px"},"Resumen contractual")+
+    h("div",{"style":"display:grid;grid-template-columns:1fr 1fr;gap:10px"},
+      h("div",{"style":"background:var(--bc);padding:12px;border-radius:7px"},
+        h("div",{"style":"font-size:10px;color:var(--g);margin-bottom:3px"},"Valor del contrato")+
+        h("div",{"style":"font-size:16px;font-weight:700;color:var(--v)"},cop(o.pres))
+      )+
+      h("div",{"style":"background:var(--bc);padding:12px;border-radius:7px"},
+        h("div",{"style":"font-size:10px;color:var(--g);margin-bottom:3px"},"Avance de obra")+
+        h("div",{"style":"font-size:16px;font-weight:700;color:var(--v)"},o.av+"%")
+      )
+    )+
+    h("div",{"style":"font-size:10px;color:var(--g);margin-top:10px;font-style:italic"},"El detalle del presupuesto y costos lo gestiona Coordinacion / CEO.")+
+    "</div>");
+}
+
+// Vista legacy: campos editables de gastos por rubro (compatible con datos viejos)
+function rPresupContratoLegacy(o){
+  var tg=(+o.gC||0)+(+o.gM||0)+(+o.gO||0)+(+o.gA||0);
+  var ej=o.pres>0?Math.round(tg/o.pres*100):0;
+  // Calculo de rubros con porcentajes
+  var r={
+    carp:o.pres*0.25,
+    mat:o.pres*0.40,
+    imp:o.pres*0.05,
+    ob:o.pres*0.28,
+    acab:o.pres*0.11,
+    util:o.pres*0.30
+  };
+  var contenido="";
+  if(o.pres>0){
+    var uti=o.pres-tg;
+    var utiPct=Math.round(uti/o.pres*100);
+    var bHTML=[
+      ["Carpinteria",r.carp,o.gC||0,"#A67C52","gC"],
+      ["Materiales+MO",r.mat,o.gM||0,"#2D4A35","gM"],
+      ["Obra blanca",r.ob,o.gO||0,"#4A7055","gO"],
+      ["Acabados",r.acab,o.gA||0,"#C9A478","gA"]
+    ].map(function(b){
+      var p=b[1]>0?Math.min(100,Math.round(b[2]/b[1]*100)):0;
+      var col=p>100?"#B5362A":p>85?"#C17B2A":b[3];
+      return h("div",{"style":"margin-bottom:9px"},
+        h("div",{"style":"display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"},
+          h("span",{"style":"color:var(--g)"},b[0])+
+          h("span",{"style":"color:"+(p>100?"#B5362A":"")},cop(b[2])+" / "+cop(b[1])))+
+        div("prog","<div style='width:"+Math.min(100,p)+"%;background:"+col+"'></div>"));
+    }).join("");
+    var gFields=h("div",{"style":"display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px"},[
+      ["gC","Carpinteria"],["gM","Mat+MO"],["gO","Obra blanca"],["gA","Acabados"]
+    ].map(function(g){
+      return div("fr",h("label",{},"Gastado "+g[1]+" (COP)")+h("input",{"type":"number","value":o[g[0]]||"","placeholder":"0","onchange":"updGasto("+o.id+",&quot;"+g[0]+"&quot;,this.value)"},""));
+    }).join(""));
+    contenido=h("div",{"class":"presup-val"},cop(o.pres))+bHTML+gFields+
+      h("div",{"style":"margin-top:10px;padding:10px;background:"+(ej>70?"#FBE3DE":ej>60?"#FDF0E0":"#E8F0EB")+";border-radius:7px;text-align:center"},
+        h("div",{"style":"font-size:11px;color:var(--g)"},"Ejecucion presupuestal")+
+        h("div",{"style":"font-size:18px;font-weight:700;color:"+(ej>70?"#B5362A":ej>60?"#C17B2A":"#3A6B45")},ej+"%")+
+        h("div",{"style":"font-size:10px;color:"+(utiPct>=30?"#3A6B45":"#B5362A")+";margin-top:3px"},"Utilidad estimada: "+utiPct+"% ("+cop(uti)+")")
+      );
+  }
+  return div("card","<div class='cp'>"+
+    h("div",{"style":"font-size:13px;font-weight:700;color:var(--v);margin-bottom:8px"},"Contrato y gastos manuales")+
+    h("div",{"style":"background:#FFF8E7;border-left:3px solid #E8A020;padding:7px 10px;font-size:10px;color:var(--g);margin-bottom:10px"},
+      "Esta vista es el sistema anterior de control de gastos. Recomendamos usar 'Presupuesto de esta obra' que calcula automaticamente desde m2 y precios MOSS 2026."
+    )+
+    div("fr",h("label",{},"Valor total del contrato (COP)")+h("input",{"type":"number","value":o.pres||"","placeholder":"0","onchange":"updGasto("+o.id+",&quot;pres&quot;,this.value)"},""))+
+    contenido+
+    "</div>");
+}
+
+
+
 function initCatalogoMateriales(){
   if(CRON.materiales)return;
   CRON.materiales={};
@@ -1021,6 +1403,276 @@ function setPedidoEstadoSinRender(obraId,capN,matId,estado){
     });
   }
 }
+
+// ============================================================
+// === CONTRATO MAESTRO DE OBRA - GENERADOR ===
+// ============================================================
+// Generar contrato profesional de prestacion de servicios para maestros
+// Incluye: datos obra, valor MdO, cronograma 5 semanas, clausulas multas, calidad
+
+function generarContratoMaestro(obraId){
+  if(!puedeVerPrecios()){
+    alert("Solo CEO, Coordinacion y Operaciones pueden generar contratos.");
+    return;
+  }
+  var o=null;
+  for(var i=0;i<S.obras.length;i++)if(S.obras[i].id===obraId){o=S.obras[i];break;}
+  if(!o){alert("Obra no encontrada");return;}
+  
+  // Validar datos minimos
+  if(!o.m2||o.m2<=0){alert("La obra no tiene m2 asignados. Configura los m2 antes de generar el contrato.");return;}
+  if(!o.maestro||o.maestro.trim()===""){alert("La obra no tiene maestro asignado. Asigna un maestro antes de generar el contrato.");return;}
+  
+  initPresupuestoBase();
+  var presup=calcularPresupuestoObra(obraId);
+  if(!presup){alert("No se pudo calcular el presupuesto. Revisa precios base.");return;}
+  
+  // Mano de obra TOTAL del contrato del maestro (con markup aplicado)
+  // Es lo que MOSS le paga al maestro
+  var totalMdO=presup.totalMdoVenta;
+  var totalMdOCosto=presup.totalMdoCosto;
+  
+  // Fecha de inicio - usar fl o fecha actual
+  var fechaInicioObra=o.fl||new Date().toISOString().slice(0,10);
+  var fechaInicio=new Date(fechaInicioObra);
+  
+  // Calcular cronograma de 5 semanas
+  var cronoSemanas=[];
+  var capitulosCronograma=[
+    {sem:1,caps:[2],desc:"Cap. 2: Redes electricas e hidrosanitarias"},
+    {sem:2,caps:[3],desc:"Cap. 3: Obra blanca, drywall y estuco"},
+    {sem:3,caps:[4],desc:"Cap. 4: Pisos y enchapes"},
+    {sem:4,caps:[5,7],desc:"Cap. 5 y 7: Carpinteria, grifería e instalaciones sanitarias"},
+    {sem:5,caps:[6,8,9,10,11],desc:"Cap. 6, 8, 9: Remates, electrodomesticos, aseo, pre-entrega y entrega final"}
+  ];
+  var fechaSem=new Date(fechaInicio);
+  for(var i=0;i<5;i++){
+    var ini=new Date(fechaSem);
+    fechaSem.setDate(fechaSem.getDate()+7);
+    var fin=new Date(fechaSem);
+    fin.setDate(fin.getDate()-1);
+    cronoSemanas.push({
+      n:i+1,
+      desc:capitulosCronograma[i].desc,
+      inicio:ini.toISOString().slice(0,10),
+      fin:fin.toISOString().slice(0,10),
+      valor:totalMdO*[0.20,0.22,0.20,0.22,0.16][i] // distribucion porcentual aprox
+    });
+  }
+  var fechaEntrega=new Date(fechaInicio);
+  fechaEntrega.setDate(fechaEntrega.getDate()+35); // 5 semanas
+  var fechaEntregaStr=fechaEntrega.toISOString().slice(0,10);
+  
+  // Cronograma quincenal de pagos (cortes cada 15 dias)
+  var fechaCorte1=new Date(fechaInicio); fechaCorte1.setDate(fechaCorte1.getDate()+15);
+  var fechaCorte2=new Date(fechaInicio); fechaCorte2.setDate(fechaCorte2.getDate()+30);
+  var fechaCorte3=new Date(fechaInicio); fechaCorte3.setDate(fechaCorte3.getDate()+35);
+  
+  // Multa por dia: 1% del valor del contrato MdO
+  var multaPorDia=Math.round(totalMdO*0.01);
+  var topeMulta=Math.round(totalMdO*0.20); // tope 20% para defensa legal
+  
+  // Numero de contrato
+  var hoyContrato=new Date();
+  var nroContrato="MOSS-CTM-"+o.cod.replace(/\s/g,"")+"-"+hoyContrato.getFullYear()+(hoyContrato.getMonth()+1+"").padStart(2,"0")+(hoyContrato.getDate()+"").padStart(2,"0");
+  
+  var w=window.open("","_blank","width=900,height=1000");
+  if(!w){alert("El navegador bloqueo la ventana. Autoriza pop-ups para generar el contrato.");return;}
+  
+  var fmtCop=function(v){return "$"+Math.round(v).toLocaleString("es-CO");};
+  
+  // Generar filas del cronograma
+  var rowsCrono="";
+  for(var ci=0;ci<cronoSemanas.length;ci++){
+    var sem=cronoSemanas[ci];
+    rowsCrono+="<tr>"+
+      "<td style=\"border:1px solid #555;padding:6px;text-align:center;font-weight:bold\">Semana "+sem.n+"</td>"+
+      "<td style=\"border:1px solid #555;padding:6px\">"+sem.desc+"</td>"+
+      "<td style=\"border:1px solid #555;padding:6px;text-align:center\">"+sem.inicio+"</td>"+
+      "<td style=\"border:1px solid #555;padding:6px;text-align:center\">"+sem.fin+"</td>"+
+      "<td style=\"border:1px solid #555;padding:6px;text-align:right\">"+fmtCop(sem.valor)+"</td>"+
+    "</tr>";
+  }
+  
+  // Generar lista de capitulos con sus actividades
+  var actividadesHTML="";
+  for(var ci=0;ci<CAPITULOS.length;ci++){
+    var cap=CAPITULOS[ci];
+    if(cap.n===1||cap.n>=10)continue; // omitir diseno y pre-entrega/entrega (no son del maestro)
+    var precios=CRON.presupuesto.precios[cap.n];
+    if(!precios||precios.mdo===0)continue;
+    var valorCap=precios.mdo*o.m2*(1+(precios.markup||0)/100);
+    var itemsList="";
+    if(cap.items&&cap.items.length>0){
+      itemsList="<ul style=\"margin:4px 0 4px 18px;padding:0;font-size:10pt\">";
+      for(var it=0;it<cap.items.length;it++){
+        itemsList+="<li>"+cap.items[it]+"</li>";
+      }
+      itemsList+="</ul>";
+    }
+    actividadesHTML+="<div style=\"margin-bottom:10px;padding:8px 10px;background:#F5F2EC;border-left:3px solid #1B2A4A\">"+
+      "<div style=\"font-weight:bold;color:#1B2A4A;font-size:11pt\">CAPITULO "+cap.n+" - "+cap.nom.toUpperCase()+" <span style=\"font-weight:normal;color:#666;float:right\">"+fmtCop(valorCap)+"</span></div>"+
+      itemsList+
+    "</div>";
+  }
+  
+  var docHtml="<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Contrato Maestro "+nroContrato+"</title>"+
+    "<style>"+
+      "body{font-family:'Times New Roman',Georgia,serif;margin:0;padding:30px 50px;color:#1B2A4A;font-size:11pt;line-height:1.6}"+
+      ".header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px double #1B2A4A;padding-bottom:14px;margin-bottom:20px}"+
+      ".logo-box{width:55px;height:55px;background:#1B2A4A;color:#E8A020;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:22px;border-radius:8px}"+
+      ".empresa{font-size:15pt;font-weight:bold;color:#1B2A4A;margin-left:14px;display:inline-block;vertical-align:middle}"+
+      ".empresa-sub{font-size:9pt;color:#666;margin-left:14px}"+
+      ".titulo-main{text-align:center;font-size:18pt;font-weight:bold;color:#1B2A4A;margin:20px 0 5px;text-transform:uppercase;letter-spacing:1px}"+
+      ".nro-contrato{text-align:center;font-size:10pt;color:#E8A020;font-weight:bold;margin-bottom:25px}"+
+      ".clausula{margin-bottom:14px;text-align:justify}"+
+      ".clausula h3{font-size:11.5pt;color:#1B2A4A;background:#E8A020;color:#fff;padding:5px 12px;margin:18px 0 8px;border-radius:3px;letter-spacing:0.5px}"+
+      ".aviso-legal{background:#FFF3E0;border:2px solid #E8A020;padding:12px;margin-bottom:20px;font-size:10pt;color:#5B4A00}"+
+      "table{width:100%;border-collapse:collapse;margin:10px 0;font-size:10pt}"+
+      "th{background:#1B2A4A;color:#fff;padding:8px;text-align:left;border:1px solid #1B2A4A;font-weight:bold}"+
+      ".datos-box{background:#F5F2EC;border-left:4px solid #1B2A4A;padding:12px;margin-bottom:18px}"+
+      ".datos-box p{margin:4px 0;font-size:10.5pt}"+
+      ".datos-box b{color:#1B2A4A;display:inline-block;min-width:160px}"+
+      ".firma-block{margin-top:50px;page-break-inside:avoid}"+
+      ".firma{display:inline-block;width:42%;text-align:center;margin:0 3%;border-top:2px solid #1B2A4A;padding-top:6px;vertical-align:top}"+
+      ".firma-title{font-weight:bold;color:#1B2A4A;font-size:10pt;margin-top:4px}"+
+      ".firma-label{color:#666;font-size:9pt;margin-top:6px}"+
+      ".valor-destacado{background:#1B2A4A;color:#fff;padding:8px 14px;display:inline-block;font-weight:bold;font-size:13pt;border-radius:5px;margin:4px 0}"+
+      ".footer-pie{text-align:center;font-size:8pt;color:#999;margin-top:30px;border-top:1px solid #DDD;padding-top:8px}"+
+      ".pagebreak{page-break-after:always}"+
+      "@media print{body{margin:0;padding:25px 40px;font-size:10pt}.no-print{display:none}}"+
+      ".no-print{margin:20px 0;text-align:center}"+
+      ".btn-print{background:#1B2A4A;color:#fff;border:none;padding:12px 28px;border-radius:6px;font-size:12pt;cursor:pointer;font-weight:bold}"+
+    "</style></head><body>"+
+    
+    "<div class=\"aviso-legal\"><b>AVISO IMPORTANTE:</b> Esta es una plantilla de contrato generada automaticamente. Antes de utilizarla en un caso real, MOSS Arquitectura recomienda que un abogado laboralista colombiano la revise y valide. Las clausulas estan redactadas con base en practicas estandar del sector construccion en Colombia, pero su aplicabilidad depende del caso especifico.</div>"+
+    
+    "<div class=\"header\">"+
+      "<div>"+
+        "<div class=\"logo-box\" style=\"display:inline-block;vertical-align:middle\">M</div>"+
+        "<span class=\"empresa\">MOSS Arquitectura y Mobiliario S.A.S.</span><br/>"+
+        "<span class=\"empresa-sub\">NIT 901.159.078-6 | Bogota D.C., Colombia</span>"+
+      "</div>"+
+      "<div style=\"text-align:right;font-size:9pt;color:#666\">Generado: "+hoyContrato.toLocaleDateString("es-CO",{day:"2-digit",month:"long",year:"numeric"})+"</div>"+
+    "</div>"+
+    
+    "<div class=\"titulo-main\">Contrato de Prestacion de Servicios de Obra Civil</div>"+
+    "<div class=\"nro-contrato\">N\u00B0 "+nroContrato+"</div>"+
+    
+    "<div class=\"clausula\">Entre los suscritos, a saber: <b>MOSS ARQUITECTURA Y MOBILIARIO S.A.S.</b>, sociedad legalmente constituida, identificada con NIT 901.159.078-6, con domicilio principal en Bogota D.C., representada legalmente por <b>JUAN MANUEL GUEVARA GUEVARA</b>, quien para los efectos de este contrato se denominara <b>EL CONTRATANTE</b>; y de la otra parte, <b>"+(o.maestro||"___________________________")+"</b>, mayor de edad, identificado con cedula de ciudadania N\u00B0 _____________ de __________, quien actua en nombre propio y para los efectos de este contrato se denominara <b>EL CONTRATISTA</b>; hemos convenido celebrar el presente CONTRATO DE PRESTACION DE SERVICIOS DE OBRA CIVIL, que se regira por las siguientes clausulas:</div>"+
+    
+    "<div class=\"datos-box\">"+
+      "<p><b>Obra:</b> "+o.cod+" - "+o.nom+"</p>"+
+      "<p><b>Cliente final:</b> "+(o.cli||"Por confirmar")+"</p>"+
+      "<p><b>Direccion / Apartamento:</b> Segun direccion registrada en archivo de obra</p>"+
+      "<p><b>Area total intervenida:</b> "+o.m2+" m2</p>"+
+      "<p><b>Fecha de inicio:</b> "+fechaInicioObra+"</p>"+
+      "<p><b>Fecha de entrega comprometida:</b> "+fechaEntregaStr+" (5 semanas calendario)</p>"+
+      "<p><b>Residente designado por MOSS:</b> "+(o.res||"Por designar")+"</p>"+
+    "</div>"+
+    
+    "<div class=\"clausula\"><h3>PRIMERA - OBJETO DEL CONTRATO</h3>"+
+    "EL CONTRATISTA se obliga para con EL CONTRATANTE a ejecutar, bajo su exclusiva responsabilidad, riesgo y direccion tecnica, los trabajos de obra civil y acabados arquitectonicos en la obra "+o.cod+" - "+o.nom+", correspondientes a las actividades detalladas en la <b>CLAUSULA SEGUNDA</b>, aplicadas sobre un area total de "+o.m2+" m2. La ejecucion debera realizarse de conformidad con los planos arquitectonicos suministrados, las especificaciones tecnicas y los estandares de calidad MOSS, y bajo la supervision del residente de obra designado.</div>"+
+    
+    "<div class=\"clausula\"><h3>SEGUNDA - ACTIVIDADES A EJECUTAR</h3>"+
+    "EL CONTRATISTA ejecutara las siguientes actividades por capitulo:</div>"+
+    actividadesHTML+
+    
+    "<div class=\"clausula\"><h3>TERCERA - VALOR DEL CONTRATO Y FORMA DE PAGO</h3>"+
+    "El valor total del presente contrato es de <span class=\"valor-destacado\">"+fmtCop(totalMdO)+"</span> ("+fmtCop(totalMdO)+" pesos M/Cte), correspondiente exclusivamente a mano de obra. Los materiales seran suministrados por MOSS Arquitectura.</div>"+
+    "<div class=\"clausula\"><b>Forma de pago:</b> Los pagos se realizaran por cortes <b>quincenales</b>, contados a partir de la fecha de inicio de obra. Cada corte sera revisado y aprobado previamente por el residente de obra designado y/o el director de proyectos. <b>Solo se pagaran las actividades que se encuentren 100% terminadas y aprobadas tecnicamente</b> al momento del corte. Las actividades parcialmente ejecutadas o pendientes de aprobacion no generan derecho a cobro hasta su finalizacion y aprobacion formal."+
+    "<table style=\"margin-top:8px\"><thead><tr><th style=\"width:120px\">Corte</th><th>Fecha estimada</th><th>Aprobacion requerida</th></tr></thead>"+
+    "<tbody>"+
+    "<tr><td style=\"border:1px solid #555;padding:6px;text-align:center\">Quincena 1</td><td style=\"border:1px solid #555;padding:6px\">"+fechaCorte1.toISOString().slice(0,10)+"</td><td style=\"border:1px solid #555;padding:6px\">Capitulos 2 (redes) terminados al 100%</td></tr>"+
+    "<tr><td style=\"border:1px solid #555;padding:6px;text-align:center\">Quincena 2</td><td style=\"border:1px solid #555;padding:6px\">"+fechaCorte2.toISOString().slice(0,10)+"</td><td style=\"border:1px solid #555;padding:6px\">Capitulos 3 y 4 (obra blanca, pisos) terminados al 100%</td></tr>"+
+    "<tr><td style=\"border:1px solid #555;padding:6px;text-align:center\">Quincena 3 (final)</td><td style=\"border:1px solid #555;padding:6px\">"+fechaCorte3.toISOString().slice(0,10)+"</td><td style=\"border:1px solid #555;padding:6px\">Entrega final: 100% de actividades terminadas, aprobadas y entregadas a satisfaccion</td></tr>"+
+    "</tbody></table></div>"+
+    
+    "<div class=\"clausula\"><h3>CUARTA - PLAZO Y CRONOGRAMA</h3>"+
+    "El plazo total para la ejecucion de las actividades es de <b>cinco (5) semanas calendario</b>, contadas a partir del "+fechaInicioObra+" hasta el "+fechaEntregaStr+". Este plazo es ESENCIAL y de obligatorio cumplimiento. El cronograma detallado es el siguiente:</div>"+
+    "<table>"+
+      "<thead><tr><th>Semana</th><th>Actividades</th><th>Inicio</th><th>Fin</th><th>Valor estimado</th></tr></thead>"+
+      "<tbody>"+rowsCrono+"</tbody>"+
+    "</table>"+
+    
+    "<div class=\"clausula\"><h3>QUINTA - CLAUSULA PENAL POR INCUMPLIMIENTO DE PLAZO</h3>"+
+    "En caso de incumplimiento del plazo establecido en la CLAUSULA CUARTA por causas imputables a EL CONTRATISTA, este pagara a EL CONTRATANTE, a titulo de <b>clausula penal pecuniaria</b> (Art. 1592 del Codigo Civil colombiano), una multa equivalente al <b>uno por ciento (1%) del valor total del contrato por cada dia calendario de retraso</b>, equivalente a <span class=\"valor-destacado\" style=\"font-size:11pt\">"+fmtCop(multaPorDia)+" por dia</span>. El valor maximo acumulado de esta clausula penal no podra superar el <b>veinte por ciento (20%) del valor del contrato</b>, esto es "+fmtCop(topeMulta)+", limite establecido como mecanismo razonable y no abusivo. La multa sera descontada directamente del valor pendiente de pago al CONTRATISTA, sin necesidad de requerimiento judicial.</div>"+
+    
+    "<div class=\"clausula\"><h3>SEXTA - CALIDAD Y APROBACION TECNICA</h3>"+
+    "Toda actividad ejecutada por EL CONTRATISTA debe cumplir con los estandares de calidad MOSS y las normas tecnicas colombianas aplicables (NSR-10, RETIE, RAS, etc., segun corresponda). <b>Ninguna actividad sera considerada terminada hasta que reciba aprobacion expresa del residente de obra designado por MOSS</b>. La aprobacion debera quedar registrada por escrito o en el dashboard ObraControl MOSS.</div>"+
+    
+    "<div class=\"clausula\"><h3>SEPTIMA - REPROCESOS Y TRABAJOS MAL EJECUTADOS</h3>"+
+    "Cualquier actividad ejecutada de manera deficiente, con baja calidad, fuera de especificaciones tecnicas o que requiera ser rehecha (ejemplo: enchape mal puesto, pintura defectuosa, instalaciones electricas o hidraulicas incorrectas, etc.) <b>sera reparada o reejecutada por cuenta y costo de EL CONTRATISTA</b>. Esto incluye:"+
+    "<ul style=\"margin:6px 0 6px 22px;padding:0\">"+
+    "<li>Costo de la mano de obra de la reparacion (si la realiza un tercero, MOSS contratara y descontara del pago pendiente).</li>"+
+    "<li>Costo de los materiales adicionales que se requieran para la reparacion.</li>"+
+    "<li>Costo del retiro y disposicion del material defectuoso.</li>"+
+    "</ul>"+
+    "EL CONTRATISTA acepta que MOSS pueda descontar estos costos directamente del valor pendiente de pago.</div>"+
+    
+    "<div class=\"clausula\"><h3>OCTAVA - MANEJO DE MATERIALES Y DESPERDICIOS</h3>"+
+    "EL CONTRATISTA se obliga a manejar los materiales suministrados por MOSS con responsabilidad y profesionalismo. Especificamente:"+
+    "<ul style=\"margin:6px 0 6px 22px;padding:0\">"+
+    "<li>Recibir y verificar el estado de los materiales al momento de la entrega en obra (planilla de despacho firmada).</li>"+
+    "<li>Almacenarlos en condiciones que prevengan dano, perdida o hurto.</li>"+
+    "<li>Utilizarlos exclusivamente en la obra contratada.</li>"+
+    "<li>Reportar inmediatamente al residente cualquier material defectuoso recibido del proveedor.</li>"+
+    "</ul>"+
+    "Los desperdicios excesivos o danos a materiales por descuido, negligencia o mal manejo seran <b>cuantificados por el residente y descontados del valor pendiente de pago al CONTRATISTA</b>. Un porcentaje de desperdicio normal de hasta el cinco por ciento (5%) en materiales como morteros, pinturas y similares se considerara dentro de la operacion regular y no sera descontado.</div>"+
+    
+    "<div class=\"clausula\"><h3>NOVENA - EQUIPO DE TRABAJO MINIMO</h3>"+
+    "EL CONTRATISTA debe disponer en obra de un equipo de trabajo suficiente para cumplir el cronograma. <b>En caso de que EL CONTRATISTA no disponga de equipo de trabajo en obra por mas de tres (3) dias habiles consecutivos sin justificacion previa aprobada por escrito por MOSS</b>, EL CONTRATANTE podra dar por terminado de manera unilateral este contrato. En tal evento, EL CONTRATISTA renuncia al cobro por los dias trabajados parcialmente y a cualquier indemnizacion, sin perjuicio del pago de actividades 100% terminadas y aprobadas en cortes quincenales anteriores al evento de abandono. EL CONTRATISTA respondera ademas por los danos y perjuicios causados a MOSS por el abandono.</div>"+
+    
+    "<div class=\"clausula\"><h3>DECIMA - INDEPENDENCIA Y NATURALEZA DEL CONTRATO</h3>"+
+    "Este es un contrato de <b>prestacion de servicios independientes de obra civil</b>, regido por el Codigo de Comercio y el Codigo Civil colombiano. NO genera relacion laboral, subordinacion, ni vinculo solidario alguno entre MOSS y EL CONTRATISTA ni con sus auxiliares. EL CONTRATISTA actua con plena autonomia tecnica y administrativa, asume todos los riesgos propios de su actividad, y es responsable directo del cumplimiento de las obligaciones laborales y de seguridad social de su personal auxiliar (si lo tuviere).</div>"+
+    
+    "<div class=\"clausula\"><h3>DECIMA PRIMERA - SEGURIDAD Y SALUD EN EL TRABAJO</h3>"+
+    "EL CONTRATISTA es responsable del cumplimiento de las normas de seguridad y salud en el trabajo (Decreto 1072 de 2015, Resolucion 0312 de 2019), incluyendo el suministro y uso de elementos de proteccion personal (EPP), afiliacion a ARL y EPS de su personal, y cumplimiento de protocolos de seguridad en obra. MOSS se reserva el derecho de suspender actividades si detecta condiciones inseguras.</div>"+
+    
+    "<div class=\"clausula\"><h3>DECIMA SEGUNDA - CONFIDENCIALIDAD</h3>"+
+    "EL CONTRATISTA mantendra estricta confidencialidad sobre los planos, especificaciones, valores contractuales, identidad del cliente final y demas informacion suministrada por MOSS para la ejecucion de este contrato.</div>"+
+    
+    "<div class=\"clausula\"><h3>DECIMA TERCERA - SOLUCION DE CONTROVERSIAS</h3>"+
+    "Las diferencias que surjan entre las partes durante la ejecucion del contrato seran resueltas en primera instancia mediante <b>arreglo directo</b> dentro de los quince (15) dias siguientes al surgimiento del conflicto. De no lograrse acuerdo, las partes se someteran a la jurisdiccion ordinaria de Bogota D.C.</div>"+
+    
+    "<div class=\"clausula\"><h3>DECIMA CUARTA - CAUSALES DE TERMINACION</h3>"+
+    "Son causales de terminacion anticipada de este contrato, sin perjuicio de las indemnizaciones a que haya lugar:"+
+    "<ul style=\"margin:6px 0 6px 22px;padding:0\">"+
+    "<li>Mutuo acuerdo entre las partes.</li>"+
+    "<li>Incumplimiento grave de obligaciones contractuales por cualquiera de las partes.</li>"+
+    "<li>Abandono de la obra por parte de EL CONTRATISTA (Clausula NOVENA).</li>"+
+    "<li>Suspension de actividades por causas de fuerza mayor o caso fortuito por mas de quince (15) dias calendario.</li>"+
+    "</ul></div>"+
+    
+    "<div class=\"clausula\" style=\"margin-top:25px\">Para constancia de lo anterior, se firma el presente contrato en la ciudad de Bogota D.C., el dia _____ del mes de ________________ del ano _________, en dos (2) ejemplares del mismo tenor y validez.</div>"+
+    
+    "<div class=\"firma-block\">"+
+      "<div class=\"firma\">"+
+        "<div style=\"height:60px\"></div>"+
+        "<div class=\"firma-title\">JUAN MANUEL GUEVARA GUEVARA</div>"+
+        "<div class=\"firma-label\">Representante Legal</div>"+
+        "<div class=\"firma-label\">MOSS Arquitectura y Mobiliario S.A.S.</div>"+
+        "<div class=\"firma-label\">NIT 901.159.078-6</div>"+
+      "</div>"+
+      "<div class=\"firma\">"+
+        "<div style=\"height:60px\"></div>"+
+        "<div class=\"firma-title\">"+(o.maestro||"___________________")+"</div>"+
+        "<div class=\"firma-label\">EL CONTRATISTA</div>"+
+        "<div class=\"firma-label\">C.C. N\u00B0 _____________________</div>"+
+        "<div class=\"firma-label\">Tel: _____________________</div>"+
+      "</div>"+
+    "</div>"+
+    
+    "<div class=\"footer-pie\">Contrato "+nroContrato+" - MOSS Arquitectura y Mobiliario S.A.S. - Pagina generada por ObraControl 2026</div>"+
+    
+    "<div class=\"no-print\"><button class=\"btn-print\" onclick=\"window.print()\">Imprimir / Guardar como PDF</button></div>"+
+    "</body></html>";
+  
+  w.document.open();
+  w.document.write(docHtml);
+  w.document.close();
+}
+
 
 // === AGREGAR MATERIAL RAPIDO DESDE OBRA ===
 // Estado del agregar material por obra (capN actual)
@@ -2829,6 +3481,37 @@ function rDetalle(){
     body=div("card","<div class='cp'>"+h("div",{"style":"font-size:12px;font-weight:600;color:var(--v);margin-bottom:12px"},"Calidad por actividad")+resCalc+calRows+"</div>");
 
   }else if(S.otab==="pres"&&!esRes()){
+    // NUEVO PRESUPUESTO PROFESIONAL v19 - estructura por m2 con Mat + MdO separados
+    // Solo CEO/Coord/Ops ven precios; resto ve solo totales
+    if(puedeVerPrecios()){
+      var tabsPres=h("div",{"style":"display:flex;gap:4px;margin-bottom:12px;background:var(--bc);padding:4px;border-radius:8px"},
+        h("button",{
+          "style":"flex:1;font-size:11px;padding:7px;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;background:"+(PRESUP_VIEW.tab==="detalle"?"var(--v)":"transparent")+";color:"+(PRESUP_VIEW.tab==="detalle"?"#fff":"var(--g)"),
+          "onclick":"presupSetTab(&quot;detalle&quot;)"
+        },"Presupuesto de esta obra")+
+        h("button",{
+          "style":"flex:1;font-size:11px;padding:7px;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;background:"+(PRESUP_VIEW.tab==="config"?"var(--v)":"transparent")+";color:"+(PRESUP_VIEW.tab==="config"?"#fff":"var(--g)"),
+          "onclick":"presupSetTab(&quot;config&quot;)"
+        },"Editar precios base")+
+        h("button",{
+          "style":"flex:1;font-size:11px;padding:7px;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;background:"+(PRESUP_VIEW.tab==="contrato"?"var(--v)":"transparent")+";color:"+(PRESUP_VIEW.tab==="contrato"?"#fff":"var(--g)"),
+          "onclick":"presupSetTab(&quot;contrato&quot;)"
+        },"Contrato (legacy)")
+      );
+      if(PRESUP_VIEW.tab==="detalle"){
+        body=tabsPres+rPresupDetalle(o);
+      }else if(PRESUP_VIEW.tab==="config"){
+        body=tabsPres+rPresupConfig();
+      }else{
+        // Mantener vista legacy del contrato/gastos para compatibilidad
+        body=tabsPres+rPresupContratoLegacy(o);
+      }
+    }else{
+      // Para roles sin permisos: solo mostrar contrato y avance, sin precios
+      body=rPresupContratoSimple(o);
+    }
+  }else if(false){
+    // Bloque legacy desactivado - se mantiene como funcion rPresupContratoLegacy
     // FIX: mostrar valores en pesos colombianos correctamente
     var rubHTML="";
     if(o.pres>0){
@@ -3054,7 +3737,7 @@ function rDetalle(){
     var bgEnt=(puedeEditFechas&&fEditManual)?"":";background:#F5F5F5";
     var valEntregaShow=(fEditManual&&o.fE)?o.fE:(fechaEntregaCalculada||o.fE||"");
     var fechasObraHTML=div("card","<div class='cp' style='background:#FAF7F3;border:2px solid var(--v)'>"+
-      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v18</span></div>"+
+      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v20</span></div>"+
       "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px'>"+
         "<div>"+
           "<label style='font-size:11px;color:var(--g);font-weight:600'>Fecha de inicio de obra *</label>"+
