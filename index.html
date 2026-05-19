@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.13-v16-autoguardado">
+<meta name="version" content="2026.05.19-v18-roles">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.13-v16-autoguardado";
+var APP_VERSION="2026.05.19-v18-roles";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -242,6 +242,289 @@ var MAT_CATALOGO_INICIAL={
   ]
 };
 
+// === CATALOGO ENRIQUECIDO DESDE EXCEL SANDRA (Mayo 2026) ===
+var MAT_CATALOGO_SANDRA={
+  "2":[
+    {nom:"Cinta led calida x 5m",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Canaleta led x 3m",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Cable encauchado 2/14 color negro",uni:"mts",precio:0,proveedor:"FERRETERIA FELIX",pedidos:1},
+    {nom:"Recoger en obra cable duplex x 30m",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"Tubería desague acordeon para lavadero",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Interruptor corriente doble",uni:"und",precio:51999,proveedor:"COBELEC",pedidos:1},
+    {nom:"Conectadores para cinta led",uni:"und",precio:38003,proveedor:"COBELEC",pedidos:1},
+    {nom:"Interruptor sencillo blanco",uni:"unidad",precio:8500,proveedor:"COBELEC",pedidos:1},
+    {nom:"Interruptor doble blanco (para cintas led y sala)",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Sifón flexible con push lavamanos color negro",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:2},
+    {nom:"cable duplex",uni:"unidad",precio:0,proveedor:"",pedidos:2},
+    {nom:"15 metros de cable negro número 12",uni:"unidad",precio:0,proveedor:"COBELEC",pedidos:1},
+    {nom:"15 metros de cable VERDE número 12",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"15 metros de cable blanco número 12",uni:"unidad",precio:0,proveedor:"CARRO",pedidos:1},
+    {nom:"TUBO PVC DE 1/2 AGUA FRIA",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"TUBO PVC DE 1/2 AGUA CALIENTE",uni:"unidad",precio:0,proveedor:"BODEA",pedidos:1},
+    {nom:"Rejilla plastica para ducha (sifón) blanca 3X2",uni:"unidad",precio:0,proveedor:"LA ROCA",pedidos:1},
+    {nom:"Codo 1/2 PVC",uni:"unidad",precio:0,proveedor:"FERRETERIA",pedidos:1},
+    {nom:"Sifón de 10x10 color negro rejilla)",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Sifón flexible tipo Push",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Tubo PVC verde 1/2",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"canaleta cinta led",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"cinta led calida (incluye cocina y hb ppal)",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Pegante PVC",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Limpiador PVC",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Cable duplex blanco",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Tubo PVC color verde x 4mts",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Interruptor doble baño",uni:"unidad",precio:0,proveedor:"VERIFICAR EN BODEGA",pedidos:1},
+    {nom:"Interruptor sencillo / - Zona TV",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Tubo PVC verde",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Tomacorriente doble",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Cinta LED calida para muble cocina",uni:"unidad",precio:0,proveedor:"COBELEC",pedidos:1},
+    {nom:"Canaleta para cinta LED",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+  ],
+  "3":[
+    {nom:"POR DEFINIR",uni:"40.5",precio:0,proveedor:"PISO SPC",pedidos:1},
+    {nom:"LAVAPLATOS",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"CONDIMENTERO",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"CAJA MAGICA ESQUINERA",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"SHUT DE BASURA SENCILLO",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Caja de estuco supermastik",uni:"und",precio:0,proveedor:"M SIERRA",pedidos:1},
+    {nom:"Paneles de incrustar neutra de 12w",uni:"und",precio:0,proveedor:"COBELEC",pedidos:1},
+    {nom:"Paneles de sobreponer calidas de 12w",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"yeso",uni:"bulto",precio:0,proveedor:"",pedidos:1},
+    {nom:"tiros",uni:"caja",precio:0,proveedor:"",pedidos:1},
+    {nom:"pernos",uni:"caja",precio:0,proveedor:"",pedidos:1},
+    {nom:"angulos",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"omegas",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"viguetas",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Tornillos de estructura para drywall",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Tornillos de tapado para drywall",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"cinta aislante",uni:"rollo",precio:1014,proveedor:"",pedidos:1},
+    {nom:"cinta filo",uni:"rollo",precio:0,proveedor:"BODEGA",pedidos:2},
+    {nom:"Crucetas",uni:"pqte",precio:1014,proveedor:"BODEGA",pedidos:1},
+    {nom:"Cinta fila",uni:"rollos",precio:0,proveedor:"",pedidos:1},
+    {nom:"Pago de diseño para despeice - Laura MADECENTRO",uni:"gbl",precio:18500,proveedor:"CARPINTERÍA",pedidos:2},
+    {nom:"Enchape blanco brillante 30x60cm",uni:"m2",precio:149445,proveedor:"",pedidos:1},
+    {nom:"Perfil de transicion SPC en T X 3MTS thundra",uni:"tira",precio:28000,proveedor:"",pedidos:1},
+    {nom:"Rollo de cartón x 15mts",uni:"unidad",precio:36750,proveedor:"ULTRAPINTURAS",pedidos:2},
+    {nom:"kit de accesorios x6 color negro",uni:"und",precio:112000,proveedor:"",pedidos:1},
+    {nom:"Canastilla con desague para lavaplatos",uni:"und",precio:0,proveedor:"",pedidos:2},
+    {nom:"Rollo de cartón x 20mts",uni:"rollo",precio:28000,proveedor:"FERRETERIA",pedidos:1},
+    {nom:"Enchape blanco brillante (30cm x 60cm)",uni:"caja",precio:84419,proveedor:"CORONA",pedidos:1},
+    {nom:"Pata plástica negra",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"Compra de carpintería",uni:"gbl",precio:0,proveedor:"CARPINTERÍA ROGELIO",pedidos:3},
+    {nom:"División de baño",uni:"und",precio:0,proveedor:"DIVIBAÑOSDT",pedidos:3},
+    {nom:"esquineros blanco (para remate de enchape salpicadero",uni:"und",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"Poceta de lavaplatos",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Silicona blanca",uni:"und",precio:0,proveedor:"",pedidos:2},
+    {nom:"Enchape blanco 30cmx60cm",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Rollo cinta de enmascarar",uni:"rollo",precio:0,proveedor:"",pedidos:1},
+    {nom:"Cemento blanco",uni:"kilos",precio:0,proveedor:"",pedidos:1},
+    {nom:"Aerosol color negro",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"cemento blanco (para sanitario)",uni:"kg",precio:0,proveedor:"",pedidos:1},
+    {nom:"Cinta teflón",uni:"rollo",precio:0,proveedor:"BODEGA",pedidos:3},
+    {nom:"Push",uni:"und",precio:0,proveedor:"TIENDA EL EBANISTA",pedidos:1},
+    {nom:"Brazos de 60N",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Clips para zócalos",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Cambio de platillero 70cm",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Tapatornillos",uni:"hojas",precio:0,proveedor:"",pedidos:1},
+    {nom:"MANIJAS NEGRAS TIPO CRUZ",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Tubo regadera 40cm negro",uni:"und",precio:70000,proveedor:"",pedidos:1},
+    {nom:"Cina neoflex 12V",uni:"mts",precio:0,proveedor:"",pedidos:1},
+    {nom:"Taco monofasico",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Toma GFCI",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Enchape para salpicadero",uni:"und",precio:71820,proveedor:"CORONA",pedidos:1},
+    {nom:"Toma corriente blanco",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Tapa ciega",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"cemento blanca",uni:"bolsa",precio:0,proveedor:"",pedidos:1},
+    {nom:"enchape muro baño",uni:"caja",precio:0,proveedor:"CORONA",pedidos:1},
+    {nom:"enchape piso",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Aseo final de obra (full) - Lunes 13 de abril",uni:"gbl",precio:0,proveedor:"2 PERSONAS",pedidos:1},
+    {nom:"Aseo final de obra (full) - Martes 14 de abril",uni:"gbl",precio:0,proveedor:"1 PERSONA",pedidos:1},
+    {nom:"Piezas de madera color germany",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Revisión de gas",uni:"gbl",precio:0,proveedor:"REVISIÓN",pedidos:1},
+    {nom:"Pega enchape x 25KG",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"Bala de incrustar 5 V neutra (BAÑOS) Ojo de guey",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Bala de incrustar 5V CALIDA (HALL DE ACCESO) Ojo de guey",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Bala de sobreponer CIRCULAR12 w CALIDAS",uni:"unidad",precio:60504,proveedor:"",pedidos:1},
+    {nom:"Toma coriente sencillo blanco",uni:"unidad",precio:8405,proveedor:"",pedidos:1},
+    {nom:"Cinta teflon",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Silicona blanca antihongos",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Esquinero metalico blanco",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Cemento",uni:"unidad",precio:0,proveedor:"FERRETERIA Y DEPOSITO CASTOR",pedidos:3},
+    {nom:"Lonas de arena de pozo",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Rollo de cinta aistalante",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"Ángulos para drywall",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Lonas de arena de peña o amarilla",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Estuco plástico",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"10 capuchones #12",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Caja eléctrica de 10 X 4",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Sonda electrica",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Terminaes de luz para tubo de 1/2\"",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"CODOS DE 1/2 AGUA CALIENTE",uni:"unidad",precio:0,proveedor:"CAMILO",pedidos:1},
+    {nom:"UNION MACHO AGUA CALIENTE 1/2",uni:"unidad",precio:0,proveedor:"CAMILO",pedidos:1},
+    {nom:"ADAPTADOR MACHO AGUA CALIENTE",uni:"unidad",precio:0,proveedor:"CAMILO",pedidos:1},
+    {nom:"ADAPTADOR MACHO AGUA FRIA",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"CODO 1/2 AGUA FRIA",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"UNION MACHO AGUA FRIA 1/2",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Tapon R",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Niple",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Limpiador",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Soldadura",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"caja de enchape para salpicadero de cocina BOSS 60 x 60",uni:"unidad",precio:0,proveedor:"CORONA",pedidos:1},
+    {nom:"lonas de arena fina (solo llegarón 2 bolsas de arena de peña en el pedido de 14",uni:"unidad",precio:0,proveedor:"FERRETERIA FERRECASTOR",pedidos:1},
+    {nom:"Cemento 1/2",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Manija",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Desvidor - Boccherini",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Escalera larga",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"Lona de arena",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Registro del agua",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Pitura tipo 1 color blanco",uni:"unidad",precio:0,proveedor:"ULTRAPINTURAS",pedidos:1},
+    {nom:"Rollo de cartón",uni:"unidad",precio:0,proveedor:"",pedidos:2},
+    {nom:"Kit de accesorios x 6 color negro",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Riel de 4 spots negro sobreponer calido (falta recoger en tienda)",uni:"unidad",precio:50418,proveedor:"COBELEC",pedidos:1},
+    {nom:"Repisas para tV",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"Tornillo para dywall",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Arena de pena",uni:"unidad",precio:0,proveedor:"FERRETERIA",pedidos:1},
+    {nom:"Neoflex rollo",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Implementos de aseo",uni:"unidad",precio:0,proveedor:"ASEO",pedidos:1},
+    {nom:"Aseo final de obra (full) -",uni:"unidad",precio:0,proveedor:"3 PERSONAS",pedidos:1},
+    {nom:"Aseo final de obra - medio día",uni:"unidad",precio:0,proveedor:"1 PERSONA",pedidos:1},
+    {nom:"Manguero flexometalica",uni:"unidad",precio:0,proveedor:"FERRETERIA",pedidos:1},
+    {nom:"Manguera raya azul",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Arena",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Supermastick",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:3},
+    {nom:"Drywall",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Bulto de Cemento",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Rollo de cinta aislante (negra)",uni:"unidad",precio:2028,proveedor:"",pedidos:1},
+    {nom:"Bultos de arena amarilla",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"Tapabocas",uni:"unidad",precio:0,proveedor:"",pedidos:2},
+    {nom:"Rollos de cinta enmascarar",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Crucetas / Dilatadores",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Enchape pizarra laja color negro 30cm x 60cm",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Crucetas 2mm",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"Enchape negro 31x60cm",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Arena fina 1/2 bulto/ para afinar piso",uni:"unidad",precio:10000,proveedor:"FERRETERIA",pedidos:1},
+    {nom:"cinta de enmascarar",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Perfiles de transición 3 mts color SPC EVA006",uni:"3 tee",precio:42000,proveedor:"",pedidos:1},
+    {nom:"Enchape piso basáltico negro 31x60cm",uni:"2 cajas",precio:0,proveedor:"GRUPO DISCERCOL S.A.S",pedidos:1},
+    {nom:"Paneles LED sobreponer tono calido",uni:"unidad",precio:83999,proveedor:"CAMIONETA",pedidos:1},
+    {nom:"Paneles LED sobreponer tono neutro",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Win metálico para salpicadero blanco",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Tapa ciega / - Zona TV",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Toma corriente / - Zona TV",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Grfiería alta lavaplatos (solo agua fria)",uni:"unidad",precio:100000,proveedor:"",pedidos:1},
+    {nom:"Kit de accesorios x 6 piezas color negro",uni:"unidad",precio:112000,proveedor:"",pedidos:1},
+    {nom:"Canastilla de lavapaltos",uni:"unidad",precio:30000,proveedor:"",pedidos:1},
+    {nom:"Llevar fondo que está en la bodega",uni:"unidad",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"Tendedero extraíble color negro",uni:"unidad",precio:0,proveedor:"HOMECENTER",pedidos:1},
+    {nom:"Implementos de aseo general para la obra",uni:"unidad",precio:0,proveedor:"D1 (IMPLEMENTO DE ASEO)",pedidos:1},
+    {nom:"Silcona blanca",uni:"unidad",precio:24000,proveedor:"FERRETERIA",pedidos:1},
+    {nom:"Valvula",uni:"unidad",precio:6500,proveedor:"",pedidos:1},
+    {nom:"Teflón pequeño",uni:"unidad",precio:800,proveedor:"",pedidos:1},
+    {nom:"Registros",uni:"unidad",precio:13000,proveedor:"",pedidos:1},
+    {nom:"Codo 3/8",uni:"unidad",precio:3500,proveedor:"",pedidos:1},
+    {nom:"Barrito",uni:"unidad",precio:2500,proveedor:"",pedidos:1},
+    {nom:"Barrilito",uni:"unidad",precio:5000,proveedor:"",pedidos:1},
+    {nom:"Tee 3/8",uni:"unidad",precio:5500,proveedor:"",pedidos:1},
+    {nom:"Desague acordeón",uni:"unidad",precio:15000,proveedor:"LA ROCA",pedidos:1},
+  ],
+  "4":[
+    {nom:"Boquilla color blanco",uni:"bolsa",precio:0,proveedor:"",pedidos:1},
+    {nom:"Pegacor",uni:"bulto",precio:67056,proveedor:"M SIERRA",pedidos:1},
+    {nom:"Boquilla color beige x 5 kg",uni:"caja",precio:27226,proveedor:"",pedidos:1},
+    {nom:"PISO SPC formato L Ref. 006",uni:"caja",precio:1138700,proveedor:"PARQUETS",pedidos:2},
+    {nom:"Guardaescobas Thundra",uni:"ml",precio:110000,proveedor:"",pedidos:1},
+    {nom:"boquilla blanca",uni:"bolsa",precio:0,proveedor:"BODEGA",pedidos:3},
+    {nom:"boquilla beige",uni:"bolsa",precio:0,proveedor:"BODEGA",pedidos:2},
+    {nom:"Baldosa blanca brillante",uni:"und",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"Piso SPC REF. 005",uni:"unidad",precio:2163400,proveedor:"PARQUETS",pedidos:1},
+    {nom:"Guardaescoba SPC",uni:"unidad",precio:120000,proveedor:"",pedidos:1},
+    {nom:"Pegacor blanco",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Boquilla Gris",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Pegante para pegar guardaescoba",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Boquilla color negra",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Pegacor para enchapes",uni:"unidad",precio:67056,proveedor:"M SIERRA",pedidos:1},
+    {nom:"Boquilla color beige x 2kg",uni:"unidad",precio:13193,proveedor:"CORONA",pedidos:1},
+    {nom:"Piso SPC EVA006",uni:"15 cajas",precio:1707950,proveedor:"PARQUETS",pedidos:1},
+    {nom:"Guardaescobas EVA006",uni:"16 tiras",precio:160000,proveedor:"",pedidos:1},
+    {nom:"Boquilla color negra x 2kg",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+  ],
+  "5":[
+    {nom:"Herrajería de carpintería",uni:"gbl",precio:764900,proveedor:"",pedidos:4},
+    {nom:"Bisagras cierre lento cromadas",uni:"und",precio:0,proveedor:"",pedidos:1},
+    {nom:"Mesón cocina \"MESÓN EN QUARZTONE BLANCO ESTELAR\"",uni:"gbl",precio:0,proveedor:"ALONSO",pedidos:1},
+    {nom:"Mesón lavamanos polar blanco",uni:"gbl",precio:0,proveedor:"",pedidos:1},
+    {nom:"Colores para la carpintería de madera: Mueble inferior: Terranza Mueble superior: Cinza Cobalto",uni:"unidad",precio:7768700,proveedor:"CARPINTERÍA",pedidos:1},
+    {nom:"Shut de basuras sencillo para mueble inferior.",uni:"unidad",precio:0,proveedor:"EL EBANISTA",pedidos:1},
+    {nom:"Meson en granito / incluye barra (blanco / respondiendo al Render) + El lavaplato sencillo en acero inoxidable.",uni:"unidad",precio:1910000,proveedor:"MESONES",pedidos:1},
+  ],
+  "6":[
+    {nom:"lijas 120",uni:"und",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"pintura blanca tipo 1 para fondear",uni:"cuñete",precio:0,proveedor:"ULTRAPINTURAS",pedidos:1},
+    {nom:"Rodillos",uni:"und",precio:0,proveedor:"CORONA",pedidos:4},
+    {nom:"Pintura vinilo tipo 2",uni:"unidad",precio:178000,proveedor:"",pedidos:1},
+    {nom:"Lijas",uni:"unidad",precio:7600,proveedor:"",pedidos:3},
+    {nom:"Brocha",uni:"unidad",precio:0,proveedor:"",pedidos:2},
+    {nom:"Pintura tipo 2 color blanco",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Spot para riel compacto (4 lamparas)",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Brochas",uni:"unidad",precio:0,proveedor:"",pedidos:2},
+    {nom:"Pintura blanca tipo 1",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Pintura blanca tipo 2",uni:"unidad",precio:178000,proveedor:"ULTRAPINTURAS",pedidos:1},
+    {nom:"Lampara Ojo de Guey",uni:"unidad",precio:0,proveedor:"COBELEC",pedidos:1},
+  ],
+  "7":[
+    {nom:"GRIFERÍA",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Acople sanitario",uni:"und",precio:0,proveedor:"",pedidos:3},
+    {nom:"Rejilla 3x2 con sosco negro para desague de ducha",uni:"und",precio:9000,proveedor:"LA ROCA",pedidos:1},
+    {nom:"Griferia lavamanos (solo agua fría). Color negro",uni:"und",precio:100000,proveedor:"LA ROCA",pedidos:1},
+    {nom:"Push COLOR NEGRO para lavamanos",uni:"und",precio:38000,proveedor:"",pedidos:1},
+    {nom:"Lavamanos circular color blanco",uni:"und",precio:130000,proveedor:"",pedidos:1},
+    {nom:"Sanitario en porcelana vitrificada color blanco, una pieza. Ahorrador de agua 4.5 litros por minuto, descarga 600 gr.",uni:"und",precio:380000,proveedor:"",pedidos:1},
+    {nom:"Griferia lavaplatos negra alta Ref Taum",uni:"und",precio:95000,proveedor:"",pedidos:1},
+    {nom:"Acople para conexion de lavamanos",uni:"und",precio:0,proveedor:"BODEGA",pedidos:1},
+    {nom:"Espejo circular",uni:"und",precio:600000,proveedor:"DIVIBAÑOS DT",pedidos:1},
+    {nom:"Ducha tipo lluvia color negro 8\" cuadrada",uni:"und",precio:42000,proveedor:"LA ROCA",pedidos:1},
+    {nom:"Estufa de empotrar a gas en vidrio templado color negro 4 puestos.",uni:"und",precio:778410,proveedor:"",pedidos:1},
+    {nom:"enchape marmolizada de ducha",uni:"pieza",precio:0,proveedor:"",pedidos:1},
+    {nom:"Llave cromada para lavadero",uni:"und",precio:13000,proveedor:"LA ROCA",pedidos:1},
+    {nom:"Se le pebe pagar un adicional a ricardo: adecuación de punto hidraulico para ducha.",uni:"unidad",precio:0,proveedor:"Nota:",pedidos:1},
+    {nom:"Acoples de sanitario",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Acople lavamanos",uni:"unidad",precio:0,proveedor:"",pedidos:2},
+    {nom:"Acople lavaplatos",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Ducha eléctrica - Boccherini",uni:"unidad",precio:0,proveedor:"LA ROCA",pedidos:1},
+    {nom:"Teleducha - Boccherini",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Sanitario en porcelana vitrificada color blanco",uni:"unidad",precio:0,proveedor:"LA ROCA",pedidos:1},
+    {nom:"Lavamanos de sobreponer",uni:"unidad",precio:130000,proveedor:"",pedidos:2},
+    {nom:"Griferia alta lavaplatos negra (agua fria)",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Griferia lavamanos (agua fría)",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Estufa de empotrar a gas en vidrio templado color negro 4 puestos. Incluye manguera y acoples",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"espejo para baño ppal (1.8 x 1.25) aprobabo por Ana",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Accesorios para sistema hidraúlico de ducha",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Desague acordeon para lavamanos",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Lavamanos de sobreponer (35cm de fondo en obra)",uni:"unidad",precio:100000,proveedor:"LA ROCA",pedidos:1},
+    {nom:"Grifería lavamanos (solo agua fria)",uni:"unidad",precio:95000,proveedor:"",pedidos:1},
+    {nom:"Espejo cuadrado 1m x 1m Si es rectangular va de muro a división de ducha(Negra / respondiendo al Render)",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Estufa a gas en vidrio negro 4 puestos",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Ducha monocontrol color negro",uni:"unidad",precio:0,proveedor:"LA ROCA",pedidos:1},
+    {nom:"Manija para ducha color negro",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+  ],
+  "8":[
+    {nom:"ESTUFA",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"campana extractora. Recirculadora color negro Dimensiones 59,6x8,4.",uni:"und",precio:215910,proveedor:"HACEB",pedidos:1},
+    {nom:"Horno mixto de empotrar gas y eléctrico.",uni:"und",precio:805410,proveedor:"",pedidos:1},
+    {nom:"Toma corriente gfci (para lavadora) blanco",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Campana extractora",uni:"unidad",precio:0,proveedor:"HACEB",pedidos:2},
+    {nom:"Horno mixto de empotrar gas y eléctrico. No incluye punto de gas, ni punto eléctrico. Horno pequeño de empotrar",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Aceesorios para conexión de horno y estufa",uni:"unidad",precio:0,proveedor:"",pedidos:1},
+    {nom:"Horno a gas",uni:"unidad",precio:0,proveedor:"HACEB",pedidos:1},
+  ],
+  "9":[
+    {nom:"Implementos de aseo - Caja (y escoba, recogedor y trapero)",uni:"und",precio:0,proveedor:"",pedidos:1},
+  ],
+};
+
+// === HISTORICO DE PEDIDOS DESDE EXCEL ===
+var PEDIDOS_HISTORICOS=[{"obra":"TRAMONTE LIVING","semana":"","proveedor":"PISO SPC","nombre":"POR DEFINIR","cantidad":0,"unidad":"40.5","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"MARTIRES","semana":"","proveedor":"","nombre":"ESTUFA","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"MARTIRES","semana":"","proveedor":"","nombre":"LAVAPLATOS","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"MARTIRES","semana":"","proveedor":"","nombre":"GRIFERÍA","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"MARTIRES","semana":"","proveedor":"","nombre":"CONDIMENTERO","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"MARTIRES","semana":"","proveedor":"","nombre":"CAJA MAGICA ESQUINERA","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"MARTIRES","semana":"","proveedor":"","nombre":"SHUT DE BASURA SENCILLO","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"CENTRIK PARK","semana":"SEMANA 1","proveedor":"M SIERRA","nombre":"Caja de estuco supermastik","cantidad":10.0,"unidad":"UND","valor":0,"fecha_compra":"2026-02-24","fecha_entrega":"2026-02-25","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"SEMANA 2","proveedor":"COBELEC","nombre":"Paneles de incrustar neutra de 12w","cantidad":2.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-02","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Paneles de sobreponer calidas de 12w","cantidad":7.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-02","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Cinta led calida x 5m","cantidad":5.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-02","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Canaleta led x 3m","cantidad":1.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-02","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"BODEGA","nombre":"lijas 120","cantidad":15.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-03","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"yeso","cantidad":1.0,"unidad":"BULTO","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-03","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"tiros","cantidad":1.0,"unidad":"CAJA","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-03","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"pernos","cantidad":1.0,"unidad":"CAJA","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-03","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"angulos","cantidad":7.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-03","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"omegas","cantidad":4.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-03","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"viguetas","cantidad":3.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-03","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Acople sanitario","cantidad":1.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-03","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Tornillos de estructura para drywall","cantidad":300.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-03","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Tornillos de tapado para drywall","cantidad":300.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-03","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"ULTRAPINTURAS","nombre":"pintura blanca tipo 1 para fondear","cantidad":1.0,"unidad":"CUÑETE","valor":0,"fecha_compra":"2026-03-02","fecha_entrega":"2026-03-03","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"SEMANA 3","proveedor":"","nombre":"cinta aislante","cantidad":1.0,"unidad":"ROLLO","valor":1014.0,"fecha_compra":"","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"BODEGA","nombre":"Rodillos","cantidad":2.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-10","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"cinta filo","cantidad":1.0,"unidad":"ROLLO","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-10","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"BODEGA","nombre":"Crucetas","cantidad":2.0,"unidad":"PQTE","valor":1014.0,"fecha_compra":"","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Boquilla color blanco","cantidad":1.0,"unidad":"BOLSA","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-10","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Rodillos","cantidad":2.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-10","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Cinta fila","cantidad":2.0,"unidad":"ROLLOS","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-10","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"M SIERRA","nombre":"Pegacor","cantidad":6.0,"unidad":"BULTO","valor":67056.0,"fecha_compra":"","fecha_entrega":"2026-03-13","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"FERRETERIA FELIX","nombre":"Cable encauchado 2/14 color negro","cantidad":20.0,"unidad":"MTS","valor":0,"fecha_compra":"2026-03-17","fecha_entrega":"2026-03-17","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"CARPINTERÍA","nombre":"Pago de diseño para despeice - Laura MADECENTRO","cantidad":1.0,"unidad":"GBL","valor":18500.0,"fecha_compra":"","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"BODEGA","nombre":"Recoger en obra cable duplex x 30m","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"2026-03-12","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Enchape blanco brillante 30x60cm","cantidad":0,"unidad":"M2","valor":149445.0,"fecha_compra":"2026-03-18","fecha_entrega":"2026-03-18","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Boquilla color beige x 5 kg","cantidad":1.0,"unidad":"CAJA","valor":27226.0,"fecha_compra":"2026-03-18","fecha_entrega":"2026-03-18","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"LA ROCA","nombre":"Rejilla 3x2 con sosco negro para desague de ducha","cantidad":1.0,"unidad":"UND","valor":9000.0,"fecha_compra":"","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"SEMANA 4","proveedor":"PARQUETS","nombre":"PISO SPC formato L Ref. 006","cantidad":23.0,"unidad":"M2","valor":1138700.0,"fecha_compra":"2026-03-20","fecha_entrega":"2026-03-24","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Guardaescobas Thundra","cantidad":25.0,"unidad":"ML","valor":110000.0,"fecha_compra":"2026-03-20","fecha_entrega":"2026-03-24","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Perfil de transicion SPC en T X 3MTS thundra","cantidad":1.0,"unidad":"TIRA","valor":28000.0,"fecha_compra":"2026-03-20","fecha_entrega":"2026-03-24","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"ULTRAPINTURAS","nombre":"Rollo de cartón x 15mts","cantidad":0,"unidad":"","valor":36750.0,"fecha_compra":"2026-03-21","fecha_entrega":"2026-03-24","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Pintura vinilo tipo 2","cantidad":0,"unidad":"","valor":178000.0,"fecha_compra":"2026-03-21","fecha_entrega":"2026-03-24","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"SEMANA 5","proveedor":"LA ROCA","nombre":"Griferia lavamanos (solo agua fría). Color negro","cantidad":1.0,"unidad":"UND","valor":100000.0,"fecha_compra":"2026-03-25","fecha_entrega":"2026-03-27","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Push COLOR NEGRO para lavamanos","cantidad":1.0,"unidad":"UND","valor":38000.0,"fecha_compra":"2026-03-25","fecha_entrega":"2026-03-27","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Lavamanos circular color blanco","cantidad":1.0,"unidad":"UND","valor":130000.0,"fecha_compra":"2026-03-25","fecha_entrega":"2026-03-27","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Sanitario en porcelana vitrificada color blanco, una pieza. Ahorrador de agua 4.5 litros por minuto, descarga 600 gr.","cantidad":1.0,"unidad":"UND","valor":380000.0,"fecha_compra":"2026-03-25","fecha_entrega":"2026-03-27","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"kit de accesorios x6 color negro","cantidad":1.0,"unidad":"UND","valor":112000.0,"fecha_compra":"2026-03-25","fecha_entrega":"2026-03-27","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Griferia lavaplatos negra alta Ref Taum","cantidad":1.0,"unidad":"UND","valor":95000.0,"fecha_compra":"2026-03-25","fecha_entrega":"2026-03-27","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"BODEGA","nombre":"Acople para conexion de lavamanos","cantidad":1.0,"unidad":"UND","valor":0,"fecha_compra":"2026-03-25","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Acople sanitario","cantidad":1.0,"unidad":"UND","valor":0,"fecha_compra":"2026-03-25","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Canastilla con desague para lavaplatos","cantidad":1.0,"unidad":"UND","valor":0,"fecha_compra":"2026-03-25","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"SEMANA 6","proveedor":"FERRETERIA","nombre":"Rollo de cartón x 20mts","cantidad":1.0,"unidad":"ROLLO","valor":28000.0,"fecha_compra":"2026-03-31","fecha_entrega":"2026-03-31","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"CORONA","nombre":"Enchape blanco brillante (30cm x 60cm)","cantidad":1.0,"unidad":"CAJA","valor":84419.0,"fecha_compra":"2026-03-31","fecha_entrega":"2026-03-31","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"BODEGA","nombre":"Pata plástica negra","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-31","fecha_entrega":"2026-03-31","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"CARPINTERÍA","nombre":"Compra de carpintería","cantidad":1.0,"unidad":"GBL","valor":0,"fecha_compra":"2026-03-21","fecha_entrega":"2026-03-27","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Herrajería de carpintería","cantidad":1.0,"unidad":"GBL","valor":764900.0,"fecha_compra":"2026-03-21","fecha_entrega":"2026-03-27","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"CARPINTERÍA","nombre":"Compra de carpintería","cantidad":1.0,"unidad":"GBL","valor":0,"fecha_compra":"2026-03-21","fecha_entrega":"2026-03-27","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Herrajería de carpintería","cantidad":1.0,"unidad":"GBL","valor":0,"fecha_compra":"2026-03-31","fecha_entrega":"2026-03-31","estado":"ENTEGADO"},{"obra":"CENTRIK PARK","semana":"SERMANA 7","proveedor":"DIVIBAÑOS DT","nombre":"Espejo circular","cantidad":1.0,"unidad":"UND","valor":600000.0,"fecha_compra":"2026-04-08","fecha_entrega":"2026-04-08","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"División de baño","cantidad":1.0,"unidad":"UND","valor":0,"fecha_compra":"2026-04-08","fecha_entrega":"2026-04-08","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"SEMANA 8","proveedor":"BODEGA","nombre":"esquineros blanco (para remate de enchape salpicadero","cantidad":0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Poceta de lavaplatos","cantidad":0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Silicona blanca","cantidad":0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Enchape blanco 30cmx60cm","cantidad":0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Rollo cinta de enmascarar","cantidad":0,"unidad":"ROLLO","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Cemento blanco","cantidad":0,"unidad":"KILOS","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Aerosol color negro","cantidad":0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Tubería desague acordeon para lavadero","cantidad":0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"cemento blanco (para sanitario)","cantidad":1.0,"unidad":"kg","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Cinta teflón","cantidad":0,"unidad":"ROLLO","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Implementos de aseo - Caja (y escoba, recogedor y trapero)","cantidad":0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"TIENDA EL EBANISTA","nombre":"Push","cantidad":2.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Brazos de 60N","cantidad":2.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Bisagras cierre lento cromadas","cantidad":4.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Clips para zócalos","cantidad":10.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Cambio de platillero 70cm","cantidad":1.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Tapatornillos","cantidad":3.0,"unidad":"HOJAS","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"PARQUETS","nombre":"PISO SPC formato L Ref. 006","cantidad":1.0,"unidad":"CAJA","valor":0,"fecha_compra":"2026-04-08","fecha_entrega":"2026-04-09","estado":"ENTREGAADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"FALTA","nombre":"MANIJAS NEGRAS TIPO CRUZ","cantidad":1.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"LA ROCA","nombre":"Ducha tipo lluvia color negro 8\\\" cuadrada","cantidad":1.0,"unidad":"UND","valor":42000.0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Tubo regadera 40cm negro","cantidad":1.0,"unidad":"UND","valor":70000.0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"ALONSO","nombre":"Mesón cocina \\\"MESÓN EN QUARZTONE BLANCO ESTELAR\\\"","cantidad":1.0,"unidad":"GBL","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Mesón lavamanos polar blanco","cantidad":1.0,"unidad":"GBL","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"HACEB","nombre":"campana extractora. Recirculadora color negro Dimensiones 59,6x8,4.","cantidad":1.0,"unidad":"UND","valor":215910.0,"fecha_compra":"2026-04-08","fecha_entrega":"2026-04-09","estado":"ENTREGAD"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Horno mixto de empotrar gas y eléctrico.","cantidad":1.0,"unidad":"UND","valor":805410.0,"fecha_compra":"2026-04-08","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Estufa de empotrar a gas en vidrio templado color negro 4 puestos.","cantidad":1.0,"unidad":"UND","valor":778410.0,"fecha_compra":"2026-04-08","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"COBELEC","nombre":"Interruptor corriente doble","cantidad":2.0,"unidad":"UND","valor":51999.0,"fecha_compra":"2026-04-08","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Cina neoflex 12V","cantidad":10.0,"unidad":"MTS","valor":0,"fecha_compra":"2026-04-09","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Taco monofasico","cantidad":1.0,"unidad":"UND","valor":0,"fecha_compra":"2026-04-09","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Toma GFCI","cantidad":1.0,"unidad":"UND","valor":0,"fecha_compra":"2026-04-08","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"CORONA","nombre":"Enchape para salpicadero","cantidad":1.0,"unidad":"UND","valor":71820.0,"fecha_compra":"","fecha_entrega":"2026-04-09","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"SEMANA 6","proveedor":"COBELEC","nombre":"Conectadores para cinta led","cantidad":5.0,"unidad":"UND","valor":38003.0,"fecha_compra":"2026-04-13","fecha_entrega":"2026-04-13","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Toma corriente blanco","cantidad":2.0,"unidad":"UND","valor":0,"fecha_compra":"2026-04-13","fecha_entrega":"2026-04-13","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Tapa ciega","cantidad":1.0,"unidad":"UND","valor":0,"fecha_compra":"2026-04-13","fecha_entrega":"2026-04-13","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"BODEGA","nombre":"Boquilla blanca","cantidad":1.0,"unidad":"BOLSA","valor":0,"fecha_compra":"2026-04-13","fecha_entrega":"2026-04-13","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"BODEGA","nombre":"boquilla beige","cantidad":1.0,"unidad":"bolsa","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-16","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"boquilla blanca","cantidad":1.0,"unidad":"bolsa","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-16","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"cemento blanca","cantidad":1.0,"unidad":"bolsa","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-16","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"enchape marmolizada de ducha","cantidad":2.0,"unidad":"pieza","valor":0,"fecha_compra":"","fecha_entrega":"2026-04-16","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"CORONA","nombre":"enchape muro baño","cantidad":1.0,"unidad":"CAJA","valor":0,"fecha_compra":"2026-04-16","fecha_entrega":"2026-04-16","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"enchape piso","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-04-16","fecha_entrega":"2026-04-16","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"2 PERSONAS","nombre":"Aseo final de obra (full) - Lunes 13 de abril","cantidad":1.0,"unidad":"GBL","valor":0,"fecha_compra":"2026-04-13","fecha_entrega":"2026-04-13","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"1 PERSONA","nombre":"Aseo final de obra (full) - Martes 14 de abril","cantidad":1.0,"unidad":"GBL","valor":0,"fecha_compra":"2026-04-14","fecha_entrega":"2026-04-14","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"SEMANA 7","proveedor":"LA ROCA","nombre":"Llave cromada para lavadero","cantidad":1.0,"unidad":"UND","valor":13000.0,"fecha_compra":"2026-04-21","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"BODEGA","nombre":"Baldosa blanca brillante","cantidad":2.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Boquilla blanca","cantidad":1.0,"unidad":"BOLSA","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Silicona blanca","cantidad":1.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"","nombre":"Piezas de madera color germany","cantidad":4.0,"unidad":"UND","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"REVISIÓN","nombre":"Revisión de gas","cantidad":1.0,"unidad":"GBL","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"ENTREGADO"},{"obra":"CENTRIK PARK","semana":"","proveedor":"Nota:","nombre":"Se le pebe pagar un adicional a ricardo: adecuación de punto hidraulico para ducha.","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"BODEGA","nombre":"Pega enchape x 25KG","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"SEMANA 5","proveedor":"PARQUETS","nombre":"Piso SPC REF. 005","cantidad":2283400.0,"unidad":"","valor":2163400.0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Guardaescoba SPC","cantidad":0,"unidad":"","valor":120000.0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"COBELEC","nombre":"Interruptor sencillo blanco","cantidad":0,"unidad":"","valor":8500.0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Bala de incrustar 5 V neutra (BAÑOS) Ojo de guey","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Bala de incrustar 5V CALIDA (HALL DE ACCESO) Ojo de guey","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Bala de sobreponer CIRCULAR12 w CALIDAS","cantidad":0,"unidad":"","valor":60504.0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Toma coriente sencillo blanco","cantidad":0,"unidad":"","valor":8405.0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Toma corriente gfci (para lavadora) blanco","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Interruptor doble blanco (para cintas led y sala)","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"BODEGA","nombre":"Sifón flexible con push lavamanos color negro","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Canastilla con desague para lavaplatos","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Acoples de sanitario","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Acople lavamanos","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Acople lavaplatos","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Cinta teflon","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Silicona blanca antihongos","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Esquinero metalico blanco","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"German Soto"},{"obra":"7 ESTORIAS","semana":"SEMANA 6","proveedor":"FERRETERIA Y DEPOSITO CASTOR","nombre":"Cemento","cantidad":183000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Pegacor blanco","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Lonas de arena de pozo","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"SEMANA 7","proveedor":"BODEGA","nombre":"Rollo de cinta aistalante","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Cinta teflón","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Cable duplex","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Ángulos para drywall","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Lonas de arena de peña o amarilla","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Estuco plástico","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"COBELEC","nombre":"15 metros de cable negro número 12","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"15 metros de cable VERDE número 12","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"10 capuchones #12","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Caja eléctrica de 10 X 4","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Sonda electrica","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Terminaes de luz para tubo de 1/2\\\"","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"CARRO","nombre":"15 metros de cable blanco número 12","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"BODEGA","nombre":"TUBO PVC DE 1/2 AGUA FRIA","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"BODEA","nombre":"TUBO PVC DE 1/2 AGUA CALIENTE","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"CAMILO","nombre":"CODOS DE 1/2 AGUA CALIENTE","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"CAMILO","nombre":"UNION MACHO AGUA CALIENTE 1/2","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"CAMILO","nombre":"ADAPTADOR MACHO AGUA CALIENTE","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"BODEGA","nombre":"ADAPTADOR MACHO AGUA FRIA","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"CODO 1/2 AGUA FRIA","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"UNION MACHO AGUA FRIA 1/2","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"LA ROCA","nombre":"Rejilla plastica para ducha (sifón) blanca 3X2","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"SEMANA 8","proveedor":"FERRETERIA","nombre":"Codo 1/2 PVC","cantidad":3200.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Tapon R","cantidad":800.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Niple","cantidad":900.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Limpiador","cantidad":3500.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Soldadura","cantidad":6000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"CORONA","nombre":"caja de enchape para salpicadero de cocina BOSS 60 x 60","cantidad":247932.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"FERRETERIA FERRECASTOR","nombre":"lonas de arena fina (solo llegarón 2 bolsas de arena de peña en el pedido de 14","cantidad":15000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Cemento 1/2","cantidad":19000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"LA ROCA","nombre":"Ducha eléctrica - Boccherini","cantidad":180000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Manija","cantidad":90000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Teleducha - Boccherini","cantidad":55000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Sifón de 10x10 color negro rejilla)","cantidad":21500.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Desvidor - Boccherini","cantidad":8000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"SEMANA 9","proveedor":"BODEGA","nombre":"Escalera larga","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"BODEGA","nombre":"Boquilla Beige","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Boquilla Gris","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Cemento","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Lona de arena","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Lijas","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Registro del agua","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Rodillos","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Brocha","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Sifón flexible tipo Push","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Tubo PVC verde 1/2","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"ULTRAPINTURAS","nombre":"Pitura tipo 1 color blanco","cantidad":203000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Pintura tipo 2 color blanco","cantidad":120000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Rollo de cartón","cantidad":73500.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"LA ROCA","nombre":"Sanitario en porcelana vitrificada color blanco","cantidad":1100000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Lavamanos de sobreponer","cantidad":130000.0,"unidad":"","valor":130000.0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Lavamanos de sobreponer","cantidad":100000.0,"unidad":"","valor":130000.0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Griferia alta lavaplatos negra (agua fria)","cantidad":210000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Griferia lavamanos (agua fría)","cantidad":1800000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Kit de accesorios x 6 color negro","cantidad":224000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"COBELEC","nombre":"Riel de 4 spots negro sobreponer calido (falta recoger en tienda)","cantidad":0,"unidad":"","valor":50418.0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Spot para riel compacto (4 lamparas)","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Pegante para pegar guardaescoba","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"BODEGA","nombre":"Repisas para tV","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Tornillo para dywall","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Brocha","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"","proveedor":"FERRETERIA","nombre":"Arena de pena","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":"JEISSON ACEVEDO"},{"obra":"7 ESTORIAS","semana":"SEMANA 9","proveedor":"HACEB","nombre":"Campana extractora","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Estufa de empotrar a gas en vidrio templado color negro 4 puestos. Incluye manguera y acoples","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Horno mixto de empotrar gas y eléctrico. No incluye punto de gas, ni punto eléctrico. Horno pequeño de empotrar","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"SEMANA 10","proveedor":"","nombre":"División de baño","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"espejo para baño ppal (1.8 x 1.25) aprobabo por Ana","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"SEMANA 8","proveedor":"CARPINTERÍA ROGELIO","nombre":"Compra de carpintería","cantidad":16500000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Herrajería de carpintería","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Neoflex rollo","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"canaleta cinta led","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"cinta led calida (incluye cocina y hb ppal)","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"ASEO FINAL","proveedor":"ASEO","nombre":"Implementos de aseo","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"3 PERSONAS","nombre":"Aseo final de obra (full) -","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"1 PERSONA","nombre":"Aseo final de obra - medio día","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"FERRETERIA","nombre":"Manguero flexometalica","cantidad":32500.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Manguera raya azul","cantidad":12000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Aceesorios para conexión de horno y estufa","cantidad":65000.0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Arena","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Cemento","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Supermastick","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"7 ESTORIAS","semana":"","proveedor":"","nombre":"Drywall","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Bulto de Cemento","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-02-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"M SIERRA","nombre":"Supermastick","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-02-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Rollo de cinta aislante (negra)","cantidad":0,"unidad":"","valor":2028.0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"SEMANA 2","proveedor":"BODEGA","nombre":"Bultos de arena amarilla","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Rollo de Cartón","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-12","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Boquilla color negra","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-12","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Acople sanitario","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-12","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Pegante PVC","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-12","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Limpiador PVC","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-12","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Acople lavamanos","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-12","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"M SIERRA","nombre":"Pegacor para enchapes","cantidad":0,"unidad":"","valor":67056.0,"fecha_compra":"2026-03-13","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"BODEGA","nombre":"Cinta filo","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-13","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"BODEGA","nombre":"Supermastick","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-10","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Tapabocas","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-10","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Lijas","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-10","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Rollos de cinta enmascarar","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-10","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Cable duplex blanco","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-10","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Tubo PVC color verde x 4mts","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-10","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Crucetas / Dilatadores","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-10","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Enchape pizarra laja color negro 30cm x 60cm","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-10","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"SEMANA 4","proveedor":"BODEGA","nombre":"Crucetas 2mm","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-17","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Enchape negro 31x60cm","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-17","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"MADECENTRO","nombre":"Pago de diseño para despeice - Laura MADECENTRO","cantidad":0,"unidad":"","valor":18500.0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"SEMANA 5","proveedor":"FERRETERIA","nombre":"Arena fina 1/2 bulto/ para afinar piso","cantidad":0,"unidad":"","valor":10000.0,"fecha_compra":"2026-03-19","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Accesorios para sistema hidraúlico de ducha","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-19","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"SEMANA 6","proveedor":"CORONA","nombre":"Boquilla color beige x 2kg","cantidad":0,"unidad":"","valor":13193.0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"CORONA","nombre":"Rodillos","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Brochas","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Tapabocas","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Pintura blanca tipo 1","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"cinta de enmascarar","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"PARQUETS","nombre":"Piso SPC EVA006","cantidad":0,"unidad":"15 CAJAS","valor":1707950.0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Guardaescobas EVA006","cantidad":0,"unidad":"16 TIRAS","valor":160000.0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Perfiles de transición 3 mts color SPC EVA006","cantidad":0,"unidad":"3 TEE","valor":42000.0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"GRUPO DISCERCOL S.A.S","nombre":"Enchape piso basáltico negro 31x60cm","cantidad":0,"unidad":"2 CAJAS","valor":0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Boquilla color negra x 2kg","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"ULTRAPINTURAS","nombre":"Pintura blanca tipo 2","cantidad":0,"unidad":"","valor":178000.0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Rollo de cartón x 15mts","cantidad":0,"unidad":"","valor":36750.0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Brochas","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-24","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"SEMANA 7","proveedor":"CAMIONETA","nombre":"Paneles LED sobreponer tono calido","cantidad":0,"unidad":"","valor":83999.0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Paneles LED sobreponer tono neutro","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"BODEGA","nombre":"Cinta Teflón","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Win metálico para salpicadero blanco","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Sifón flexible con push lavamanos color negro","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Desague acordeon para lavamanos","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"VERIFICAR EN BODEGA","nombre":"Interruptor doble baño","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Tapa ciega / - Zona TV","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Toma corriente / - Zona TV","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Interruptor sencillo / - Zona TV","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"LA ROCA","nombre":"Lavamanos de sobreponer (35cm de fondo en obra)","cantidad":0,"unidad":"","valor":100000.0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Grfiería alta lavaplatos (solo agua fria)","cantidad":0,"unidad":"","valor":100000.0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Grifería lavamanos (solo agua fria)","cantidad":0,"unidad":"","valor":95000.0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Kit de accesorios x 6 piezas color negro","cantidad":0,"unidad":"","valor":112000.0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Canastilla de lavapaltos","cantidad":0,"unidad":"","valor":30000.0,"fecha_compra":"2026-03-31","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"SEMANA 8","proveedor":"CARPINTERÍA","nombre":"Colores para la carpintería de madera: Mueble inferior: Terranza Mueble superior: Cinza Cobalto","cantidad":0,"unidad":"","valor":7768700.0,"fecha_compra":"2026-03-16","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"DIVIBAÑOSDT","nombre":"División de Baño","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-16","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Espejo cuadrado 1m x 1m Si es rectangular va de muro a división de ducha(Negra / respondiendo al Render)","cantidad":0,"unidad":"","valor":0,"fecha_compra":"2026-03-16","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"SEMANA 9","proveedor":"BODEGA","nombre":"Llevar fondo que está en la bodega","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Tubo PVC verde","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Tomacorriente doble","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"cable duplex","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"EL EBANISTA","nombre":"Shut de basuras sencillo para mueble inferior.","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Herrajería de carpintería","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"COBELEC","nombre":"Cinta LED calida para muble cocina","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Canaleta para cinta LED","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"HACEB","nombre":"Horno a gas","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Campana extractora","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Estufa a gas en vidrio negro 4 puestos","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"LA ROCA","nombre":"Ducha monocontrol color negro","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Manija para ducha color negro","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"HOMECENTER","nombre":"Tendedero extraíble color negro","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"SEMANA 10","proveedor":"D1 (IMPLEMENTO DE ASEO)","nombre":"Implementos de aseo general para la obra","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"FERRETERIA","nombre":"Silcona blanca","cantidad":0,"unidad":"","valor":24000.0,"fecha_compra":"2026-04-25","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Valvula","cantidad":0,"unidad":"","valor":6500.0,"fecha_compra":"2026-04-25","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Teflón pequeño","cantidad":0,"unidad":"","valor":800.0,"fecha_compra":"2026-04-25","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Registros","cantidad":0,"unidad":"","valor":13000.0,"fecha_compra":"2026-04-25","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Lijas","cantidad":0,"unidad":"","valor":7600.0,"fecha_compra":"2026-04-25","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Codo 3/8","cantidad":0,"unidad":"","valor":3500.0,"fecha_compra":"2026-04-25","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Barrito","cantidad":0,"unidad":"","valor":2500.0,"fecha_compra":"2026-04-25","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Barrilito","cantidad":0,"unidad":"","valor":5000.0,"fecha_compra":"2026-04-25","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"","nombre":"Tee 3/8","cantidad":0,"unidad":"","valor":5500.0,"fecha_compra":"2026-04-25","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"MESONES","nombre":"Meson en granito / incluye barra (blanco / respondiendo al Render) + El lavaplato sencillo en acero inoxidable.","cantidad":0,"unidad":"","valor":1910000.0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"GARANTÍAS - PREEENTREGA","proveedor":"LA ROCA","nombre":"Desague acordeón","cantidad":0,"unidad":"","valor":15000.0,"fecha_compra":"","fecha_entrega":"","estado":""},{"obra":"URBANIA BIO","semana":"","proveedor":"COBELEC","nombre":"Lampara Ojo de Guey","cantidad":0,"unidad":"","valor":0,"fecha_compra":"","fecha_entrega":"","estado":""}];
+
+
 // === AUTO-DISTRIBUCION DE CRONOGRAMA (45 dias habiles L-S medio dia) ===
 // Distribucion sugerida por capitulo (basada en plan operativo MOSS):
 var CAP_DIAS={
@@ -374,28 +657,63 @@ function exportarTodoCalendar(obraId){
 // === MODULO MATERIALES (Fase 2) ===
 
 // Inicializar catalogo desde el pre-cargado si esta vacio
+// Usa MAT_CATALOGO_SANDRA (datos reales del Excel) + MAT_CATALOGO_INICIAL como fallback
 function initCatalogoMateriales(){
   if(CRON.materiales)return;
   CRON.materiales={};
   var idCounter=1;
-  for(var capN in MAT_CATALOGO_INICIAL){
+  // Combinar fuentes: priorizar MAT_CATALOGO_SANDRA (datos reales)
+  var fuente=typeof MAT_CATALOGO_SANDRA!=="undefined"?MAT_CATALOGO_SANDRA:MAT_CATALOGO_INICIAL;
+  for(var capN in fuente){
     CRON.materiales[capN]=[];
-    var lista=MAT_CATALOGO_INICIAL[capN];
+    var lista=fuente[capN];
     for(var i=0;i<lista.length;i++){
       var m=lista[i];
       CRON.materiales[capN].push({
         id:idCounter++,
         nom:m.nom,
         uni:m.uni||"unidad",
-        cant_m2:0, // Sandra completa este dato
-        origen:"compra", // bodega | compra | mixto
+        cant_m2:0,
+        origen:"compra",
         lead:0,
         critico:false,
-        notas:""
+        notas:"",
+        precio:m.precio||0,
+        proveedor:m.proveedor||"",
+        pedidos_historicos:m.pedidos||0
       });
     }
   }
+  // Agregar capitulos del catalogo inicial que no esten en Sandra
+  for(var capN2 in MAT_CATALOGO_INICIAL){
+    if(!CRON.materiales[capN2]){
+      CRON.materiales[capN2]=[];
+      var lista2=MAT_CATALOGO_INICIAL[capN2];
+      for(var j=0;j<lista2.length;j++){
+        var m2=lista2[j];
+        CRON.materiales[capN2].push({
+          id:idCounter++,nom:m2.nom,uni:m2.uni||"unidad",cant_m2:0,
+          origen:"compra",lead:0,critico:false,notas:"",
+          precio:0,proveedor:"",pedidos_historicos:0
+        });
+      }
+    }
+  }
   guardarCronogramaRemoto();
+}
+
+// Helper: verificar si el usuario actual puede ver precios
+function puedeVerPrecios(){
+  if(!S.user)return false;
+  // CEO + Coordinacion (Sandra) + Operaciones (Luis) ven precios
+  var rol=S.user.rol;
+  return rol==="ceo"||rol==="coordinacion"||rol==="operaciones";
+}
+
+// Formatear precio en COP
+function fpc(v){
+  if(!v||v===0)return "";
+  return "$"+Math.round(v).toLocaleString("es-CO");
 }
 
 // Agregar material nuevo al catalogo
@@ -427,11 +745,13 @@ function addMaterialCatalogo(capN){
 // Editar campo de un material
 function updMaterialCat(capN,matId,campo,valor){
   if(!puedeCerrarObra())return;
+  // Para precio y proveedor: solo permitir si tiene permiso de ver precios
+  if((campo==="precio"||campo==="proveedor")&&!puedeVerPrecios())return;
   initCatalogoMateriales();
   var lista=CRON.materiales[capN]||[];
   for(var i=0;i<lista.length;i++){
     if(lista[i].id===matId){
-      if(campo==="cant_m2"||campo==="lead")valor=parseFloat(valor)||0;
+      if(campo==="cant_m2"||campo==="lead"||campo==="precio")valor=parseFloat(valor)||0;
       if(campo==="critico")valor=!!valor;
       lista[i][campo]=valor;
       break;
@@ -879,14 +1199,15 @@ function setPedidoCantidad(obraId,capN,matId,cantidad){
 function puedeCambiarEstadoMat(estadoActual,estadoNuevo){
   if(!S.user)return false;
   var rol=S.user.rol;
-  // CEO/Admin/Coordinacion: cualquier transicion
-  if(rol==="admin"||rol==="coordinadora")return true;
-  // Residente: solo puede SOLICITAR (pendiente->solicitado) y MARCAR RECIBIDO si llego en camino
+  // CEO + Coordinacion (Sandra): cualquier transicion
+  if(rol==="ceo"||rol==="coordinacion")return true;
+  // Residente (Brian): solicitar materiales + marcar recibido
   if(rol==="residente"){
     if(estadoActual==="pendiente"&&estadoNuevo==="solicitado")return true;
     if(estadoActual==="en_camino"&&estadoNuevo==="en_obra")return true;
     return false;
   }
+  // Operaciones, diseno, comercial: NO cambian estados de materiales
   return false;
 }
 
@@ -905,15 +1226,30 @@ var EST_MAT={
 
 
 // Usuarios con PIN
+// === USUARIOS Y ROLES MOSS 2026 ===
+// Roles:
+//   ceo:         Juan Manuel (acceso total + financiero)
+//   coordinacion: Sandra (coordinacion operativa - hace casi todo)
+//   operaciones:  Luis (contabilidad - ve precios y financiero, NO obras)
+//   diseno:      Ana Maria (disenadora - solo diseno y notas)
+//   comercial:   Lizeth (ventas - clientes y emails, presupuesto)
+//   residente:   Brian (obra - pedir materiales, marcar checklist, subir videos)
 var USERS=[
-  {email:"juanmanuel@mosscolombia.com.co",nombre:"Juan Manuel Guevara",rol:"admin",av:"JM",pin:"1984"},
-  {email:"operaciones@mosscolombia.com.co",nombre:"Operaciones MOSS",rol:"admin",av:"OP",pin:"2026"},
-  {email:"care@mosscolombia.com.co",nombre:"Care MOSS",rol:"coordinadora",av:"CA",pin:"3311"},
-  {email:"coordinacionproyectos@mosscolombia.com.co",nombre:"Coordinacion Proyectos",rol:"coordinadora",av:"CP",pin:"4455"},
-
-  {email:"diseno@mosscolombia.com.co",nombre:"Diseno MOSS",rol:"coordinadora",av:"DI",pin:"7890"},
+  {email:"ceo@mosscolombia.com.co",nombre:"Juan Manuel Guevara",rol:"ceo",av:"JM",pin:"1984"},
+  {email:"coordinacion@mosscolombia.com.co",nombre:"Sandra Cristiano",rol:"coordinacion",av:"SC",pin:"2026"},
+  {email:"operaciones@mosscolombia.com.co",nombre:"Luis (Contabilidad)",rol:"operaciones",av:"LU",pin:"3311"},
+  {email:"diseno@mosscolombia.com.co",nombre:"Ana Maria",rol:"diseno",av:"AM",pin:"4455"},
+  {email:"care@mosscolombia.com.co",nombre:"Lizeth Figueroa",rol:"comercial",av:"LF",pin:"7890"},
+  {email:"proyectos@mosscolombia.com.co",nombre:"Brian Reyes",rol:"residente",av:"BR",pin:"8800"},
 ];
-var RCFG={admin:{lbl:"Admin",col:"#A67C52",bg:"#F5EDE0"},coordinadora:{lbl:"Coordinadora",col:"#2D4A35",bg:"#E8F0EB"},residente:{lbl:"Residente",col:"#4A7055",bg:"#EBF2EE"}};
+var RCFG={
+  ceo:{lbl:"CEO",col:"#A67C52",bg:"#F5EDE0"},
+  coordinacion:{lbl:"Coordinacion",col:"#2D4A35",bg:"#E8F0EB"},
+  operaciones:{lbl:"Operaciones",col:"#5B4A2E",bg:"#F5F0E0"},
+  diseno:{lbl:"Diseno",col:"#4A5570",bg:"#E8EAF0"},
+  comercial:{lbl:"Comercial",col:"#7C4A52",bg:"#F0E8EB"},
+  residente:{lbl:"Residente",col:"#4A7055",bg:"#EBF2EE"}
+};
 var LOGCFG={confirmado:{lbl:"Confirmado",cls:"bok"},en_camino:{lbl:"En camino",cls:"bok"},pendiente:{lbl:"Pendiente",cls:"bri"},retrasado:{lbl:"Retrasado",cls:"bla"},sin_gestionar:{lbl:"Sin gestionar",cls:"bpe"}};
 var ECFG={ok:{lbl:"En obra",ic:"[OBR]",cls:"bok"},preobra:{lbl:"Pre-obra",ic:"[LIST]",cls:"bpr"},pend:{lbl:"Sin iniciar",ic:"[TIME]",cls:"bpe"},risk:{lbl:"En riesgo",ic:"[WARN]",cls:"bri"},late:{lbl:"Retrasado",ic:"[ALT]",cls:"bla"},done:{lbl:"Entregado",ic:"[OK]",cls:"bdo"}};
 var PCFG={Standard:"bst",Medium:"bme",Plus:"bpl"};
@@ -945,7 +1281,87 @@ function div(cls,inner){return h("div",{"class":cls},inner);}
 function esRes(){return S.user&&S.user.rol==="residente";}
 
 // Roles que pueden cambiar etapa de obra (cerrar/reabrir): admin (CEO + Operaciones) y coordinadora (Care, Coordinacion, Diseno)
-function puedeCerrarObra(){return S.user&&(S.user.rol==="admin"||S.user.rol==="coordinadora");}
+// === SISTEMA DE PERMISOS (matriz de roles MOSS 2026) ===
+// Cargos: ceo, coordinacion, operaciones, diseno, comercial, residente
+
+// Acceso total a la obra (cambiar estados, cerrar obras, cambios mayores)
+function puedeCerrarObra(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion");}
+
+// Etiqueta visible del rol
+function rolDisplay(rol){
+  var map={
+    "ceo":"CEO",
+    "coordinacion":"Coordinacion",
+    "operaciones":"Operaciones",
+    "diseno":"Diseno",
+    "comercial":"Comercial",
+    "residente":"Residente"
+  };
+  return map[rol]||rol;
+}
+
+// Editar datos generales de obra (m2, fechas, gastos)
+function puedeEditarObra(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion");}
+
+// Editar info financiera (presupuesto, plan, ver financiero)
+function puedeEditarFinanciero(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="operaciones");}
+
+// Editar info comercial (cliente, emails, plan)
+function puedeEditarComercial(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="comercial");}
+
+// Editar diseño (info de la fase diseño)
+function puedeEditarDiseno(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="diseno");}
+
+// Editar notas (todos menos operaciones que solo ve)
+function puedeEditarNotas(){return S.user&&S.user.rol!=="operaciones";}
+
+// Generar planilla de despacho (solo coordinacion + ceo)
+function puedeGenerarPlanilla(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion");}
+
+// Configurar drives (solo ceo + coordinacion)
+function puedeConfigurarDrives(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion");}
+
+// Subir videos semanales (residente, coordinacion, ceo)
+function puedeSubirVideos(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
+
+// Aprobar videos (solo ceo + coordinacion)
+function puedeAprobarVideos(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion");}
+
+// Crear garantías (todos los operativos)
+function puedeEditarGarantias(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
+
+// Marcar checklist del cronograma (residente solo de sus obras)
+function puedeMarcarChecklist(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
+
+// Verificar si el usuario actual puede editar UNA obra especifica
+// Brian (residente) solo edita las que tiene asignadas como residente
+function puedeEditarEstaObra(obra){
+  if(!S.user||!obra)return false;
+  var rol=S.user.rol;
+  if(rol==="ceo"||rol==="coordinacion")return true;
+  if(rol==="operaciones")return false; // solo ve, no edita obras
+  if(rol==="residente"){
+    // Brian solo edita las obras donde el es residente (comparar por nombre)
+    var miNombre=(S.user.nombre||"").toLowerCase().split(" ")[0];
+    return obra.res&&obra.res.toLowerCase().indexOf(miNombre)>=0;
+  }
+  if(rol==="diseno"){
+    // Ana solo edita obras en etapa de diseno
+    return obra.etapa==="diseno";
+  }
+  if(rol==="comercial"){
+    // Lizeth solo edita info comercial (NPS, cliente, emails)
+    return true; // pero solo ciertos campos (la UI los limita)
+  }
+  return false;
+}
+
+// Verificar si el usuario puede ver UNA obra
+// Casi todos ven todas - la limitacion es de EDICION
+function puedeVerEstaObra(obra){
+  if(!S.user||!obra)return false;
+  return true; // Brian VE todas pero solo edita las suyas
+}
 
 // Cuenta garantias en proceso vinculadas al nombre de una obra (case-insensitive, normalizado)
 function garAbiertas(nombreObra){
@@ -1799,7 +2215,7 @@ function rHoy(){
       h("div",{"style":"font-size:12px;color:var(--gc)"},"Sin mensajes aun. Se el primero en publicar!"));
   }else{
     comRows=coms.map(function(c,i){
-      var isAdmin=S.user.rol==="admin";
+      var isAdmin=S.user.rol==="ceo"||S.user.rol==="coordinacion";
       var avatarCol=["#2D4A35","#A67C52","#2D5A8A","#C17B2A","#B5362A"][i%5];
       var inicial=(c.autor||"M").charAt(0).toUpperCase();
       return h("div",{"style":"display:flex;gap:10px;padding:12px 14px;border-bottom:1px solid var(--b)"},
@@ -1816,7 +2232,7 @@ function rHoy(){
   }
 
   var addComHTML=h("div",{"style":"padding:13px 14px;background:var(--ba);border-top:1px solid var(--b)"},
-    h("div",{"style":"font-size:10px;color:var(--g);text-transform:uppercase;letter-spacing:1px;margin-bottom:9px"},(S.user.rol==="admin"?"Nuevo comunicado":"Compartir con el equipo"))+
+    h("div",{"style":"font-size:10px;color:var(--g);text-transform:uppercase;letter-spacing:1px;margin-bottom:9px"},((S.user.rol==="ceo"||S.user.rol==="coordinacion")?"Nuevo comunicado":"Compartir con el equipo"))+
     div("fr",h("input",{"id":"com-titulo","placeholder":"Titulo: Reconocimiento, buena practica, recordatorio...","style":"margin-bottom:7px"},""))+
     div("fr",h("textarea",{"id":"com-texto","rows":"3","placeholder":"Comparte algo positivo, una idea, un logro del equipo o una instruccion importante..."},""))+
     h("button",{"class":"bp","style":"width:100%;margin-top:8px","onclick":"addComunicado()"},"Publicar mensaje"));
@@ -1829,7 +2245,7 @@ function rHoy(){
     comRows+addComHTML);
 
   // Widget de videos semanales pendientes (Sandra/CEO)
-  var puedeRevisar=(S.user.rol==="ceo"||S.user.rol==="director"||S.user.nombre.indexOf("Sandra")>=0);
+  var puedeRevisar=puedeAprobarVideos();
   var videosCard="";
   if(puedeRevisar){
     var pendientes=[];
@@ -2469,7 +2885,7 @@ function rDetalle(){
 
   }else if(S.otab==="mat"){
     initCatalogoMateriales();
-    var puedeEdit=puedeCerrarObra();
+    var puedeEdit=puedeEditarEstaObra(o);
     var esResid=esRes();
     var m2obra=parseFloat(o.m2)||0;
     var avisoM2=m2obra===0?h("div",{"style":"font-size:11px;color:#B5362A;background:#FAE5E2;padding:8px 12px;border-radius:8px;margin-bottom:10px"},"&#x26A0; Esta obra no tiene m2 totales asignados. Edita la obra para agregar este dato y poder calcular cantidades automaticamente."):"";
@@ -2485,11 +2901,34 @@ function rDetalle(){
       }
     }
     var btnPlanilla=puedeEdit?h("button",{"class":"bp","style":"font-size:11px;padding:7px 14px;margin-top:8px","onclick":"abrirGenerarPlanilla("+o.id+")"},"&#x1F4C4; Generar planilla de despacho"+(solicitados>0?" ("+solicitados+" solicitados)":"")):"";
+    // Calcular costo estimado total de materiales de la obra
+    var costoTotal=0,costoSolicitado=0,costoEntregado=0;
+    for(var cKey in pedObra){
+      var lst=pedObra[cKey]||[];
+      for(var li2=0;li2<lst.length;li2++){
+        var pd=lst[li2];
+        if(pd.cantidad<=0)continue;
+        var matX=null;
+        var lstM=(CRON.materiales[cKey]||[]);
+        for(var lm2=0;lm2<lstM.length;lm2++)if(lstM[lm2].id===pd.matId){matX=lstM[lm2];break;}
+        if(matX&&matX.precio>0){
+          var subtotal=pd.cantidad*matX.precio;
+          costoTotal+=subtotal;
+          if(pd.estado==="solicitado"||pd.estado==="en_bodega"||pd.estado==="en_camino")costoSolicitado+=subtotal;
+          if(pd.estado==="en_obra")costoEntregado+=subtotal;
+        }
+      }
+    }
+    var resumenCosto=puedeVerPrecios()&&costoTotal>0?h("div",{"style":"display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:10px;padding-top:6px;border-top:1px dashed var(--b)"},
+      h("span",{"style":"background:#F5F2EC;color:var(--v);padding:3px 8px;border-radius:5px;font-weight:600"},"Costo total est.: "+fpc(costoTotal))+
+      h("span",{"style":"background:#FDF0E0;color:#C17B2A;padding:3px 8px;border-radius:5px;font-weight:600"},"Pendiente despacho: "+fpc(costoSolicitado))+
+      h("span",{"style":"background:#E8F0EB;color:#3A6B45;padding:3px 8px;border-radius:5px;font-weight:600"},"Ya entregado: "+fpc(costoEntregado))
+    ):"";
     var resumenSem=h("div",{"style":"display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:10px"},
       h("span",{"style":"background:#FDF0E0;color:#C17B2A;padding:3px 8px;border-radius:5px;font-weight:600"},"&#x1F7E1; "+solicitados+" solicitados")+
       h("span",{"style":"background:#FDF0E0;color:#C17B2A;padding:3px 8px;border-radius:5px;font-weight:600"},"&#x1F69A; "+enCamino+" en camino")+
       h("span",{"style":"background:#E8F0EB;color:#3A6B45;padding:3px 8px;border-radius:5px;font-weight:600"},"&#x2705; "+enObra+" en obra")
-    );
+    )+resumenCosto;
     var infoObra=div("card","<div class='cp'>"+
       h("div",{"style":"display:flex;justify-content:space-between;align-items:center"},
         h("span",{"style":"font-size:13px;font-weight:700;color:var(--v)"},"Plan de materiales - "+o.cod)+
@@ -2552,7 +2991,9 @@ function rDetalle(){
           h("div",{"style":"display:flex;justify-content:space-between;align-items:flex-start;gap:6px"},
             h("div",{"style":"flex:1;min-width:0"},
               h("div",{"style":"font-size:12px;font-weight:600;color:var(--v);display:flex;align-items:center;gap:4px"},h("span",{},mat.nom+(mat.critico?" <span style='color:#B5362A;font-size:10px'>&#x26A0; CRITICO</span>":""))+btnElim)+
-              h("div",{"style":"font-size:10px;color:var(--g);margin-top:2px"},"Cant sugerida: "+cantSugerida+" "+mat.uni+" | Origen: "+(mat.origen==="bodega"?"Bodega":mat.origen==="compra"?"Compra":"Mixto")+(mat.lead>0?" | Lead "+mat.lead+"d":""))+
+              h("div",{"style":"font-size:10px;color:var(--g);margin-top:2px"},"Cant sugerida: "+cantSugerida+" "+mat.uni+(mat.proveedor?" | "+mat.proveedor:"")+(mat.lead>0?" | Lead "+mat.lead+"d":""))+
+              // Precio (solo CEO/Sandra/Luis)
+              (puedeVerPrecios()&&mat.precio>0?h("div",{"style":"font-size:10px;color:var(--d);font-weight:600;margin-top:2px"},"Precio referencia: "+fpc(mat.precio)+" / "+mat.uni+" | Total estimado: "+fpc(cantActual*mat.precio)):"")+
               notasMat
             )+
             h("div",{"style":"text-align:right"},
@@ -2613,7 +3054,7 @@ function rDetalle(){
     var bgEnt=(puedeEditFechas&&fEditManual)?"":";background:#F5F5F5";
     var valEntregaShow=(fEditManual&&o.fE)?o.fE:(fechaEntregaCalculada||o.fE||"");
     var fechasObraHTML=div("card","<div class='cp' style='background:#FAF7F3;border:2px solid var(--v)'>"+
-      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v16</span></div>"+
+      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v18</span></div>"+
       "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px'>"+
         "<div>"+
           "<label style='font-size:11px;color:var(--g);font-weight:600'>Fecha de inicio de obra *</label>"+
@@ -2691,7 +3132,7 @@ function rDetalle(){
     // Reportes semanales en video del residente
     if(!CRON.videos[o.id])CRON.videos[o.id]={};
     var hoyD=new Date();
-    var puedeRevisar=(S.user.rol==="ceo"||S.user.rol==="director"||S.user.nombre.indexOf("Sandra")>=0);
+    var puedeRevisar=puedeAprobarVideos();
     var esResidente=esRes()||(o.res&&S.user.nombre.indexOf((o.res||"").split(" ")[0])>=0);
     // Generar las ultimas 8 semanas
     var semanasHTML="";
@@ -2973,7 +3414,7 @@ function rLog(){
   }
   else if(subTab==="catalogo"){
     // Catalogo maestro de materiales por capitulo
-    var puedeEdit=puedeCerrarObra();
+    var puedeEdit=puedeEditarEstaObra(o);
     var infoCard=div("card","<div class='cp'>"+
       h("div",{"style":"font-size:13px;font-weight:700;color:var(--v);margin-bottom:6px"},"Catalogo Maestro de Materiales")+
       h("div",{"style":"font-size:11px;color:var(--g);margin-bottom:6px"},"Lista de materiales tipicos por cada capitulo. Sandra documenta las cantidades reales por m2.")+
@@ -2987,15 +3428,23 @@ function rLog(){
       for(var mc=0;mc<listaC.length;mc++){
         var matC=listaC[mc];
         var dis=puedeEdit?"":"disabled";
+        var precioCell=puedeVerPrecios()?
+          h("input",{"type":"number","value":matC.precio||0,"step":"100","onchange":"updMaterialCat("+capC.n+","+matC.id+",&quot;precio&quot;,this.value)","style":"font-size:11px;padding:5px;text-align:right","disabled":dis||null,"title":"Precio referencia ($)"},"")
+          :h("span",{"style":"font-size:9px;color:#CCC;text-align:center;display:block"},"---");
+        var provCell=puedeVerPrecios()?
+          h("input",{"type":"text","value":matC.proveedor||"","onchange":"updMaterialCat("+capC.n+","+matC.id+",&quot;proveedor&quot;,this.value)","style":"font-size:10px;padding:5px","disabled":dis||null,"title":"Proveedor","placeholder":"-"},"")
+          :h("span",{"style":"font-size:9px;color:#CCC;text-align:center;display:block"},"---");
         rowsC+=h("div",{"style":"padding:8px 10px;border-bottom:1px solid #EEE;background:"+(mc%2===0?"#fff":"var(--bc)")},
-          h("div",{"style":"display:grid;grid-template-columns:1fr 60px 70px 80px 60px 30px;gap:6px;align-items:center"},
-            h("input",{"type":"text","value":matC.nom,"onchange":"updMaterialCat("+capC.n+","+matC.id+",\"nom\",this.value)","style":"font-size:11px;padding:5px","disabled":dis||null},"")+
-            h("input",{"type":"text","value":matC.uni,"onchange":"updMaterialCat("+capC.n+","+matC.id+",\"uni\",this.value)","style":"font-size:11px;padding:5px;text-align:center","disabled":dis||null,"title":"Unidad"},"")+
-            h("input",{"type":"number","value":matC.cant_m2,"step":"0.001","onchange":"updMaterialCat("+capC.n+","+matC.id+",\"cant_m2\",this.value)","style":"font-size:11px;padding:5px;text-align:right","disabled":dis||null,"title":"Cantidad por m2","placeholder":"0"},"")+
-            h("select",{"onchange":"updMaterialCat("+capC.n+","+matC.id+",\"origen\",this.value)","style":"font-size:10px;padding:4px","disabled":dis||null,"title":"Origen"},
+          h("div",{"style":"display:grid;grid-template-columns:1fr 60px 60px 70px 90px 70px 50px 30px;gap:6px;align-items:center"},
+            h("input",{"type":"text","value":matC.nom,"onchange":"updMaterialCat("+capC.n+","+matC.id+",&quot;nom&quot;,this.value)","style":"font-size:11px;padding:5px","disabled":dis||null},"")+
+            h("input",{"type":"text","value":matC.uni,"onchange":"updMaterialCat("+capC.n+","+matC.id+",&quot;uni&quot;,this.value)","style":"font-size:11px;padding:5px;text-align:center","disabled":dis||null,"title":"Unidad"},"")+
+            h("input",{"type":"number","value":matC.cant_m2,"step":"0.001","onchange":"updMaterialCat("+capC.n+","+matC.id+",&quot;cant_m2&quot;,this.value)","style":"font-size:11px;padding:5px;text-align:right","disabled":dis||null,"title":"Cantidad por m2","placeholder":"0"},"")+
+            precioCell+
+            provCell+
+            h("select",{"onchange":"updMaterialCat("+capC.n+","+matC.id+",&quot;origen&quot;,this.value)","style":"font-size:10px;padding:4px","disabled":dis||null,"title":"Origen"},
               ["bodega","compra","mixto"].map(function(op){return h("option",matC.origen===op?{"value":op,"selected":"selected"}:{"value":op},op.charAt(0).toUpperCase()+op.slice(1));}).join("")
             )+
-            h("input",{"type":"number","value":matC.lead,"min":"0","onchange":"updMaterialCat("+capC.n+","+matC.id+",\"lead\",this.value)","style":"font-size:11px;padding:5px;text-align:right","disabled":dis||null,"title":"Lead time (dias)","placeholder":"0"},"")+
+            h("input",{"type":"number","value":matC.lead,"min":"0","onchange":"updMaterialCat("+capC.n+","+matC.id+",&quot;lead&quot;,this.value)","style":"font-size:11px;padding:5px;text-align:right","disabled":dis||null,"title":"Lead time (dias)","placeholder":"0"},"")+
             (puedeEdit?h("button",{"style":"background:transparent;border:none;color:#B5362A;cursor:pointer;font-size:16px;padding:0","onclick":"elimMaterialCat("+capC.n+","+matC.id+")","title":"Eliminar"},"&times;"):"")
           )+
           h("div",{"style":"margin-top:4px;display:flex;align-items:center;gap:6px"},
@@ -3006,8 +3455,8 @@ function rLog(){
           )
         );
       }
-      var hdrCols=h("div",{"style":"display:grid;grid-template-columns:1fr 60px 70px 80px 60px 30px;gap:6px;padding:6px 10px;font-size:9px;color:var(--g);font-weight:600;text-transform:uppercase;background:var(--ba);border-bottom:2px solid var(--b)"},
-        h("div",{},"Material")+h("div",{"style":"text-align:center"},"Unidad")+h("div",{"style":"text-align:right"},"Cant/m2")+h("div",{"style":"text-align:center"},"Origen")+h("div",{"style":"text-align:right"},"Lead")+h("div",{},"")
+      var hdrCols=h("div",{"style":"display:grid;grid-template-columns:1fr 60px 60px 70px 90px 70px 50px 30px;gap:6px;padding:6px 10px;font-size:9px;color:var(--g);font-weight:600;text-transform:uppercase;background:var(--ba);border-bottom:2px solid var(--b)"},
+        h("div",{},"Material")+h("div",{"style":"text-align:center"},"Unidad")+h("div",{"style":"text-align:right"},"Cant/m2")+h("div",{"style":"text-align:right"},"Precio "+(puedeVerPrecios()?"":"$"))+h("div",{},"Proveedor")+h("div",{"style":"text-align:center"},"Origen")+h("div",{"style":"text-align:right"},"Lead")+h("div",{},"")
       );
       var btnAdd=puedeEdit?h("div",{"style":"padding:8px;text-align:center"},h("button",{"class":"bp","style":"font-size:11px;padding:6px 14px","onclick":"addMaterialCatalogo("+capC.n+")"},"+ Agregar material")):"";
       capsCat+=div("card",h("div",{"class":"chd","style":"background:var(--vc);border-bottom:1px solid var(--bv)"},h("span",{"style":"color:var(--v)"},"Cap. "+capC.n+" - "+capC.nom)+h("small",{},listaC.length+" materiales"))+(listaC.length>0?hdrCols+rowsC:"")+btnAdd);
