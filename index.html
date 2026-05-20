@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.20-v21-permisos">
+<meta name="version" content="2026.05.20-v23-bandeja">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.20-v21-permisos";
+var APP_VERSION="2026.05.20-v23-bandeja";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -1679,7 +1679,7 @@ function generarContratoMaestro(obraId){
 var ADDM={obraId:null,capN:null,buscar:"",modo:"nuevo"}; // modo: "nuevo" o "catalogo"
 
 function abrirAgregarMaterial(obraId,capN){
-  if(!puedeCerrarObra()){alert("Solo CEO/Operaciones/Coordinacion pueden agregar materiales.");return;}
+  if(!puedeCerrarObra()){alert("No tienes permisos para agregar materiales. Contacta a Coordinacion (Sandra).");return;}
   ADDM.obraId=obraId;
   ADDM.capN=capN;
   ADDM.buscar="";
@@ -1809,7 +1809,7 @@ function addDesdeCatalogo(capDeMatN,matId){
 
 // Eliminar pedido de la obra (no del catalogo)
 function elimPedidoObra(obraId,capN,matId){
-  if(!puedeCerrarObra()){alert("Sin permisos");return;}
+  if(!puedeCerrarObra()){alert("No tienes permisos para eliminar pedidos. Contacta a Coordinacion.");return;}
   if(!confirm("Eliminar este material del plan de esta obra?\n\nEl material seguira en el catalogo general."))return;
   if(CRON.pedidos[obraId]&&CRON.pedidos[obraId][capN]){
     CRON.pedidos[obraId][capN]=CRON.pedidos[obraId][capN].filter(function(p){return p.matId!==matId;});
@@ -2540,7 +2540,24 @@ function rTopbar(){
 function rNavbar(){
   var nch=Object.keys(S.pending).length;
   var items=[{k:"dash",ic:"[KPI]",lb:"Inicio"},{k:"hoy",ic:"[HOY]",lb:"Hoy"},{k:"nuevo",ic:"[+]",lb:"Nuevo"},{k:"ejec",ic:"[OBR]",lb:"Obras"},{k:"log",ic:"[BOX]",lb:"Logistica"},{k:"ent",ic:"[OK]",lb:"Entrega"},{k:"gar",ic:"[GAR]",lb:"Garantias"},{k:"equipo",ic:"[EQP]",lb:"Equipo"},{k:"ia",ic:"[IA]",lb:"IA"}];
-  var nb=div("navbar",items.map(function(n){return h("div",{"class":"nitem"+(S.vista===n.k||(S.osel&&n.k==="ejec")?" on":""),"onclick":"nav('"+n.k+"')"},h("span",{"class":"nic"},n.ic)+h("span",{"class":"nlb"},n.lb));}).join(""));
+  // v23: contar solicitudes pendientes para badge de Logistica
+  var solicPendientes=0;
+  for(var siP=0;siP<S.obras.length;siP++){
+    var pedP=CRON.pedidos[S.obras[siP].id]||{};
+    for(var ckP in pedP){
+      var lstP=pedP[ckP]||[];
+      for(var pjP=0;pjP<lstP.length;pjP++){
+        if(lstP[pjP].estado==="solicitado"&&lstP[pjP].cantidad>0)solicPendientes++;
+      }
+    }
+  }
+  var nb=div("navbar",items.map(function(n){
+    var badge="";
+    if(n.k==="log"&&solicPendientes>0){
+      badge=h("span",{"style":"position:absolute;top:-2px;right:-4px;background:#C17B2A;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;line-height:1.3;min-width:14px;text-align:center"},solicPendientes>9?"9+":solicPendientes);
+    }
+    return h("div",{"class":"nitem"+(S.vista===n.k||(S.osel&&n.k==="ejec")?" on":""),"onclick":"nav(&quot;"+n.k+"&quot;)","style":"position:relative"},h("span",{"class":"nic"},n.ic)+h("span",{"class":"nlb"},n.lb)+badge);
+  }).join(""));
   var bar="";
   if(nch>0||S.saveMsg){
     var col=S.saveMsg&&S.saveMsg.indexOf("Error")<0&&S.saveMsg!=="Guardando..."?"#A8E6B4":S.saveMsg&&S.saveMsg.indexOf("Error")>-1?"#FFB3B3":"rgba(255,255,255,.8)";
@@ -3729,7 +3746,7 @@ function rDetalle(){
     var bgEnt=(puedeEditFechas&&fEditManual)?"":";background:#F5F5F5";
     var valEntregaShow=(fEditManual&&o.fE)?o.fE:(fechaEntregaCalculada||o.fE||"");
     var fechasObraHTML=div("card","<div class='cp' style='background:#FAF7F3;border:2px solid var(--v)'>"+
-      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v21</span></div>"+
+      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v23</span></div>"+
       "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px'>"+
         "<div>"+
           "<label style='font-size:11px;color:var(--g);font-weight:600'>Fecha de inicio de obra *</label>"+
@@ -4152,6 +4169,99 @@ function rLog(){
       h("div",{"style":"font-size:11px;color:var(--g)"},"Semana del "+ff(inicioSem.toISOString().slice(0,10))+" al "+ff(finSem.toISOString().slice(0,10)))+
       h("div",{"style":"font-size:11px;color:var(--g);margin-top:4px"},"Lista de materiales a despachar de bodega o seguimiento de compras esta semana")+
       "</div>");
+    
+    // === BANDEJA DE SOLICITUDES NUEVAS (v23) ===
+    // Recolectar solicitudes en estado "solicitado" hechas por residentes/coordinacion
+    // Agrupadas por obra y mostrando quien y cuando solicito
+    var bandejaSolic=[];
+    for(var bi=0;bi<S.obras.length;bi++){
+      var obB=S.obras[bi];
+      var pedB=CRON.pedidos[obB.id]||{};
+      for(var capB in pedB){
+        var lstB=pedB[capB]||[];
+        for(var pj=0;pj<lstB.length;pj++){
+          var pB=lstB[pj];
+          if(pB.estado==="solicitado"&&pB.cantidad>0){
+            var matB=null;
+            var lstMatB=(CRON.materiales[capB]||[]);
+            for(var lmB=0;lmB<lstMatB.length;lmB++)if(lstMatB[lmB].id===pB.matId){matB=lstMatB[lmB];break;}
+            if(matB){
+              bandejaSolic.push({
+                obra:obB,capN:+capB,mat:matB,pedido:pB,
+                fechaSol:pB.fechaSolicitud||pB.fechaUpd||"",
+                actor:pB.actor||"Sin registro"
+              });
+            }
+          }
+        }
+      }
+    }
+    // Ordenar por fecha mas reciente arriba
+    bandejaSolic.sort(function(a,b){return (b.fechaSol||"").localeCompare(a.fechaSol||"");});
+    
+    // Renderizar la bandeja solo si hay solicitudes pendientes
+    var bandejaHTML="";
+    if(bandejaSolic.length>0){
+      // Agrupar por obra para mejor visualizacion
+      var porObra={};
+      for(var bs=0;bs<bandejaSolic.length;bs++){
+        var item=bandejaSolic[bs];
+        var oid=item.obra.id;
+        if(!porObra[oid])porObra[oid]={obra:item.obra,items:[]};
+        porObra[oid].items.push(item);
+      }
+      
+      var rowsBandeja="";
+      for(var oid in porObra){
+        var grupo=porObra[oid];
+        var ob=grupo.obra;
+        var itemsHTML="";
+        for(var gi=0;gi<grupo.items.length;gi++){
+          var it=grupo.items[gi];
+          itemsHTML+=h("div",{"style":"display:grid;grid-template-columns:1fr 80px 110px 130px 160px;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #EEE;background:"+(gi%2===0?"#fff":"#FAFAFA")},
+            h("div",{},
+              h("div",{"style":"font-size:11.5px;font-weight:600;color:var(--v)"},it.mat.nom)+
+              h("div",{"style":"font-size:9px;color:var(--g)"},"Cap. "+it.capN)
+            )+
+            h("div",{"style":"text-align:right;font-size:11px;font-weight:600"},it.pedido.cantidad+" "+it.mat.uni)+
+            h("div",{"style":"font-size:10px;color:var(--g)"},
+              h("div",{"style":"font-weight:600;color:#C17B2A"},"&#x1F464; "+it.actor)+
+              h("div",{},it.fechaSol)
+            )+
+            h("div",{"style":"text-align:right"},
+              h("button",{"class":"bp","style":"font-size:10px;padding:5px 10px","onclick":"setPedidoEstado("+ob.id+","+it.capN+","+it.mat.id+",&quot;en_bodega&quot;)","title":"Tengo el material en bodega de MOSS"},"&#x1F4E6; En bodega")
+            )+
+            h("div",{"style":"text-align:right"},
+              h("button",{"style":"font-size:10px;padding:5px 10px;background:#1B2A4A;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600","onclick":"setPedidoEstado("+ob.id+","+it.capN+","+it.mat.id+",&quot;en_camino&quot;)","title":"Ya hice el pedido al proveedor y viene en camino"},"&#x1F69A; Pedi a proveedor")
+            )
+          );
+        }
+        rowsBandeja+=h("div",{"style":"margin-bottom:14px;border:1px solid var(--b);border-radius:8px;overflow:hidden"},
+          h("div",{"style":"background:#1B2A4A;color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center"},
+            h("div",{},
+              h("div",{"style":"font-size:11px;font-weight:700"},ob.cod+" - "+ob.nom)+
+              h("div",{"style":"font-size:9px;opacity:0.8"},"Residente: "+(ob.res||"Sin asignar")+" | "+grupo.items.length+" solicitud"+(grupo.items.length>1?"es":""))
+            )+
+            h("div",{"style":"background:#E8A020;color:#1B2A4A;padding:3px 9px;border-radius:12px;font-size:10px;font-weight:700"},grupo.items.length+" NUEVA"+(grupo.items.length>1?"S":""))
+          )+
+          itemsHTML
+        );
+      }
+      
+      bandejaHTML=div("card","<div class='cp'>"+
+        h("div",{"style":"display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"},
+          h("div",{},
+            h("div",{"style":"font-size:14px;font-weight:700;color:var(--v)"},"&#x1F4E5; Bandeja de Solicitudes")+
+            h("div",{"style":"font-size:10px;color:var(--g)"},"Solicitudes de los residentes pendientes de gestionar (compra a proveedor o despacho desde bodega)")
+          )+
+          h("div",{"style":"background:#C17B2A;color:#fff;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700"},bandejaSolic.length+" pendientes")
+        )+
+        rowsBandeja+
+        h("div",{"style":"font-size:10px;color:var(--g);font-style:italic;margin-top:8px;padding:8px;background:#FFF8E7;border-left:3px solid var(--d);border-radius:4px"},
+          h("b",{},"Como funciona:")+" Los residentes solicitan materiales desde su obra. Aqui aparecen ordenadas para que tu (Sandra) gestiones la compra o el despacho. Al marcar como 'Pedi a proveedor' o 'En bodega', el residente verá actualizado el estado en su obra."
+        )+
+        "</div>");
+    }
     // Recorrer todas las obras y sus pedidos
     var enBodega=[],solicitados=[],enCamino=[];
     for(var oi=0;oi<S.obras.length;oi++){
@@ -4179,12 +4289,17 @@ function rLog(){
       var rows="";
       for(var i=0;i<lista.length;i++){
         var it=lista[i];
+        var infoSolicitante=it.pedido.actor?(" | Solicitado por "+it.pedido.actor):"";
+        var fechaSol=it.pedido.fechaSolicitud||it.pedido.fechaUpd||"";
+        var infoFecha=fechaSol?" | "+fechaSol:"";
+        var esResidente=(it.pedido.actor||"").toLowerCase().indexOf("briam")>=0||(it.pedido.actor||"").toLowerCase().indexOf("brian")>=0;
+        var marcaResidente=esResidente?h("span",{"style":"background:#FDF0E0;color:#C17B2A;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;margin-left:6px"},"&#x1F4E5; Solicitud residente"):"";
         rows+=h("div",{"style":"padding:9px 12px;border-bottom:1px solid #EEE;background:"+(i%2===0?"#fff":"var(--bc)")},
           h("div",{"style":"display:flex;align-items:flex-start;gap:6px"},
             h("span",{"class":"cod"},it.obra.cod)+
             h("div",{"style":"flex:1"},
-              h("div",{"style":"font-size:12px;font-weight:600"},it.mat.nom)+
-              h("div",{"style":"font-size:10px;color:var(--g)"},"Cap. "+it.capN+" | "+it.obra.nom+" | "+it.pedido.cantidad+" "+it.mat.uni)
+              h("div",{"style":"font-size:12px;font-weight:600"},it.mat.nom+marcaResidente)+
+              h("div",{"style":"font-size:10px;color:var(--g)"},"Cap. "+it.capN+" | "+it.obra.nom+" | "+it.pedido.cantidad+" "+it.mat.uni+infoSolicitante+infoFecha)
             )+
             (estadoBtn?h("button",{"class":"bp","style":"font-size:10px;padding:4px 10px","onclick":"setPedidoEstado("+it.obra.id+","+it.capN+","+it.mat.id+",&quot;"+estadoBtn+"&quot;)"},estadoBtn==="en_camino"?"Marcar en camino":"Marcar en obra"):"")
           )
@@ -4192,12 +4307,12 @@ function rLog(){
       }
       return div("card",h("div",{"class":"chd","style":"background:"+colorTema.bg},h("span",{"style":"color:"+colorTema.col},titulo)+h("small",{},lista.length+" items"))+rows);
     }
-    contenido=hdrSem+
+    contenido=bandejaHTML+hdrSem+
       rDespachoLista("&#x1F3ED; En bodega - listos para salida",enBodega,"en_camino",{bg:"#E0E5EE",col:"#2D5A8A"})+
       rDespachoLista("&#x1F69A; En camino a obra",enCamino,"en_obra",{bg:"#FDF0E0",col:"#C17B2A"})+
       rDespachoLista("&#x1F7E1; Solicitados (pendientes de compra/bodega)",solicitados,null,{bg:"#FDF0E0",col:"#C17B2A"});
     if(enBodega.length===0&&enCamino.length===0&&solicitados.length===0){
-      contenido=hdrSem+div("card","<div class='cp' style='text-align:center;color:var(--gc);padding:30px'>No hay materiales pendientes de despacho esta semana.</div>");
+      contenido=bandejaHTML+hdrSem+div("card","<div class='cp' style='text-align:center;color:var(--gc);padding:30px'>No hay materiales pendientes de despacho esta semana.</div>");
     }
   }
   return h("div",{"class":"sh"},"Logistica de materiales")+subTabsHTML+contenido;
