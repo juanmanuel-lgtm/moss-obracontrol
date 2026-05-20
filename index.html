@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.19-v20-contrato">
+<meta name="version" content="2026.05.20-v21-permisos">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.19-v20-contrato";
+var APP_VERSION="2026.05.20-v21-permisos";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -1851,15 +1851,9 @@ function setPedidoCantidad(obraId,capN,matId,cantidad){
 function puedeCambiarEstadoMat(estadoActual,estadoNuevo){
   if(!S.user)return false;
   var rol=S.user.rol;
-  // CEO + Coordinacion (Sandra): cualquier transicion
-  if(rol==="ceo"||rol==="coordinacion")return true;
-  // Residente (Brian): solicitar materiales + marcar recibido
-  if(rol==="residente"){
-    if(estadoActual==="pendiente"&&estadoNuevo==="solicitado")return true;
-    if(estadoActual==="en_camino"&&estadoNuevo==="en_obra")return true;
-    return false;
-  }
-  // Operaciones, diseno, comercial: NO cambian estados de materiales
+  // CEO + Coordinacion (Sandra/Luis) + Residente (Briam): cualquier transicion
+  if(rol==="ceo"||rol==="coordinacion"||rol==="residente")return true;
+  // Diseno, comercial: NO cambian estados de materiales
   return false;
 }
 
@@ -1886,13 +1880,20 @@ var EST_MAT={
 //   diseno:      Ana Maria (disenadora - solo diseno y notas)
 //   comercial:   Lizeth (ventas - clientes y emails, presupuesto)
 //   residente:   Brian (obra - pedir materiales, marcar checklist, subir videos)
+// === USUARIOS Y ROLES MOSS 2026 (v21) ===
+// Roles:
+//   ceo:          Juan Manuel (acceso total + financiero)
+//   coordinacion: Sandra y Luis (acceso total - operativo + financiero)
+//   diseno:       Ana Maria (solo diseno y notas)
+//   comercial:    Lizeth (solo info comercial)
+//   residente:    Briam Simijaca (todo operativo en todas las obras, EXCEPTO presupuesto/precios)
 var USERS=[
   {email:"ceo@mosscolombia.com.co",nombre:"Juan Manuel Guevara",rol:"ceo",av:"JM",pin:"1984"},
   {email:"coordinacion@mosscolombia.com.co",nombre:"Sandra Cristiano",rol:"coordinacion",av:"SC",pin:"2026"},
-  {email:"operaciones@mosscolombia.com.co",nombre:"Luis (Contabilidad)",rol:"operaciones",av:"LU",pin:"3311"},
+  {email:"operaciones@mosscolombia.com.co",nombre:"Luis (Contabilidad)",rol:"coordinacion",av:"LU",pin:"3311"},
   {email:"diseno@mosscolombia.com.co",nombre:"Ana Maria",rol:"diseno",av:"AM",pin:"4455"},
   {email:"care@mosscolombia.com.co",nombre:"Lizeth Figueroa",rol:"comercial",av:"LF",pin:"7890"},
-  {email:"proyectos@mosscolombia.com.co",nombre:"Brian Reyes",rol:"residente",av:"BR",pin:"8800"},
+  {email:"proyectos@mosscolombia.com.co",nombre:"Briam Simijaca",rol:"residente",av:"BS",pin:"8800"},
 ];
 var RCFG={
   ceo:{lbl:"CEO",col:"#A67C52",bg:"#F5EDE0"},
@@ -1937,7 +1938,7 @@ function esRes(){return S.user&&S.user.rol==="residente";}
 // Cargos: ceo, coordinacion, operaciones, diseno, comercial, residente
 
 // Acceso total a la obra (cambiar estados, cerrar obras, cambios mayores)
-function puedeCerrarObra(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion");}
+function puedeCerrarObra(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
 
 // Etiqueta visible del rol
 function rolDisplay(rol){
@@ -1953,7 +1954,7 @@ function rolDisplay(rol){
 }
 
 // Editar datos generales de obra (m2, fechas, gastos)
-function puedeEditarObra(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion");}
+function puedeEditarObra(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
 
 // Editar info financiera (presupuesto, plan, ver financiero)
 function puedeEditarFinanciero(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="operaciones");}
@@ -1967,17 +1968,17 @@ function puedeEditarDiseno(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="c
 // Editar notas (todos menos operaciones que solo ve)
 function puedeEditarNotas(){return S.user&&S.user.rol!=="operaciones";}
 
-// Generar planilla de despacho (solo coordinacion + ceo)
-function puedeGenerarPlanilla(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion");}
+// Generar planilla de despacho (ceo, coordinacion y residente)
+function puedeGenerarPlanilla(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
 
-// Configurar drives (solo ceo + coordinacion)
-function puedeConfigurarDrives(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion");}
+// Configurar drives (ceo, coordinacion y residente)
+function puedeConfigurarDrives(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
 
 // Subir videos semanales (residente, coordinacion, ceo)
 function puedeSubirVideos(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
 
-// Aprobar videos (solo ceo + coordinacion)
-function puedeAprobarVideos(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion");}
+// Aprobar videos (ceo, coordinacion y residente)
+function puedeAprobarVideos(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
 
 // Crear garantías (todos los operativos)
 function puedeEditarGarantias(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
@@ -1990,21 +1991,12 @@ function puedeMarcarChecklist(){return S.user&&(S.user.rol==="ceo"||S.user.rol==
 function puedeEditarEstaObra(obra){
   if(!S.user||!obra)return false;
   var rol=S.user.rol;
-  if(rol==="ceo"||rol==="coordinacion")return true;
-  if(rol==="operaciones")return false; // solo ve, no edita obras
-  if(rol==="residente"){
-    // Brian solo edita las obras donde el es residente (comparar por nombre)
-    var miNombre=(S.user.nombre||"").toLowerCase().split(" ")[0];
-    return obra.res&&obra.res.toLowerCase().indexOf(miNombre)>=0;
-  }
-  if(rol==="diseno"){
-    // Ana solo edita obras en etapa de diseno
-    return obra.etapa==="diseno";
-  }
-  if(rol==="comercial"){
-    // Lizeth solo edita info comercial (NPS, cliente, emails)
-    return true; // pero solo ciertos campos (la UI los limita)
-  }
+  // CEO, Coordinacion (Sandra y Luis), Residente (Briam): editan TODAS las obras
+  if(rol==="ceo"||rol==="coordinacion"||rol==="residente")return true;
+  // Diseno (Ana): solo obras en etapa de diseno
+  if(rol==="diseno")return obra.etapa==="diseno";
+  // Comercial (Lizeth): edita info comercial de cualquier obra (la UI limita campos)
+  if(rol==="comercial")return true;
   return false;
 }
 
@@ -3737,7 +3729,7 @@ function rDetalle(){
     var bgEnt=(puedeEditFechas&&fEditManual)?"":";background:#F5F5F5";
     var valEntregaShow=(fEditManual&&o.fE)?o.fE:(fechaEntregaCalculada||o.fE||"");
     var fechasObraHTML=div("card","<div class='cp' style='background:#FAF7F3;border:2px solid var(--v)'>"+
-      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v20</span></div>"+
+      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v21</span></div>"+
       "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px'>"+
         "<div>"+
           "<label style='font-size:11px;color:var(--g);font-weight:600'>Fecha de inicio de obra *</label>"+
@@ -4097,7 +4089,7 @@ function rLog(){
   }
   else if(subTab==="catalogo"){
     // Catalogo maestro de materiales por capitulo
-    var puedeEdit=puedeEditarEstaObra(o);
+    var puedeEdit=puedeCerrarObra();
     var infoCard=div("card","<div class='cp'>"+
       h("div",{"style":"font-size:13px;font-weight:700;color:var(--v);margin-bottom:6px"},"Catalogo Maestro de Materiales")+
       h("div",{"style":"font-size:11px;color:var(--g);margin-bottom:6px"},"Lista de materiales tipicos por cada capitulo. Sandra documenta las cantidades reales por m2.")+
