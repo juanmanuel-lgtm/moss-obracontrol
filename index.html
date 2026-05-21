@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.21-v25-simplificado">
+<meta name="version" content="2026.05.21-v26-antiperdida">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.21-v25-simplificado";
+var APP_VERSION="2026.05.21-v26-antiperdida";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -120,7 +120,7 @@ var APP_VERSION="2026.05.21-v25-simplificado";
 var SCRIPT_URL="https://script.google.com/a/macros/mosscolombia.com.co/s/AKfycbx6eU2JRm98rTTHLZT1p-oqcZV_CV2_maytgx38RYId_U5mcV1bhjFVkD2FhEUFvYhAog/exec";
 var SITE_URL="https://juanmanuel-lgtm.github.io/moss-obracontrol/";
 var HOY=new Date("2026-04-13");
-var POLL=30000;
+var POLL=60000; // v26: subido para reducir race conditions
 
 // JSONBin para comunicados compartidos del equipo (separado del Sheet)
 var JSONBIN_ID="69eb5be8aaba8821973249e2";
@@ -2136,34 +2136,22 @@ function driveCreate(obra){
 }
 
 function syncDrive(){
-  // MIGRACION: Sincronizar PRIMERO desde JSONBin (fuente de verdad)
+  // v26: NUNCA auto-importar del Sheet. El Sheet esta desactualizado y al importarlo
+  // borraba los datos buenos de JSONBin. Si JSONBin esta vacio por primera vez, usar
+  // el boton manual de Logistica > Re-importar obras del Sheet.
   cargarComunicadosRemoto();
   cargarCronogramaRemoto(function(){
-    // Despues de cargar JSONBin, verificar si tenemos obras
-    if(!CRON.obras||Object.keys(CRON.obras).length===0){
-      // PRIMERA VEZ: importar del Sheet via Apps Script
-      console.log("[MOSS] JSONBin sin obras, importando del Sheet...");
-      driveGet(function(obras){
-        S.obras=obras;S.driveOk=true;S.ultimo=new Date();
-        // Copiar a CRON.obras para guardar en JSONBin
-        if(!CRON.obras)CRON.obras={};
-        for(var i=0;i<obras.length;i++){CRON.obras[obras[i].id]=obras[i];}
-        // Subir a JSONBin inmediatamente
-        guardarCronogramaRemoto();
-        var activo=document.activeElement;
-        var escribiendo=activo&&(activo.tagName==="INPUT"||activo.tagName==="TEXTAREA"||activo.tagName==="SELECT");
-        if(!escribiendo)render();
-      });
+    S.driveOk=true;S.ultimo=new Date();
+    var activo=document.activeElement;
+    var escribiendo=activo&&(activo.tagName==="INPUT"||activo.tagName==="TEXTAREA"||activo.tagName==="SELECT");
+    if(!escribiendo){
+      render();
     }else{
-      // YA HAY OBRAS EN JSONBIN: solo actualizar timestamp, NO leer del Sheet
-      S.driveOk=true;S.ultimo=new Date();
-      var activo=document.activeElement;
-      var escribiendo=activo&&(activo.tagName==="INPUT"||activo.tagName==="TEXTAREA"||activo.tagName==="SELECT");
-      if(!escribiendo)render();
-      else{
-        var db=document.querySelector(".dbadge");
-        if(db){db.className="dbadge dok";db.innerHTML='<span class="dot" style="background:#3A6B45"></span>Sync OK '+(S.ultimo?S.ultimo.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}):"");}
-      }
+      var db=document.querySelector(".dbadge");
+      if(db){db.className="dbadge dok";db.innerHTML='<span class="dot" style="background:#3A6B45"></span>Sync OK '+(S.ultimo?S.ultimo.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}):"");}
+    }
+    if(!CRON.obras||Object.keys(CRON.obras).length===0){
+      console.warn("[MOSS v26] JSONBin vacio. Usa el boton Re-importar en Logistica si es primera vez.");
     }
   });
 }
@@ -3389,6 +3377,35 @@ function elimComunicado(idx){
   nav("hoy");
 }
 
+// === ELIMINAR OBRA (v26) - Disponible para todos los usuarios ===
+function eliminarObra(id){
+  var o=null;
+  for(var i=0;i<S.obras.length;i++){if(S.obras[i].id===+id){o=S.obras[i];break;}}
+  if(!o){alert("Obra no encontrada");return;}
+  var msg="ELIMINAR DEFINITIVAMENTE esta obra?\n\n"+
+    (o.cod||"")+" - "+(o.nom||"Sin nombre")+"\n"+
+    "Cliente: "+(o.cli||"-")+"\n"+
+    "Avance: "+(o.av||0)+"%\n\n"+
+    "Se guarda respaldo automatico. Si te equivocas, restaura desde Logistica > Backups locales.";
+  if(!confirm(msg))return;
+  S.obras=S.obras.filter(function(x){return x.id!==+id;});
+  if(CRON.obras&&CRON.obras[id])delete CRON.obras[id];
+  if(CRON.cronograma&&CRON.cronograma[id])delete CRON.cronograma[id];
+  if(CRON.pedidos&&CRON.pedidos[id])delete CRON.pedidos[id];
+  if(CRON.videos&&CRON.videos[id])delete CRON.videos[id];
+  if(CRON.estados&&CRON.estados[id])delete CRON.estados[id];
+  if(CRON.drives&&CRON.drives[id])delete CRON.drives[id];
+  if(S.pending&&S.pending[id])delete S.pending[id];
+  try{localStorage.setItem("moss_obras",JSON.stringify(S.obras));}catch(e){}
+  guardarCronogramaRemoto();
+  S.osel=null;
+  S.vista="ejec";
+  S.saveMsg="Obra eliminada correctamente";
+  setTimeout(function(){S.saveMsg="";render();},2500);
+  render();
+}
+window.eliminarObra=eliminarObra;
+
 // NUEVO PROYECTO - FIX: formulario persistente sin re-render
 function rNuevo(){
   return h("div",{"style":"max-width:560px"},
@@ -3518,7 +3535,7 @@ function rEjec(){
         (!esRes()&&o.pres>0?h("span",{"style":"font-size:10px;color:"+gastCol},gasto+"% gasto"):"<span></span>")+
         h("div",{"style":"display:flex;gap:5px"},
           (cp>0?h("span",{"style":"font-size:10px;color:var(--d)"},"Cal: "+cp.toFixed(1)+"/5"):"<span></span>")+
-          h("button",{"style":"font-size:10px;background:var(--ba);border:1px solid var(--b);border-radius:6px;padding:2px 8px;cursor:pointer;color:var(--g);font-family:inherit","onclick":"event.stopPropagation();editarObra("+o.id+")"},"Editar"))));
+          h("button",{"style":"font-size:10px;background:var(--ba);border:1px solid var(--b);border-radius:6px;padding:2px 8px;cursor:pointer;color:var(--g);font-family:inherit","onclick":"event.stopPropagation();editarObra("+o.id+")"},"Editar")+h("button",{"style":"font-size:10px;background:#FAEBE9;border:1px solid #B5362A;border-radius:6px;padding:2px 8px;cursor:pointer;color:#B5362A;font-family:inherit;margin-left:4px","onclick":"event.stopPropagation();eliminarObra("+o.id+")","title":"Eliminar obra"},"Eliminar"))));
   }).join("");
   return h("div",{"style":"display:flex;justify-content:space-between;align-items:center;margin-bottom:11px"},
     h("div",{"class":"sh","style":"margin:0"},"Obras en ejecucion")+
