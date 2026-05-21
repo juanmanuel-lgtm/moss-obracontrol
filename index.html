@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.20-v24-comercial">
+<meta name="version" content="2026.05.21-v25-simplificado">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.20-v24-comercial";
+var APP_VERSION="2026.05.21-v25-simplificado";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -1850,11 +1850,7 @@ function setPedidoCantidad(obraId,capN,matId,cantidad){
 // Flujo: Pendiente -> Solicitado (residente/admin) -> En bodega/En camino (sandra/admin) -> En obra (sandra/admin tras firma)
 function puedeCambiarEstadoMat(estadoActual,estadoNuevo){
   if(!S.user)return false;
-  var rol=S.user.rol;
-  // CEO + Coordinacion (Sandra/Luis) + Residente (Briam): cualquier transicion
-  if(rol==="ceo"||rol==="coordinacion"||rol==="residente")return true;
-  // Diseno, comercial: NO cambian estados de materiales
-  return false;
+  return true; // Todos pueden cambiar estados de materiales
 }
 
 // Config visual de cada estado
@@ -1938,7 +1934,7 @@ function esRes(){return S.user&&S.user.rol==="residente";}
 // Cargos: ceo, coordinacion, operaciones, diseno, comercial, residente
 
 // Acceso total a la obra (cambiar estados, cerrar obras, cambios mayores)
-function puedeCerrarObra(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
+function puedeCerrarObra(){return S.user!=null;}
 
 // Etiqueta visible del rol
 function rolDisplay(rol){
@@ -1954,55 +1950,50 @@ function rolDisplay(rol){
 }
 
 // Editar datos generales de obra (m2, fechas, gastos)
-function puedeEditarObra(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente"||S.user.rol==="comercial");}
+function puedeEditarObra(){return S.user!=null;}
 
 // Editar info financiera (presupuesto, plan, ver financiero)
-function puedeEditarFinanciero(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="operaciones");}
+function puedeEditarFinanciero(){return S.user!=null;}
 
 // Editar info comercial (cliente, emails, plan)
-function puedeEditarComercial(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="comercial");}
+function puedeEditarComercial(){return S.user!=null;}
 
 // Editar diseño (info de la fase diseño)
-function puedeEditarDiseno(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="diseno");}
+function puedeEditarDiseno(){return S.user!=null;}
 
-// Editar notas (todos menos operaciones que solo ve)
-function puedeEditarNotas(){return S.user&&S.user.rol!=="operaciones";}
+// Editar notas (todos)
+function puedeEditarNotas(){return S.user!=null;}
 
-// Generar planilla de despacho (ceo, coordinacion y residente)
-function puedeGenerarPlanilla(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
+// Generar planilla de despacho (todos)
+function puedeGenerarPlanilla(){return S.user!=null;}
 
-// Configurar drives (ceo, coordinacion y residente)
-function puedeConfigurarDrives(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
+// Configurar drives (todos)
+function puedeConfigurarDrives(){return S.user!=null;}
 
-// Subir videos semanales (residente, coordinacion, ceo)
-function puedeSubirVideos(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
+// Subir videos semanales (todos)
+function puedeSubirVideos(){return S.user!=null;}
 
-// Aprobar videos (ceo, coordinacion y residente)
-function puedeAprobarVideos(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
+// Aprobar videos (todos)
+function puedeAprobarVideos(){return S.user!=null;}
 
-// Crear garantías (todos los operativos)
-function puedeEditarGarantias(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente"||S.user.rol==="comercial");}
+// Crear garantias (todos)
+function puedeEditarGarantias(){return S.user!=null;}
 
-// Marcar checklist del cronograma (residente solo de sus obras)
-function puedeMarcarChecklist(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
+// Marcar checklist del cronograma (todos)
+function puedeMarcarChecklist(){return S.user!=null;}
 
 // Verificar si el usuario actual puede editar UNA obra especifica
 // Brian (residente) solo edita las que tiene asignadas como residente
 function puedeEditarEstaObra(obra){
   if(!S.user||!obra)return false;
-  var rol=S.user.rol;
-  // CEO, Coordinacion (Sandra y Luis), Residente (Briam), Comercial (Lizeth): editan TODAS las obras
-  if(rol==="ceo"||rol==="coordinacion"||rol==="residente"||rol==="comercial")return true;
-  // Diseno (Ana): solo obras en etapa de diseno
-  if(rol==="diseno")return obra.etapa==="diseno";
-  return false;
+  return true; // Todos los usuarios autenticados editan todas las obras
 }
 
 // Verificar si el usuario puede ver UNA obra
 // Casi todos ven todas - la limitacion es de EDICION
 function puedeVerEstaObra(obra){
   if(!S.user||!obra)return false;
-  return true; // Brian VE todas pero solo edita las suyas
+  return true; // Todos ven todas las obras
 }
 
 // Cuenta garantias en proceso vinculadas al nombre de una obra (case-insensitive, normalizado)
@@ -3141,7 +3132,8 @@ function cargarCronogramaRemoto(cb){
 var _cronTimer=null;
 function _localBackup(){
   try{
-    localStorage.setItem("moss_cron_backup",JSON.stringify({
+    // Snapshot actual (mismo nombre que antes para compatibilidad)
+    var snapshot={
       cronograma:CRON.cronograma||{},
       videos:CRON.videos||{},
       garantias:S.gars||[],
@@ -3150,9 +3142,67 @@ function _localBackup(){
       materiales:CRON.materiales,
       pedidos:CRON.pedidos||{},
       obras:CRON.obras||{},
+      presupuesto:CRON.presupuesto||null,
       ts:Date.now()
-    }));
-  }catch(e){}
+    };
+    localStorage.setItem("moss_cron_backup",JSON.stringify(snapshot));
+    
+    // === HISTORIAL DE BACKUPS (v25) ===
+    // Mantener los ULTIMOS 5 backups con timestamp para poder restaurar
+    // Solo guardar uno cada 5 minutos para no saturar
+    var hist=[];
+    try{var raw=localStorage.getItem("moss_backups_hist");if(raw)hist=JSON.parse(raw)||[];}catch(e){hist=[];}
+    var ahora=Date.now();
+    // Solo agregar si han pasado mas de 5min desde el ultimo
+    if(hist.length===0||(ahora-hist[0].ts)>=5*60*1000){
+      hist.unshift({
+        ts:ahora,
+        label:new Date(ahora).toLocaleString("es-CO",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}),
+        usuario:S.user?S.user.nombre:"desconocido",
+        numObras:Object.keys(CRON.obras||{}).length,
+        numDrives:Object.keys(CRON.drives||{}).length,
+        data:snapshot
+      });
+      // Mantener solo los 5 mas recientes
+      hist=hist.slice(0,5);
+      try{localStorage.setItem("moss_backups_hist",JSON.stringify(hist));}catch(e){}
+    }
+  }catch(e){console.error("[MOSS] Error en backup local:",e);}
+}
+
+// === RESTAURAR DESDE BACKUP (v25) ===
+function listarBackups(){
+  try{
+    var raw=localStorage.getItem("moss_backups_hist");
+    if(!raw)return [];
+    return JSON.parse(raw)||[];
+  }catch(e){return [];}
+}
+
+function restaurarBackup(ts){
+  if(!confirm("RESTAURAR BACKUP\n\nEsto reemplazara TODOS los datos actuales (obras, materiales, drives, etc.) con la version guardada el "+new Date(ts).toLocaleString("es-CO")+".\n\nLos cambios actuales NO guardados aun se perderan.\n\nContinuar?"))return;
+  var hist=listarBackups();
+  var bk=null;
+  for(var i=0;i<hist.length;i++)if(hist[i].ts===ts){bk=hist[i];break;}
+  if(!bk){alert("Backup no encontrado.");return;}
+  var d=bk.data;
+  CRON.cronograma=d.cronograma||{};
+  CRON.videos=d.videos||{};
+  CRON.estados=d.estados||{};
+  CRON.drives=d.drives||{};
+  CRON.materiales=d.materiales||null;
+  CRON.pedidos=d.pedidos||{};
+  CRON.obras=d.obras||{};
+  if(d.presupuesto)CRON.presupuesto=d.presupuesto;
+  if(d.garantias){S.gars=d.garantias;CRON.garantias=d.garantias;}
+  // Recargar S.obras desde CRON.obras
+  var arr=[];
+  for(var oId in CRON.obras)arr.push(CRON.obras[oId]);
+  if(arr.length>0)S.obras=arr.map(normObra);
+  // Guardar en JSONBin
+  guardarCronogramaRemoto();
+  alert("Backup restaurado: "+bk.label+"\n\n"+arr.length+" obras, "+Object.keys(CRON.drives||{}).length+" drives configurados.");
+  render();
 }
 function guardarCronogramaRemoto(){
   // Marcar timestamp de modificacion local (proteccion contra race)
@@ -3380,28 +3430,54 @@ function crearNuevo(){
     if(err){err.textContent="Codigo, nombre y cliente son obligatorios.";err.style.display="block";}
     return;
   }
+  // Validar duplicados de codigo
+  for(var dup=0;dup<S.obras.length;dup++){
+    if(S.obras[dup].cod.toLowerCase()===cod.toLowerCase()){
+      if(err){err.textContent="Ya existe una obra con el codigo \""+cod+"\". Usa un codigo distinto.";err.style.display="block";}
+      return;
+    }
+  }
   var fId=document.getElementById("nfi").value||"";
   var dias=+document.getElementById("ndias").value||45;
   var fIObra=fId?addDH(fId,8):"";
   var fE=fIObra?addDH(fIObra,dias):"";
   var pres=+document.getElementById("npres").value||0;
-  if(ok){ok.textContent="Guardando proyecto en Drive...";ok.style.display="block";}
-  var o={id:Date.now(),cod:cod,nom:nom,cli:cli,
+  if(ok){ok.textContent="Guardando proyecto...";ok.style.display="block";}
+  
+  // Construir obra completa
+  var o={
+    id:Date.now(),cod:cod,nom:nom,cli:cli,
     plan:document.getElementById("nplan").value||"Medium",
     res:document.getElementById("nres").value||"",
     maestro:document.getElementById("nmae").value||"",
-    fI:fIObra,fE:fE,dias:dias,pres:pres,av:0,act:"Diseno",notas:"",
+    fI:fIObra,fE:fE,fl:fIObra||"",dias:dias,pres:pres,
+    av:0,act:"Diseno",notas:"",
     gC:0,gM:0,gO:0,gA:0,cal:0,calFases:{},nps:0,
     etapa:"preobra",punch:[],emails:"",
     actFI:"",actFF:"",fIDiseno:fId,fEDiseno:fIObra,
+    m2:0
   };
+  
+  // 1. Agregar a S.obras
   S.obras.push(o);
+  
+  // 2. CRITICO: Sincronizar a CRON.obras (fuente de verdad para JSONBin)
+  if(!CRON.obras)CRON.obras={};
+  CRON.obras[o.id]=o;
+  
+  // 3. Persistencia local de respaldo
   try{localStorage.setItem("moss_obras",JSON.stringify(S.obras));}catch(e){}
-  driveCreate(o).then(function(exito){
-    if(ok){ok.textContent=exito?"Proyecto creado correctamente. Redirigiendo...":"Guardado localmente (sin conexion Drive).";ok.style.display="block";}
-    if(fId)abrirCalendarioProyecto(o);
-    setTimeout(function(){nav("ejec");},1500);
-  });
+  
+  // 4. Guardar en JSONBin (NO Apps Script - sistema unificado v12+)
+  guardarCronogramaRemoto();
+  
+  // Feedback
+  if(ok){
+    ok.textContent="Proyecto creado correctamente. Redirigiendo...";
+    ok.style.display="block";
+  }
+  if(fId)abrirCalendarioProyecto(o);
+  setTimeout(function(){nav("ejec");},1500);
 }
 
 // EJECUCION
@@ -3744,7 +3820,7 @@ function rDetalle(){
     var bgEnt=(puedeEditFechas&&fEditManual)?"":";background:#F5F5F5";
     var valEntregaShow=(fEditManual&&o.fE)?o.fE:(fechaEntregaCalculada||o.fE||"");
     var fechasObraHTML=div("card","<div class='cp' style='background:#FAF7F3;border:2px solid var(--v)'>"+
-      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v24</span></div>"+
+      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v25</span></div>"+
       "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px'>"+
         "<div>"+
           "<label style='font-size:11px;color:var(--g);font-weight:600'>Fecha de inicio de obra *</label>"+
@@ -4095,6 +4171,40 @@ function rLog(){
     contenido=div("kgrid",kpiC(conf,"Confirmados","ok","#3A6B45")+kpiC(pend,"Pendientes","sin confirmar","#C17B2A")+kpiC(ret,"Retrasados","accion req.","#B5362A"))+div("card",h("div",{"class":"chd"},h("span",{},"PEDIDOS GENERALES"))+rows);
     // Boton de emergencia: re-importar del Sheet
     if(puedeCerrarObra()){
+      // === SISTEMA DE BACKUPS LOCALES (v25) ===
+      var backupsHist=listarBackups();
+      var backupsHTML="";
+      if(backupsHist.length>0){
+        var rowsBk="";
+        for(var bi=0;bi<backupsHist.length;bi++){
+          var bk=backupsHist[bi];
+          rowsBk+=h("div",{"style":"display:grid;grid-template-columns:1fr 100px 90px 120px;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #EEE;background:"+(bi%2===0?"#fff":"#FAFAFA")},
+            h("div",{},
+              h("div",{"style":"font-size:11.5px;font-weight:600;color:var(--v)"},bk.label)+
+              h("div",{"style":"font-size:9px;color:var(--g)"},"Por: "+(bk.usuario||"desconocido"))
+            )+
+            h("div",{"style":"font-size:10px;color:var(--g);text-align:center"},(bk.numObras||0)+" obras")+
+            h("div",{"style":"font-size:10px;color:var(--g);text-align:center"},(bk.numDrives||0)+" drives")+
+            h("button",{"class":"bp","style":"font-size:10px;padding:5px 10px","onclick":"restaurarBackup("+bk.ts+")"},"Restaurar")
+          );
+        }
+        backupsHTML=div("card","<div class='cp' style='background:#F0F5F0;border:1px solid #C3D5C5'>"+
+          h("div",{"style":"font-size:12px;font-weight:700;color:#2D5A2D;margin-bottom:6px"},"&#x1F4BE; Backups locales recientes")+
+          h("div",{"style":"font-size:10px;color:var(--g);margin-bottom:10px"},"Sistema automatico de respaldo. Si pierdes datos, puedes restaurar a un punto anterior. Los backups se guardan cada 5 minutos en este navegador (no en la nube). Los ultimos 5 se conservan.")+
+          h("div",{"style":"border:1px solid var(--b);border-radius:6px;overflow:hidden"},
+            h("div",{"style":"background:#2D5A2D;color:#fff;padding:6px 10px;font-size:9px;text-transform:uppercase;font-weight:600;display:grid;grid-template-columns:1fr 100px 90px 120px;gap:8px"},
+              h("div",{},"Fecha y hora")+h("div",{"style":"text-align:center"},"# Obras")+h("div",{"style":"text-align:center"},"# Drives")+h("div",{"style":"text-align:center"},"Accion")
+            )+rowsBk
+          )+
+          "</div>");
+      }else{
+        backupsHTML=div("card","<div class='cp' style='background:#F0F5F0;border:1px solid #C3D5C5'>"+
+          h("div",{"style":"font-size:12px;font-weight:700;color:#2D5A2D;margin-bottom:6px"},"&#x1F4BE; Backups locales")+
+          h("div",{"style":"font-size:10px;color:var(--g)"},"El sistema esta haciendo backups automaticos en segundo plano. Aparecera el historial aqui despues de algunos cambios en el dashboard.")+
+          "</div>");
+      }
+      contenido+=backupsHTML;
+      
       contenido+=div("card","<div class='cp' style='background:#FAEBE9;border:1px solid #E8C5BE'>"+
         h("div",{"style":"font-size:11px;color:#B5362A;font-weight:600;margin-bottom:4px"},"Zona de administracion")+
         h("div",{"style":"font-size:10px;color:var(--g);margin-bottom:8px"},"Si los datos de obras se corrompen, puedes re-importar desde el Google Sheet. Esta opcion es de emergencia y sobreescribe los datos actuales.")+
