@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.20-v23-bandeja">
+<meta name="version" content="2026.05.20-v24-comercial">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.20-v23-bandeja";
+var APP_VERSION="2026.05.20-v24-comercial";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -1954,7 +1954,7 @@ function rolDisplay(rol){
 }
 
 // Editar datos generales de obra (m2, fechas, gastos)
-function puedeEditarObra(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
+function puedeEditarObra(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente"||S.user.rol==="comercial");}
 
 // Editar info financiera (presupuesto, plan, ver financiero)
 function puedeEditarFinanciero(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="operaciones");}
@@ -1981,7 +1981,7 @@ function puedeSubirVideos(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="co
 function puedeAprobarVideos(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
 
 // Crear garantías (todos los operativos)
-function puedeEditarGarantias(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
+function puedeEditarGarantias(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente"||S.user.rol==="comercial");}
 
 // Marcar checklist del cronograma (residente solo de sus obras)
 function puedeMarcarChecklist(){return S.user&&(S.user.rol==="ceo"||S.user.rol==="coordinacion"||S.user.rol==="residente");}
@@ -1991,12 +1991,10 @@ function puedeMarcarChecklist(){return S.user&&(S.user.rol==="ceo"||S.user.rol==
 function puedeEditarEstaObra(obra){
   if(!S.user||!obra)return false;
   var rol=S.user.rol;
-  // CEO, Coordinacion (Sandra y Luis), Residente (Briam): editan TODAS las obras
-  if(rol==="ceo"||rol==="coordinacion"||rol==="residente")return true;
+  // CEO, Coordinacion (Sandra y Luis), Residente (Briam), Comercial (Lizeth): editan TODAS las obras
+  if(rol==="ceo"||rol==="coordinacion"||rol==="residente"||rol==="comercial")return true;
   // Diseno (Ana): solo obras en etapa de diseno
   if(rol==="diseno")return obra.etapa==="diseno";
-  // Comercial (Lizeth): edita info comercial de cualquier obra (la UI limita campos)
-  if(rol==="comercial")return true;
   return false;
 }
 
@@ -3730,7 +3728,7 @@ function rDetalle(){
     if(o.fE)autocalcPreentrega(o.id,o.fE);
     // Bloque de fechas clave de la obra (origen del cronograma auto-distribuido)
     // VERSION v9 - Fecha entrega auto-calculada desde fecha inicio + 45 dias habiles
-    var puedeEditFechas=puedeCerrarObra();
+    var puedeEditFechas=puedeEditarObra();
     // Construir HTML directo (sin h() para evitar problemas con disabled)
     var disabledAttr=puedeEditFechas?"":" disabled";
     var bgStyle=puedeEditFechas?"":";background:#F5F5F5";
@@ -3746,7 +3744,7 @@ function rDetalle(){
     var bgEnt=(puedeEditFechas&&fEditManual)?"":";background:#F5F5F5";
     var valEntregaShow=(fEditManual&&o.fE)?o.fE:(fechaEntregaCalculada||o.fE||"");
     var fechasObraHTML=div("card","<div class='cp' style='background:#FAF7F3;border:2px solid var(--v)'>"+
-      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v23</span></div>"+
+      "<div style='font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px'>&#x1F4C5; Fechas clave de la obra <span style='font-size:9px;font-weight:normal;color:var(--g);background:#E8F0EB;padding:2px 7px;border-radius:5px'>v24</span></div>"+
       "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px'>"+
         "<div>"+
           "<label style='font-size:11px;color:var(--g);font-weight:600'>Fecha de inicio de obra *</label>"+
