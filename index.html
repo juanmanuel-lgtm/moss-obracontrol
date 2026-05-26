@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.26-v28-fechas">
+<meta name="version" content="2026.05.26-v29-sync">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.26-v28-fechas";
+var APP_VERSION="2026.05.26-v29-sync";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -1917,14 +1917,14 @@ var EST_MAT={
 //   coordinacion: Sandra y Luis (acceso total - operativo + financiero)
 //   diseno:       Ana Maria (solo diseno y notas)
 //   comercial:    Lizeth (solo info comercial)
-//   residente:    Briam Simijaca (todo operativo en todas las obras, EXCEPTO presupuesto/precios)
+//   residente:    Brian Simijaca (todo operativo en todas las obras, EXCEPTO presupuesto/precios)
 var USERS=[
   {email:"ceo@mosscolombia.com.co",nombre:"Juan Manuel Guevara",rol:"ceo",av:"JM",pin:"1984"},
   {email:"coordinacion@mosscolombia.com.co",nombre:"Sandra Cristiano",rol:"coordinacion",av:"SC",pin:"2026"},
   {email:"operaciones@mosscolombia.com.co",nombre:"Luis (Contabilidad)",rol:"coordinacion",av:"LU",pin:"3311"},
   {email:"diseno@mosscolombia.com.co",nombre:"Ana Maria",rol:"diseno",av:"AM",pin:"4455"},
   {email:"care@mosscolombia.com.co",nombre:"Lizeth Figueroa",rol:"comercial",av:"LF",pin:"7890"},
-  {email:"proyectos@mosscolombia.com.co",nombre:"Briam Simijaca",rol:"residente",av:"BS",pin:"8800"},
+  {email:"proyectos@mosscolombia.com.co",nombre:"Brian Simijaca",rol:"residente",av:"BS",pin:"8800"},
 ];
 var RCFG={
   ceo:{lbl:"CEO",col:"#A67C52",bg:"#F5EDE0"},
@@ -1947,7 +1947,7 @@ var DRIVE={
 };
 
 // State global
-var S={user:null,vista:"dash",osel:null,otab:"cron",logTab:"general",driveOk:false,ultimo:null,saving:false,saveMsg:"",pending:{},iaResp:"",iaLoad:false,obras:[],driveEdit:null,logs:[{id:1,obra:"VIS 001",item:"Piso SPC",proveedor:"Nicolas",val:2800000,estado:"en_camino",fecha:"2026-03-25"},{id:2,obra:"VIS 001",item:"Vidrios",proveedor:"Diego",val:1200000,estado:"retrasado",fecha:"2026-04-02"},{id:3,obra:"VIS 002",item:"Carpinteria",proveedor:"Medina",val:14500000,estado:"pendiente",fecha:"2026-03-28"},{id:4,obra:"VIS 003",item:"Enchape banos",proveedor:"Corona",val:1800000,estado:"confirmado",fecha:"2026-03-30"}],gars:[{id:1,proy:"Veramonte",cli:"David R.",maestro:"Edwin",estado:"terminado",items:"Piso, mueble bano, griferia",fecha:"2026-01-15"},{id:2,proy:"Barlovento",cli:"Edward M.",maestro:"Luis",estado:"en_proceso",items:"Desague lavanderia",fecha:"2026-02-10"}]};
+var S={user:null,cargando:false,cargandoMsg:"",vista:"dash",osel:null,otab:"cron",logTab:"general",driveOk:false,ultimo:null,saving:false,saveMsg:"",pending:{},iaResp:"",iaLoad:false,obras:[],driveEdit:null,logs:[{id:1,obra:"VIS 001",item:"Piso SPC",proveedor:"Nicolas",val:2800000,estado:"en_camino",fecha:"2026-03-25"},{id:2,obra:"VIS 001",item:"Vidrios",proveedor:"Diego",val:1200000,estado:"retrasado",fecha:"2026-04-02"},{id:3,obra:"VIS 002",item:"Carpinteria",proveedor:"Medina",val:14500000,estado:"pendiente",fecha:"2026-03-28"},{id:4,obra:"VIS 003",item:"Enchape banos",proveedor:"Corona",val:1800000,estado:"confirmado",fecha:"2026-03-30"}],gars:[{id:1,proy:"Veramonte",cli:"David R.",maestro:"Edwin",estado:"terminado",items:"Piso, mueble bano, griferia",fecha:"2026-01-15"},{id:2,proy:"Barlovento",cli:"Edward M.",maestro:"Luis",estado:"en_proceso",items:"Desague lavanderia",fecha:"2026-02-10"}]};
 
 // Utils
 function nF(f){if(!f)return"";var s=String(f).trim();return s.indexOf("T")>-1?s.slice(0,10):s;}
@@ -2170,24 +2170,18 @@ function driveCreate(obra){
     .catch(function(){return false;});
 }
 
-function syncDrive(){
-  // v26: NUNCA auto-importar del Sheet. El Sheet esta desactualizado y al importarlo
-  // borraba los datos buenos de JSONBin. Si JSONBin esta vacio por primera vez, usar
-  // el boton manual de Logistica > Re-importar obras del Sheet.
+function syncDrive(cbExtra){
   cargarComunicadosRemoto();
   cargarCronogramaRemoto(function(){
     S.driveOk=true;S.ultimo=new Date();
+    S.cargando=false;S.cargandoMsg="";
     var activo=document.activeElement;
     var escribiendo=activo&&(activo.tagName==="INPUT"||activo.tagName==="TEXTAREA"||activo.tagName==="SELECT");
-    if(!escribiendo){
-      render();
-    }else{
+    if(!escribiendo){render();}else{
       var db=document.querySelector(".dbadge");
       if(db){db.className="dbadge dok";db.innerHTML='<span class="dot" style="background:#3A6B45"></span>Sync OK '+(S.ultimo?S.ultimo.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}):"");}
     }
-    if(!CRON.obras||Object.keys(CRON.obras).length===0){
-      console.warn("[MOSS v26] JSONBin vacio. Usa el boton Re-importar en Logistica si es primera vez.");
-    }
+    if(cbExtra)cbExtra();
   });
 }
 
@@ -2533,7 +2527,13 @@ function doLogin(){
   var u=null;for(var i=0;i<USERS.length;i++){if(USERS[i].email===em){u=USERS[i];break;}}
   if(!u){err.textContent="Correo no registrado.";err.style.display="block";return;}
   if(u.pin!==pin){err.textContent="PIN incorrecto.";err.style.display="block";document.getElementById("lpin").value="";return;}
-  S.user=u;S.obras=[];S.driveOk=false;cargarCache();render();syncDrive();setInterval(syncDrive,POLL);
+  S.user=u;S.obras=[];S.driveOk=false;S.cargando=true;S.cargandoMsg="Cargando datos de obras...";
+  cargarCache();render();
+  syncDrive(function(){
+    S.cargando=false;S.cargandoMsg="";
+    render();
+  });
+  setInterval(syncDrive,POLL);
 }
 
 // Topbar
@@ -2580,6 +2580,16 @@ function rNavbar(){
 
 // Router
 function rContent(){
+  // Pantalla de carga mientras se obtienen datos del servidor
+  if(S.cargando){
+    return h("div",{"style":"display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px"},
+      h("div",{"style":"font-size:40px"},"⏳")+
+      h("div",{"style":"font-size:16px;font-weight:700;color:var(--v)"},"Cargando ObraControl...")+
+      h("div",{"style":"font-size:13px;color:var(--g)"},S.cargandoMsg||"Obteniendo datos de obras y materiales...")+
+      h("div",{"style":"font-size:11px;color:var(--gc);margin-top:8px"},"Si tarda más de 10 segundos, haz clic en el badge superior ↑")+
+      h("button",{"class":"bp","style":"margin-top:12px","onclick":"syncDrive()"},"🔄 Reintentar conexión")
+    );
+  }
   if(S.osel!==null)return rDetalle();
   if(S.vista==="dash")return rDash();
   if(S.vista==="hoy")return rHoy();
