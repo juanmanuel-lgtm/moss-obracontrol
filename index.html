@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026.05.21-v26-antiperdida">
+<meta name="version" content="2026.05.26-v28-fechas">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EBE0;color:#1C1C1A;min-height:100vh;}
@@ -106,7 +106,7 @@ label{font-size:10px;color:var(--g);display:block;margin-bottom:4px;text-transfo
 <div id="root"></div>
 <script>
 // === Anti-cache: forzar version nueva ===
-var APP_VERSION="2026.05.21-v26-antiperdida";
+var APP_VERSION="2026.05.26-v28-fechas";
 (function(){
   try{
     var stored=localStorage.getItem("moss_version");
@@ -119,7 +119,7 @@ var APP_VERSION="2026.05.21-v26-antiperdida";
 })();
 var SCRIPT_URL="https://script.google.com/a/macros/mosscolombia.com.co/s/AKfycbx6eU2JRm98rTTHLZT1p-oqcZV_CV2_maytgx38RYId_U5mcV1bhjFVkD2FhEUFvYhAog/exec";
 var SITE_URL="https://juanmanuel-lgtm.github.io/moss-obracontrol/";
-var HOY=new Date("2026-04-13");
+var HOY=new Date();
 var POLL=60000; // v26: subido para reducir race conditions
 
 // JSONBin para comunicados compartidos del equipo (separado del Sheet)
@@ -127,8 +127,8 @@ var JSONBIN_ID="69eb5be8aaba8821973249e2";
 var JSONBIN_KEY="$2a$10$BGLBXWLn3q6kG6d9AcLqj.HjXhiATEbAxWjPS/arMITMYOC88RfQu";
 var JSONBIN_URL="https://api.jsonbin.io/v3/b/"+JSONBIN_ID;
 // Bin separado para cronograma + checklists + videos semanales
-var JSONBIN_CRON_ID="69fcddb5250b1311c31a8a2e";
-var JSONBIN_CRON_URL="https://api.jsonbin.io/v3/b/"+JSONBIN_CRON_ID;
+// ELIMINADO v27: var JSONBIN_CRON_ID="69fcddb5250b1311c31a8a2e";
+// ELIMINADO v27: var JSONBIN_CRON_URL="https://api.jsonbin.io/v3/b/"+JSONBIN_CRON_ID;
 // Estado en memoria de cronograma y videos (sincronizado con JSONBin)
 var CRON={cronograma:{},videos:{},garantias:null,estados:{},drives:{},materiales:null,pedidos:{},obras:null};
 
@@ -1195,11 +1195,15 @@ function setPedidoEstado(obraId,capN,matId,estado){
   if(!CRON.pedidos[obraId][capN])CRON.pedidos[obraId][capN]=[];
   var lista=CRON.pedidos[obraId][capN];
   var found=false;
+  var hoy=new Date().toISOString().slice(0,10);
   for(var i=0;i<lista.length;i++){
     if(lista[i].matId===matId){
       lista[i].estado=estado;
-      lista[i].fechaUpd=new Date().toISOString().slice(0,10);
+      lista[i].fechaUpd=hoy;
       lista[i].actor=S.user.nombre;
+      // Registrar fecha según etapa
+      if(estado==="en_camino"&&!lista[i].fechaCompra)lista[i].fechaCompra=hoy;
+      if(estado==="en_obra"&&!lista[i].fechaEntregaObra)lista[i].fechaEntregaObra=hoy;
       found=true;break;
     }
   }
@@ -1208,8 +1212,10 @@ function setPedidoEstado(obraId,capN,matId,estado){
       matId:matId,
       cantidad:calcularCantidadMaterial(obraId,capN,matId),
       estado:estado,
-      fechaSolicitud:new Date().toISOString().slice(0,10),
-      fechaUpd:new Date().toISOString().slice(0,10),
+      fechaSolicitud:hoy,
+      fechaCompra:estado==="en_camino"?hoy:"",
+      fechaEntregaObra:estado==="en_obra"?hoy:"",
+      fechaUpd:hoy,
       actor:S.user.nombre,
       notas:""
     });
@@ -1808,6 +1814,35 @@ function addDesdeCatalogo(capDeMatN,matId){
 }
 
 // Eliminar pedido de la obra (no del catalogo)
+// Editar fecha manualmente (Sandra o CEO)
+function editFechaMat(obraId,capN,matId,campo){
+  var labels={"fechaCompra":"Fecha de Compra","fechaEntregaObra":"Fecha de Entrega en Obra","fechaSolicitud":"Fecha de Solicitud"};
+  var lista=(CRON.pedidos[obraId]&&CRON.pedidos[obraId][capN])||[];
+  var pedido=null;
+  for(var i=0;i<lista.length;i++){if(lista[i].matId===matId){pedido=lista[i];break;}}
+  var actual=pedido?pedido[campo]:"";
+  var nueva=prompt((labels[campo]||campo)+" (AAAA-MM-DD):",actual||new Date().toISOString().slice(0,10));
+  if(nueva===null)return;
+  nueva=nueva.trim();
+  if(nueva&&!/^\d{4}-\d{2}-\d{2}$/.test(nueva)){alert("Formato inválido. Use AAAA-MM-DD");return;}
+  if(!CRON.pedidos[obraId])CRON.pedidos[obraId]={};
+  if(!CRON.pedidos[obraId][capN])CRON.pedidos[obraId][capN]=[];
+  var found=false;
+  for(var j=0;j<CRON.pedidos[obraId][capN].length;j++){
+    if(CRON.pedidos[obraId][capN][j].matId===matId){
+      CRON.pedidos[obraId][capN][j][campo]=nueva;
+      found=true;break;
+    }
+  }
+  if(!found){
+    var obj={matId:matId,cantidad:0,estado:"solicitado",fechaSolicitud:new Date().toISOString().slice(0,10),fechaCompra:"",fechaEntregaObra:"",fechaUpd:new Date().toISOString().slice(0,10),actor:S.user.nombre,notas:""};
+    obj[campo]=nueva;
+    CRON.pedidos[obraId][capN].push(obj);
+  }
+  guardarCronogramaRemoto();
+  render();
+}
+
 function elimPedidoObra(obraId,capN,matId){
   if(!puedeCerrarObra()){alert("No tienes permisos para eliminar pedidos. Contacta a Coordinacion.");return;}
   if(!confirm("Eliminar este material del plan de esta obra?\n\nEl material seguira en el catalogo general."))return;
@@ -3019,7 +3054,7 @@ function cargarCronogramaRemoto(cb){
   }
   // 2. Si hubo modificacion local DESPUES del ultimo guardado exitoso, NO descargar
   if(_localModTs>_ultimoGuardadoTs){
-    console.log("[MOSS] Saltando GET - hay modificaciones locales sin subir aun (mod:"+_localModTs+" > save:"+_ultimoGuardadoTs+")");
+    console.log("[MOSS] Saltando GET - hay modificaciones locales sin subir aun");
     if(cb)cb();
     return;
   }
@@ -3030,45 +3065,23 @@ function cargarCronogramaRemoto(cb){
     return;
   }
   _cargandoRemoto=true;
-  // Primero leer el backup local como fallback
+  // Backup local como fallback si falla la red
   var backup=null;
   try{var b=localStorage.getItem("moss_cron_backup");if(b)backup=JSON.parse(b);}catch(e){}
-  fetch(JSONBIN_CRON_URL+"/latest?_t="+Date.now(),{cache:"no-store",
+  // GET al Apps Script de Google (reemplaza JSONBin)
+  fetch(SCRIPT_URL+"?hoja=cron&_t="+Date.now(),{
     method:"GET",
-    headers:{"X-Master-Key":JSONBIN_KEY}
+    cache:"no-store"
   })
-  .then(function(r){
-    if(!r.ok){
-      console.error("[MOSS] Error leyendo JSONBin. Status:",r.status);
-      // Si el GET falla y hay backup, usarlo
-      if(backup){
-        CRON.cronograma=backup.cronograma||{};
-        CRON.videos=backup.videos||{};
-        CRON.estados=backup.estados||{};
-        CRON.drives=backup.drives||{};
-        CRON.materiales=backup.materiales||null;
-        CRON.pedidos=backup.pedidos||{};
-        if(backup.obras){
-          CRON.obras=backup.obras;
-          var arrObras3=[];
-          for(var oId3 in backup.obras){arrObras3.push(backup.obras[oId3]);}
-          if(arrObras3.length>0){S.obras=arrObras3.map(normObra);S.driveOk=true;}
-        }
-        if(backup.garantias&&backup.garantias.length>0){S.gars=backup.garantias;CRON.garantias=backup.garantias;}
-      }
-      throw new Error("HTTP "+r.status);
-    }
-    return r.json();
-  })
+  .then(function(r){return r.json();})
   .then(function(data){
-    if(data&&data.record){
-      var rem=data.record;
-      // Si el remoto tiene datos mas nuevos, usarlos. Si esta vacio y hay backup, usar backup.
+    if(data&&typeof data==="object"&&!data.error){
+      var rem=data;
       var remGars=rem.garantias||[];
       var hayBackupConGars=backup&&backup.garantias&&backup.garantias.length>0;
-      // Si remoto vacio Y local tiene datos => usar local Y subirlo de nuevo (recovery)
+      // Si Sheets vacio Y hay backup local con datos => usar backup y re-subir
       if(remGars.length===0&&hayBackupConGars){
-        console.warn("[MOSS] Remoto vacio pero hay backup local con "+backup.garantias.length+" garantias. Restaurando.");
+        console.warn("[MOSS] Sheets vacio pero hay backup local. Restaurando y re-subiendo.");
         S.gars=backup.garantias;
         CRON.garantias=backup.garantias;
         CRON.cronograma=backup.cronograma||rem.cronograma||{};
@@ -3077,42 +3090,62 @@ function cargarCronogramaRemoto(cb){
         CRON.drives=backup.drives||rem.drives||{};
         CRON.materiales=backup.materiales||rem.materiales||null;
         CRON.pedidos=backup.pedidos||rem.pedidos||{};
-        // Recovery de obras
         if(backup.obras||rem.obras){
           CRON.obras=backup.obras||rem.obras;
-          var arrObras2=[];
-          for(var oId2 in CRON.obras){arrObras2.push(CRON.obras[oId2]);}
-          if(arrObras2.length>0){S.obras=arrObras2.map(normObra);S.driveOk=true;}
+          var arrO2=[];for(var oId2 in CRON.obras)arrO2.push(CRON.obras[oId2]);
+          if(arrO2.length>0){S.obras=arrO2.map(normObra);S.driveOk=true;}
         }
-        guardarCronogramaRemoto(); // Re-subir
-      }else{
-        CRON.cronograma=rem.cronograma||{};
-        CRON.videos=rem.videos||{};
-        CRON.estados=rem.estados||{};
-        CRON.drives=rem.drives||{};
-        CRON.materiales=rem.materiales||null;
-        CRON.pedidos=rem.pedidos||{};
-        // NUEVO: cargar obras desde JSONBin (fuente de verdad)
+        guardarCronogramaRemoto();
+      } else {
+        if(rem.cronograma)CRON.cronograma=rem.cronograma;
+        if(rem.videos)CRON.videos=rem.videos;
+        if(rem.estados)CRON.estados=rem.estados;
+        if(rem.drives)CRON.drives=rem.drives;
+        if(rem.materiales!==undefined)CRON.materiales=rem.materiales;
+        if(rem.pedidos)CRON.pedidos=rem.pedidos;
         if(rem.obras&&typeof rem.obras==="object"){
           CRON.obras=rem.obras;
-          // Convertir objeto a array para S.obras
           var arrObras=[];
           for(var oId in rem.obras){arrObras.push(rem.obras[oId]);}
-          if(arrObras.length>0){
-            S.obras=arrObras.map(normObra);
-            S.driveOk=true;
-          }
+          if(arrObras.length>0){S.obras=arrObras.map(normObra);S.driveOk=true;}
         }
-        if(rem.garantias){
-          CRON.garantias=rem.garantias;
-          S.gars=rem.garantias;
-        }
+        if(rem.garantias){CRON.garantias=rem.garantias;S.gars=rem.garantias;}
       }
+      try{localStorage.setItem("moss_cron_backup",JSON.stringify({
+        cronograma:CRON.cronograma,videos:CRON.videos,garantias:S.gars||[],
+        estados:CRON.estados,drives:CRON.drives,materiales:CRON.materiales,
+        pedidos:CRON.pedidos,obras:CRON.obras
+      }));}catch(e){}
+      console.log("[MOSS] CRON cargado desde Sheets OK");
     }
     _cargandoRemoto=false;
     if(cb)cb();
+    render();
   })
-  .catch(function(err){console.log("Error JSONBin cronograma GET:",err);_cargandoRemoto=false;if(cb)cb();});
+  .catch(function(err){
+    console.log("[MOSS] Error GET Sheets CRON, usando backup local:",err);
+    try{
+      var braw=localStorage.getItem("moss_cron_backup");
+      if(braw){
+        var bd=JSON.parse(braw);
+        if(bd.cronograma)CRON.cronograma=bd.cronograma;
+        if(bd.videos)CRON.videos=bd.videos;
+        if(bd.garantias){CRON.garantias=bd.garantias;S.gars=bd.garantias;}
+        if(bd.estados)CRON.estados=bd.estados;
+        if(bd.drives)CRON.drives=bd.drives;
+        if(bd.materiales!==undefined)CRON.materiales=bd.materiales;
+        if(bd.pedidos)CRON.pedidos=bd.pedidos;
+        if(bd.obras){
+          CRON.obras=bd.obras;
+          var arr=[];for(var oId in bd.obras)arr.push(bd.obras[oId]);
+          if(arr.length>0){S.obras=arr.map(normObra);S.driveOk=true;}
+        }
+        console.log("[MOSS] CRON restaurado desde backup local OK");
+      }
+    }catch(e){}
+    _cargandoRemoto=false;
+    if(cb)cb();
+  });
 }
 
 // Guarda todo el estado de cronograma + videos en JSONBin
@@ -3192,48 +3225,75 @@ function restaurarBackup(ts){
   alert("Backup restaurado: "+bk.label+"\n\n"+arr.length+" obras, "+Object.keys(CRON.drives||{}).length+" drives configurados.");
   render();
 }
+var _cronTimer=null;
+var _guardandoPendiente=false;
+var _cronRetries=0;
+
 function guardarCronogramaRemoto(){
-  // Marcar timestamp de modificacion local (proteccion contra race)
   _localModTs=Date.now();
-  // Backup local INMEDIATO (no se pierde si falla la red)
   _localBackup();
-  // Marcar que hay cambios pendientes (bloquea cargar remoto)
   _guardandoPendiente=true;
-  // Debounce corto: 100ms (era 400ms - causaba race conditions)
   if(_cronTimer)clearTimeout(_cronTimer);
   _cronTimer=setTimeout(function(){
-    var payload=JSON.stringify({cronograma:CRON.cronograma||{},videos:CRON.videos||{},garantias:S.gars||[],estados:CRON.estados||{},drives:CRON.drives||{},materiales:CRON.materiales,pedidos:CRON.pedidos||{},obras:CRON.obras||{}});
-    fetch(JSONBIN_CRON_URL,{
-      method:"PUT",
-      headers:{"Content-Type":"application/json","X-Master-Key":JSONBIN_KEY},
-      body:payload
-    }).then(function(r){
-      if(!r.ok){
-        // Falla del servidor (401, 403, 404, 500). Avisar al usuario.
-        r.text().then(function(txt){
-          console.error("[MOSS] Error guardando en JSONBin. Status "+r.status+":",txt);
-          // Mostrar alerta visible (solo una vez)
-          if(!window._mossErrShown){
-            window._mossErrShown=true;
-            setTimeout(function(){window._mossErrShown=false;},10000);
-            alert("Aviso: No se pudo guardar en la nube (JSONBin status "+r.status+").\n\nLos cambios estan guardados LOCALMENTE en este dispositivo, pero pueden no verse en otros dispositivos hasta resolver el problema.\n\nDetalle tecnico (para soporte): "+txt.substring(0,200));
-          }
-        });
-      }else{
-        console.log("[MOSS] Guardado OK en JSONBin");
-        _guardandoPendiente=false;
-        _ultimoGuardadoTs=Date.now();
-      }
-    }).catch(function(err){
-      console.error("[MOSS] Error de red al guardar:",err);
-      if(!window._mossErrShown){
-        window._mossErrShown=true;
-        setTimeout(function(){window._mossErrShown=false;},10000);
-        alert("Aviso: Sin conexion para guardar en la nube.\n\nLos cambios estan guardados LOCALMENTE en este dispositivo.");
-      }
-    });
-  },400);
+    _enviarCronASheets();
+  },300);
 }
+
+function _enviarCronASheets(){
+  var payload=JSON.stringify({
+    hoja:"cron",
+    cron:{
+      cronograma:CRON.cronograma||{},
+      videos:CRON.videos||{},
+      garantias:S.gars||[],
+      estados:CRON.estados||{},
+      drives:CRON.drives||{},
+      materiales:CRON.materiales||null,
+      pedidos:CRON.pedidos||{},
+      obras:CRON.obras||{}
+    }
+  });
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    headers:{"Content-Type":"text/plain"},
+    body:payload
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){
+      _guardandoPendiente=false;
+      _cronRetries=0;
+      S.syncOk=true;
+      S.syncMsg="Guardado ✓ "+new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
+      console.log("[MOSS] CRON guardado en Sheets OK. Bytes:",d.bytes);
+      render();
+    } else {
+      console.error("[MOSS] Sheets rechazó CRON:",d.error);
+      _reintentarCron();
+    }
+  })
+  .catch(function(err){
+    console.error("[MOSS] Sin red al guardar CRON:",err);
+    _reintentarCron();
+  });
+}
+
+function _reintentarCron(){
+  _cronRetries++;
+  if(_cronRetries>5){
+    console.error("[MOSS] Máx reintentos. Datos en localStorage.");
+    S.syncOk=false;
+    S.syncMsg="⚠️ Sin conexión - guardado local";
+    render();
+    return;
+  }
+  var delay=Math.min(5000*_cronRetries,30000);
+  console.log("[MOSS] Reintento #"+_cronRetries+" en "+(delay/1000)+"s");
+  setTimeout(function(){
+    if(_guardandoPendiente)_enviarCronASheets();
+  },delay);
+}
+
 
 // Helper: estructura inicial de cronograma para una obra
 function initCronograma(obraId){
@@ -3762,10 +3822,22 @@ function rDetalle(){
         // Metadata del pedido (quien solicito, cuando)
         var metaPedido="";
         if(pedido){
-          var actorTxt=pedido.actor?(" por "+pedido.actor):"";
-          if(estadoActual==="solicitado")metaPedido=h("div",{"style":"font-size:9px;color:var(--g);font-style:italic;margin-top:3px"},"Solicitado el "+(pedido.fechaSolicitud||pedido.fechaUpd)+actorTxt);
-          else if(estadoActual==="en_camino")metaPedido=h("div",{"style":"font-size:9px;color:#C17B2A;font-style:italic;margin-top:3px"},"En camino desde el "+pedido.fechaUpd+actorTxt);
-          else if(estadoActual==="en_obra")metaPedido=h("div",{"style":"font-size:9px;color:#3A6B45;font-style:italic;margin-top:3px;font-weight:600"},"Recibido el "+pedido.fechaUpd+actorTxt);
+          var actorTxt=pedido.actor?(" · "+pedido.actor):"";
+          // Línea 1: Solicitud (siempre visible si existe)
+          var lineaSol=pedido.fechaSolicitud?h("div",{"style":"font-size:9px;color:var(--g);margin-top:3px"},"📋 Solicitado: "+pedido.fechaSolicitud+actorTxt):"";
+          // Línea 2: Compra (visible desde en_camino)
+          var lineaComp=(pedido.fechaCompra)?h("div",{"style":"font-size:9px;color:#C17B2A;margin-top:2px"},"🛒 Comprado: "+pedido.fechaCompra):"";
+          // Línea 3: Entrega en obra (visible cuando en_obra)
+          var lineaEntr=(pedido.fechaEntregaObra)?h("div",{"style":"font-size:9px;color:#3A6B45;font-weight:600;margin-top:2px"},"✅ En obra: "+pedido.fechaEntregaObra):"";
+          // Botones editar fechas (solo Sandra/CEO)
+          var btnFechas="";
+          if(puedeEdit){
+            btnFechas=h("div",{"style":"display:flex;gap:4px;margin-top:4px;flex-wrap:wrap"},
+              h("button",{"style":"font-size:8px;padding:2px 6px;background:#F5F5F5;border:1px solid #DDD;border-radius:4px;cursor:pointer;font-family:inherit","onclick":"editFechaMat("+o.id+","+capM.n+","+mat.id+",'fechaCompra')"},"✏️ Fecha compra")+
+              h("button",{"style":"font-size:8px;padding:2px 6px;background:#F5F5F5;border:1px solid #DDD;border-radius:4px;cursor:pointer;font-family:inherit","onclick":"editFechaMat("+o.id+","+capM.n+","+mat.id+",'fechaEntregaObra')"},"✏️ Fecha entrega")
+            );
+          }
+          metaPedido=lineaSol+lineaComp+lineaEntr+btnFechas;
         }
         // Notas del material
         var notasMat=mat.notas?h("div",{"style":"font-size:10px;color:var(--g);margin-top:2px;font-style:italic"},mat.notas):"";
@@ -4416,6 +4488,8 @@ function rLog(){
         var it=lista[i];
         var infoSolicitante=it.pedido.actor?(" | Solicitado por "+it.pedido.actor):"";
         var fechaSol=it.pedido.fechaSolicitud||it.pedido.fechaUpd||"";
+              var fechaComp=it.pedido.fechaCompra||"";
+              var fechaEntr=it.pedido.fechaEntregaObra||"";
         var infoFecha=fechaSol?" | "+fechaSol:"";
         var esResidente=(it.pedido.actor||"").toLowerCase().indexOf("briam")>=0||(it.pedido.actor||"").toLowerCase().indexOf("brian")>=0;
         var marcaResidente=esResidente?h("span",{"style":"background:#FDF0E0;color:#C17B2A;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;margin-left:6px"},"&#x1F4E5; Solicitud residente"):"";
