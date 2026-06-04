@@ -3296,8 +3296,12 @@ function _enviarCronASheets(){
 });
   fetch(SCRIPT_URL,{
     method:"POST",
-    headers:{"Content-Type":"text/plain"},
-    body:payload
+    fetch(SCRIPT_URL,{
+  method:"POST",
+  mode:"no-cors",
+  headers:{"Content-Type":"text/plain"},
+  body:payload
+})
   })
   .then(function(r){return r.json();})
   .then(function(d){
