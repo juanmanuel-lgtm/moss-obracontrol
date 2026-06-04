@@ -3294,17 +3294,15 @@ function _enviarCronASheets(){
     obras:CRON.obras||{}
   }
 });
-  fetch(SCRIPT_URL,{
-    method:"POST",
-    fetch(SCRIPT_URL,{
-  method:"POST",
+fetch(SCRIPT_URL,{
+method:"POST",
   mode:"no-cors",
-  headers:{"Content-Type":"text/plain"},
-  body:payload
+headers:{"Content-Type":"text/plain"},
+body:payload
 })
-  })
-  .then(function(r){return r.json();})
-  .then(function(d){
+.then(function(r){return r.json();})
+.then(function(r){return r.json();})
+.then(function(d){
     if(d.ok){
       _guardandoPendiente=false;
       _cronRetries=0;
