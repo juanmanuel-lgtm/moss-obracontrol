@@ -3300,18 +3300,14 @@ fetch(SCRIPT_URL,{
   headers:{"Content-Type":"text/plain"},
   body:payload
 })
-   .then(function(d){
-      _guardandoPendiente=false;
-      _cronRetries=0;
-      S.syncOk=true;
-      S.syncMsg="Guardado ✓ "+new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
-      console.log("[MOSS] CRON guardado en Sheets OK. Bytes:",d.bytes);
-      render();
-    } else {
-      console.error("[MOSS] Sheets rechazó CRON:",d.error);
-      _reintentarCron();
-    }
-  })
+ .then(function(d){
+    _guardandoPendiente=false;
+    _cronRetries=0;
+    S.syncOk=true;
+    S.syncMsg="Guardado ✓ "+new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
+    console.log("[MOSS] CRON guardado en Sheets OK (no-cors).");
+    render();
+})
   .catch(function(err){
     console.error("[MOSS] Sin red al guardar CRON:",err);
     _reintentarCron();
