@@ -3251,8 +3251,9 @@ function guardarCronogramaRemoto(){
 
 function _enviarCronASheets(){
   var payload=JSON.stringify({
-    hoja:"cron",
-    cron:{
+   action:"cron.guardar",
+_email:S.user?S.user.email:"",
+payload:{
       cronograma:CRON.cronograma||{},
       videos:CRON.videos||{},
       garantias:S.gars||[],
