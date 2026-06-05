@@ -3016,47 +3016,15 @@ function addComunicado(){
   nav("hoy");
 }
 
-// Guarda el arreglo completo de comunicados en JSONBin
+// v28: comunicados viajan dentro del blob CRON hacia Sheets
 function guardarComunicadosRemoto(coms){
-  fetch(JSONBIN_URL,{
-    method:"PUT",
-    headers:{
-      "Content-Type":"application/json",
-      "X-Master-Key":JSONBIN_KEY
-    },
-    body:JSON.stringify({comunicados:coms})
-  }).catch(function(err){console.log("Error JSONBin PUT:",err);});
+  try{localStorage.setItem("moss_comunicados",JSON.stringify(coms));}catch(e){}
+  CRON.comunicados=coms;
+  guardarCronogramaRemoto();
 }
 
-// Lee los comunicados de JSONBin y los mezcla con los locales
+// v28: comunicados se cargan desde Sheets vía cargarCronogramaRemoto
 function cargarComunicadosRemoto(){
-  fetch(JSONBIN_URL+"/latest?_t="+Date.now(),{cache:"no-store",
-    method:"GET",
-    headers:{"X-Master-Key":JSONBIN_KEY}
-  })
-  .then(function(r){return r.json();})
-  .then(function(data){
-    if(data&&data.record&&data.record.comunicados){
-      var remotos=data.record.comunicados;
-      var ahora=Date.now();
-      // Filtrar ultimos 90 dias
-      remotos=remotos.filter(function(x){return !x.ts||(ahora-x.ts)<90*24*60*60*1000;});
-      // Mezclar con locales sin duplicar (por timestamp)
-      var locales=[];
-      try{var cl=localStorage.getItem("moss_comunicados");if(cl)locales=JSON.parse(cl);}catch(e){}
-      var vistos={};
-      var todos=[];
-      remotos.forEach(function(x){if(x.ts&&!vistos[x.ts]){vistos[x.ts]=1;todos.push(x);}});
-      locales.forEach(function(x){if(x.ts&&!vistos[x.ts]){vistos[x.ts]=1;todos.push(x);}});
-      // Ordenar por timestamp descendente
-      todos.sort(function(a,b){return (b.ts||0)-(a.ts||0);});
-      if(todos.length>50)todos=todos.slice(0,50);
-      try{localStorage.setItem("moss_comunicados",JSON.stringify(todos));}catch(e){}
-      // Si hay diferencia entre locales y remotos, re-renderizar
-      if(locales.length!==todos.length&&S.tab==="hoy")render();
-    }
-  })
-  .catch(function(err){console.log("Error JSONBin GET:",err);});
 }
 
 // Elimina un comunicado por timestamp (local y remoto)
@@ -3143,6 +3111,10 @@ fetch(SCRIPT_URL+"?hoja=cron&_t="+Date.now()+_emailParam,{
         if(rem.drives)CRON.drives=rem.drives;
         if(rem.materiales!==undefined)CRON.materiales=rem.materiales;
         if(rem.pedidos)CRON.pedidos=rem.pedidos;
+        if(rem.comunicados){
+          CRON.comunicados=rem.comunicados;
+          try{localStorage.setItem("moss_comunicados",JSON.stringify(rem.comunicados));}catch(e){}
+        }
         if(rem.obras&&typeof rem.obras==="object"){
           CRON.obras=rem.obras;
           var arrObras=[];
@@ -3291,7 +3263,8 @@ function _enviarCronASheets(){
     drives:CRON.drives||{},
     materiales:CRON.materiales||null,
     pedidos:CRON.pedidos||{},
-    obras:CRON.obras||{}
+    obras:CRON.obras||{},
+    comunicados:CRON.comunicados||[]
   }
 });
 fetch(SCRIPT_URL,{
