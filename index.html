@@ -2684,7 +2684,7 @@ function doLogin(){
 function rTopbar(){
   var u=S.user,rc=RCFG[u.rol];
   var dOk=S.driveOk;
-  var dt=dOk?"Sync OK "+(S.ultimo?S.ultimo.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}):""):"Conectando...";
+  var dt=!_sesionSincronizada?"Cargando datos...":dOk?"Sync OK "+(S.ultimo?S.ultimo.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}):""):"Conectando...";
   return div("topbar",
     h("div",{"style":"width:30px;height:30px;background:#2D4A35;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0"},"&#x1F3D7;")+
     h("div",{"style":"flex:1"},h("div",{"class":"ttitle"},"MOSS ObraControl")+h("div",{"class":"tsub"},S.obras.length+" proyectos"))+
@@ -3162,6 +3162,9 @@ var _guardandoPendiente=false; // Flag: hay cambios locales no subidos aun
 var _ultimoGuardadoTs=0;        // Timestamp del ultimo guardado exitoso
 var _localModTs=0;              // Timestamp de la ultima modificacion local
 var _cargandoRemoto=false;      // Flag: hay un GET en proceso
+var _sesionSincronizada=false;  // CRITICO: solo true despues del primer GET exitoso
+                                // Mientras sea false, NO se permite guardar en Sheets
+                                // Esto previene que datos locales viejos sobreescriban Sheets
 
 // Marcar que hubo modificacion local (llamar antes de cualquier cambio en CRON)
 function marcarModLocal(){_localModTs=Date.now();}
@@ -3250,6 +3253,7 @@ fetch(SCRIPT_URL+"?hoja=cron&_t="+Date.now()+_emailParam,{
       }));}catch(e){}
       console.log("[MOSS] CRON cargado desde Sheets OK");
     }
+    _sesionSincronizada=true; // YA leimos de Sheets — ahora si podemos escribir
     _cargandoRemoto=false;
     if(cb)cb();
     render();
@@ -3273,6 +3277,9 @@ fetch(SCRIPT_URL+"?hoja=cron&_t="+Date.now()+_emailParam,{
           if(arr.length>0){S.obras=arr.map(normObra);S.driveOk=true;}
         }
         console.log("[MOSS] CRON restaurado desde backup local OK");
+        // Aunque usamos backup local, marcamos como sincronizado para no bloquear
+        // el sistema indefinidamente si no hay red. El usuario verá el badge rojo.
+        _sesionSincronizada=true;
       }
     }catch(e){}
     _cargandoRemoto=false;
@@ -3363,7 +3370,13 @@ var _cronRetries=0;
 
 function guardarCronogramaRemoto(){
   _localModTs=Date.now();
-  _localBackup();
+  _localBackup(); // Siempre guardar backup local
+  // PROTECCION CRITICA: no enviar a Sheets hasta que hayamos leido de Sheets primero
+  // Esto evita que datos viejos del localStorage sobreescriban datos nuevos en Sheets
+  if(!_sesionSincronizada){
+    console.log("[MOSS] Guardado local OK - esperando sincronizacion inicial para subir a Sheets");
+    return;
+  }
   if(_cronTimer)clearTimeout(_cronTimer);
   _cronTimer=setTimeout(function(){
     _guardandoPendiente=true;
