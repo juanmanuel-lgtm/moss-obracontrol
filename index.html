@@ -120,7 +120,7 @@ var APP_VERSION="2026.05.26-v29-sync";
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbyV1vK-Aw0kyAekawzvoB--JSBhl5ksbaNqSxuNorNQtyf00de5z43lSGvhFc0H-6cUKw/exec";
 var SITE_URL="https://juanmanuel-lgtm.github.io/moss-obracontrol/";
 var HOY=new Date();
-var POLL=60000; // v26: subido para reducir race conditions
+var POLL=300000; // v29: 5 minutos para evitar sobreescritura de cambios
 
 // JSONBin DESACTIVADO v28 — datos migrados a Google Sheets
 // var JSONBIN_ID="69eb5be8aaba8821973249e2";
@@ -3060,7 +3060,7 @@ function cargarCronogramaRemoto(cb){
     return;
   }
   // 2. Si hubo modificacion local en los ultimos 30s sin confirmar guardado, NO descargar
-  var sinConfirmar=(_localModTs>_ultimoGuardadoTs)&&(Date.now()-_localModTs<30000);
+  var sinConfirmar=(_localModTs>_ultimoGuardadoTs)&&(Date.now()-_localModTs<120000);
   if(sinConfirmar){
     console.log("[MOSS] Saltando GET - modificacion local reciente sin confirmar");
     if(cb)cb();
@@ -3111,16 +3111,21 @@ fetch(SCRIPT_URL+"?hoja=cron&_t="+Date.now()+_emailParam,{
         if(rem.estados)CRON.estados=rem.estados;
         if(rem.drives)CRON.drives=rem.drives;
         if(rem.materiales!==undefined)CRON.materiales=rem.materiales;
-        if(rem.pedidos)CRON.pedidos=rem.pedidos;
+        // Solo sobreescribir pedidos/cronograma si no hay cambios locales recientes
+        var _proteger=Object.keys(S.pending||{}).length>0||_guardandoPendiente||((_localModTs>_ultimoGuardadoTs)&&(Date.now()-_localModTs<120000));
+        if(!_proteger){
+          if(rem.pedidos)CRON.pedidos=rem.pedidos;
+        } else {
+          if(rem.pedidos&&!CRON.pedidos)CRON.pedidos=rem.pedidos;
+        }
         if(rem.comunicados){
           CRON.comunicados=rem.comunicados;
           try{localStorage.setItem("moss_comunicados",JSON.stringify(rem.comunicados));}catch(e){}
         }
         if(rem.obras&&typeof rem.obras==="object"){
-          // Solo sobreescribir obras si NO hay cambios locales pendientes
-          // Esto evita que el polling borre obras recien creadas
-          var hayPendientes=Object.keys(S.pending||{}).length>0||_guardandoPendiente;
-          if(!hayPendientes){
+          // Solo sobreescribir si NO hay cambios locales recientes sin confirmar
+          var hayPend=Object.keys(S.pending||{}).length>0||_guardandoPendiente||((_localModTs>_ultimoGuardadoTs)&&(Date.now()-_localModTs<120000));
+          if(!hayPend){
             CRON.obras=rem.obras;
             var arrObras=[];
             for(var oId in rem.obras){arrObras.push(rem.obras[oId]);}
