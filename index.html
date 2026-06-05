@@ -3116,10 +3116,15 @@ fetch(SCRIPT_URL+"?hoja=cron&_t="+Date.now()+_emailParam,{
           try{localStorage.setItem("moss_comunicados",JSON.stringify(rem.comunicados));}catch(e){}
         }
         if(rem.obras&&typeof rem.obras==="object"){
-          CRON.obras=rem.obras;
-          var arrObras=[];
-          for(var oId in rem.obras){arrObras.push(rem.obras[oId]);}
-          if(arrObras.length>0){S.obras=arrObras.map(normObra);S.driveOk=true;}
+          // Solo sobreescribir obras si NO hay cambios locales pendientes
+          // Esto evita que el polling borre obras recien creadas
+          var hayPendientes=Object.keys(S.pending||{}).length>0||_guardandoPendiente;
+          if(!hayPendientes){
+            CRON.obras=rem.obras;
+            var arrObras=[];
+            for(var oId in rem.obras){arrObras.push(rem.obras[oId]);}
+            if(arrObras.length>0){S.obras=arrObras.map(normObra);S.driveOk=true;}
+          }
         }
         if(rem.garantias){CRON.garantias=rem.garantias;S.gars=rem.garantias;}
       }
