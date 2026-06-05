@@ -2076,7 +2076,7 @@ var DRIVE={
 };
 
 // State global
-var S={user:null,cargando:false,cargandoMsg:"",vista:"dash",osel:null,otab:"cron",logTab:"general",driveOk:false,ultimo:null,saving:false,saveMsg:"",pending:{},iaResp:"",iaLoad:false,obras:[],driveEdit:null,logs:[{id:1,obra:"VIS 001",item:"Piso SPC",proveedor:"Nicolas",val:2800000,estado:"en_camino",fecha:"2026-03-25"},{id:2,obra:"VIS 001",item:"Vidrios",proveedor:"Diego",val:1200000,estado:"retrasado",fecha:"2026-04-02"},{id:3,obra:"VIS 002",item:"Carpinteria",proveedor:"Medina",val:14500000,estado:"pendiente",fecha:"2026-03-28"},{id:4,obra:"VIS 003",item:"Enchape banos",proveedor:"Corona",val:1800000,estado:"confirmado",fecha:"2026-03-30"}],gars:[{id:1,proy:"Veramonte",cli:"David R.",maestro:"Edwin",estado:"terminado",items:"Piso, mueble bano, griferia",fecha:"2026-01-15"},{id:2,proy:"Barlovento",cli:"Edward M.",maestro:"Luis",estado:"en_proceso",items:"Desague lavanderia",fecha:"2026-02-10"}]};
+var S={user:null,cargando:false,cargandoMsg:"",vista:"dash",osel:null,otab:"cron",logTab:"general",driveOk:false,ultimo:null,saving:false,saveMsg:"",pending:{},iaResp:"",iaLoad:false,obras:[],driveEdit:null,logs:[],gars:[{id:1,proy:"Veramonte",cli:"David R.",maestro:"Edwin",estado:"terminado",items:"Piso, mueble bano, griferia",fecha:"2026-01-15"},{id:2,proy:"Barlovento",cli:"Edward M.",maestro:"Luis",estado:"en_proceso",items:"Desague lavanderia",fecha:"2026-02-10"}]};
 
 // Utils
 function nF(f){if(!f)return"";var s=String(f).trim();return s.indexOf("T")>-1?s.slice(0,10):s;}
@@ -4401,20 +4401,60 @@ function rLog(){
   );
   var contenido="";
   if(subTab==="general"){
-    var conf=S.logs.filter(function(l){return l.estado==="confirmado"||l.estado==="en_camino";}).length;
-    var pend=S.logs.filter(function(l){return l.estado==="pendiente";}).length;
-    var ret=S.logs.filter(function(l){return l.estado==="retrasado";}).length;
-    var rows=S.logs.map(function(l,i){
-      var cfg=LOGCFG[l.estado]||LOGCFG.sin_gestionar;
-      var opts=Object.keys(LOGCFG).map(function(k){return h("option",k===l.estado?{"value":k,"selected":"selected"}:{"value":k},LOGCFG[k].lbl);}).join("");
-      return h("div",{"style":"padding:10px 12px;border-bottom:1px solid var(--b);background:"+(i%2===0?"var(--bc)":"var(--cr)")},
-        h("div",{"style":"display:flex;align-items:flex-start;gap:8px;margin-bottom:5px"},
-          h("span",{"class":"cod"},l.obra)+
-          h("div",{"style":"flex:1"},h("div",{"style":"font-size:12px;font-weight:600"},l.item)+h("div",{"style":"font-size:10px;color:var(--g)"},l.proveedor+(l.fecha?" - "+ff(l.fecha):"")))+
-          h("span",{"style":"font-size:11px;font-weight:600;color:var(--d)"},cop(l.val)))+
-        h("div",{"style":"display:flex;align-items:center;justify-content:space-between"},h("span",{"class":"bdg "+cfg.cls},cfg.lbl)+h("select",{"style":"font-size:10px;padding:3px 7px;width:auto","onchange":"updLog("+l.id+",this.value)"},opts)));
-    }).join("");
-    contenido=div("kgrid",kpiC(conf,"Confirmados","ok","#3A6B45")+kpiC(pend,"Pendientes","sin confirmar","#C17B2A")+kpiC(ret,"Retrasados","accion req.","#B5362A"))+div("card",h("div",{"class":"chd"},h("span",{},"PEDIDOS GENERALES"))+rows);
+    // Calcular resumen real de materiales de todas las obras
+    var totalPend=0,totalSolic=0,totalCamino=0,totalObra=0,totalObras=0;
+    for(var rgi=0;rgi<S.obras.length;rgi++){
+      var obR=S.obras[rgi];
+      var pedR=CRON.pedidos[obR.id]||{};
+      var tieneAlgo=false;
+      for(var ckR in pedR){
+        var lstR=pedR[ckR]||[];
+        for(var pjR=0;pjR<lstR.length;pjR++){
+          if(lstR[pjR].cantidad>0){
+            tieneAlgo=true;
+            if(lstR[pjR].estado==="pendiente")totalPend++;
+            else if(lstR[pjR].estado==="solicitado")totalSolic++;
+            else if(lstR[pjR].estado==="en_camino"||lstR[pjR].estado==="en_bodega")totalCamino++;
+            else if(lstR[pjR].estado==="en_obra")totalObra++;
+          }
+        }
+      }
+      if(tieneAlgo)totalObras++;
+    }
+    contenido=div("kgrid",
+      kpiC(totalSolic,"Solicitados","pendientes de compra","#C17B2A")+
+      kpiC(totalCamino,"En camino","despacho activo","#2D5A8A")+
+      kpiC(totalObra,"En obra","entregados","#3A6B45")
+    )+
+    h("div",{"style":"background:#fff;border:1px solid var(--b);border-radius:12px;padding:14px;margin-bottom:12px"},
+      h("div",{"style":"font-size:13px;font-weight:700;color:var(--v);margin-bottom:10px"},"Resumen por obra")+
+      ordenarObrasPrioridad(S.obras).map(function(obS,idx){
+        var pedS=CRON.pedidos[obS.id]||{};
+        var solic=0,camino=0,obra=0,pend=0;
+        for(var ck in pedS){
+          var lst=pedS[ck]||[];
+          for(var pi=0;pi<lst.length;pi++){
+            if(lst[pi].cantidad>0){
+              if(lst[pi].estado==="solicitado")solic++;
+              else if(lst[pi].estado==="en_camino"||lst[pi].estado==="en_bodega")camino++;
+              else if(lst[pi].estado==="en_obra")obra++;
+              else if(lst[pi].estado==="pendiente")pend++;
+            }
+          }
+        }
+        if(solic+camino+obra+pend===0)return "";
+        return h("div",{"style":"display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--b);cursor:pointer;background:"+(idx%2===0?"var(--bc)":"#fff"),"onclick":"abrirObra("+obS.id+");S.otab='mat';render()"},
+          h("span",{"class":"cod"},obS.cod)+
+          h("div",{"style":"flex:1;font-size:12px;font-weight:600"},obS.nom)+
+          h("div",{"style":"display:flex;gap:6px;flex-wrap:wrap"},
+            (solic>0?h("span",{"style":"font-size:10px;background:#FDF0E0;color:#C17B2A;padding:2px 7px;border-radius:5px;font-weight:600"},solic+" solicitados"):"")+ 
+            (camino>0?h("span",{"style":"font-size:10px;background:#E0E5EE;color:#2D5A8A;padding:2px 7px;border-radius:5px;font-weight:600"},camino+" en camino"):"")+ 
+            (obra>0?h("span",{"style":"font-size:10px;background:#E8F0EB;color:#3A6B45;padding:2px 7px;border-radius:5px;font-weight:600"},obra+" en obra"):"")+ 
+            (pend>0?h("span",{"style":"font-size:10px;background:#F0EDE8;color:#7A736C;padding:2px 7px;border-radius:5px;font-weight:600"},pend+" pendientes"):"")
+          )
+        );
+      }).join("")
+    );
     // Boton de emergencia: re-importar del Sheet
     if(puedeCerrarObra()){
       // === SISTEMA DE BACKUPS LOCALES (v25) ===
