@@ -3244,9 +3244,9 @@ var _cronRetries=0;
 function guardarCronogramaRemoto(){
   _localModTs=Date.now();
   _localBackup();
-  _guardandoPendiente=true;
   if(_cronTimer)clearTimeout(_cronTimer);
   _cronTimer=setTimeout(function(){
+    _guardandoPendiente=true;
     _enviarCronASheets();
   },300);
 }
