@@ -3059,9 +3059,10 @@ function cargarCronogramaRemoto(cb){
     if(cb)cb();
     return;
   }
-  // 2. Si hubo modificacion local DESPUES del ultimo guardado exitoso, NO descargar
-  if(_localModTs>_ultimoGuardadoTs){
-    console.log("[MOSS] Saltando GET - hay modificaciones locales sin subir aun");
+  // 2. Si hubo modificacion local en los ultimos 30s sin confirmar guardado, NO descargar
+  var sinConfirmar=(_localModTs>_ultimoGuardadoTs)&&(Date.now()-_localModTs<30000);
+  if(sinConfirmar){
+    console.log("[MOSS] Saltando GET - modificacion local reciente sin confirmar");
     if(cb)cb();
     return;
   }
@@ -3280,6 +3281,7 @@ fetch(SCRIPT_URL,{
 })
  .then(function(d){
     _guardandoPendiente=false;
+    _ultimoGuardadoTs=Date.now();
     _cronRetries=0;
     S.syncOk=true;
     S.syncMsg="Guardado ✓ "+new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
