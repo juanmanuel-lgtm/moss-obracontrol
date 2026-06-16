@@ -3,48 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MOSS CRM Comercial v32</title>
+<title>MOSS CRM Comercial v33</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-:root{--v:#2D4A35;--vc:#E8F0EB;--bv:#C2D1C5;--d:#A67C52;--cr:#F2EBE0;--bc:#FAF7F3;--ba:#EEEAE3;--g:#6B6560;--gc:#B5AFA8;--b:#DDD5C8;--ok:#3A6B45;--ob:#E8F0EB;--am:#C17B2A;--ab:#FDF0E0;--ro:#B5362A;--rb:#FAEBE9;--az:#2D5A8A;}
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--v:#2D4A35;--vc:#E8F0EB;--bv:#C2D1C5;--d:#A67C52;--cr:#F2EBE0;--bc:#FAF7F3;--ba:#EEEAE3;--g:#6B6560;--gc:#B5AFA8;--b:#DDD5C8;--ok:#3A6B45;--am:#C17B2A;--ab:#FDF0E0;--ro:#B5362A;--rb:#FAEBE9;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--cr);color:#1C1C1A;min-height:100vh;}
-.app{display:flex;flex-direction:column;min-height:100vh;}
-.topbar{background:var(--bc);border-bottom:1px solid var(--b);padding:11px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 1px 5px rgba(44,64,50,.08);}
-.tlogo{width:32px;height:32px;background:var(--v);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--d);flex-shrink:0;}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--v);}
+.login-box{background:var(--bc);border-radius:16px;padding:32px 28px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,.2);}
+.login-logo{width:48px;height:48px;background:var(--v);border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;color:var(--d);margin:0 auto 16px;}
+.login-box h2{text-align:center;color:var(--v);font-size:18px;margin-bottom:6px;}
+.login-box p{text-align:center;color:var(--g);font-size:12px;margin-bottom:20px;}
+.login-box input{width:100%;padding:11px 13px;border:1px solid var(--b);border-radius:9px;font-size:14px;margin-bottom:10px;font-family:inherit;}
+.login-box input:focus{outline:none;border-color:var(--v);box-shadow:0 0 0 2px var(--vc);}
+.login-btn{width:100%;background:var(--v);color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.login-err{color:var(--ro);font-size:12px;text-align:center;margin-top:8px;display:none;}
+.login-role{font-size:10px;color:var(--gc);text-align:center;margin-top:10px;}
+
+/* APP */
+.app{display:none;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--bc);border-bottom:1px solid var(--b);padding:10px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 1px 5px rgba(44,64,50,.08);}
+.tlogo{width:30px;height:30px;background:var(--v);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:var(--d);}
 .ttitle{font-weight:700;font-size:13px;color:var(--v);}
 .tsub{font-size:9px;color:var(--gc);text-transform:uppercase;letter-spacing:1px;}
 .topright{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.user-chip{font-size:10px;padding:4px 9px;border-radius:7px;background:var(--vc);color:var(--v);font-weight:700;border:1px solid var(--bv);}
 .dbadge{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:7px;font-size:10px;cursor:pointer;border:1px solid;}
 .dok{background:var(--vc);border-color:var(--bv);color:var(--ok);}
 .dno{background:var(--ab);border-color:#C17B2A40;color:var(--am);}
-.dot{width:6px;height:6px;border-radius:50%;animation:pulse 2s infinite;flex-shrink:0;}
+.dot{width:6px;height:6px;border-radius:50%;animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.src-badge{font-size:9px;padding:3px 7px;border-radius:6px;font-weight:700;border:1px solid;}
-.src-odoo{background:#714B67;color:#fff;border-color:#714B67;}
-.src-bot{background:var(--ab);color:var(--am);border-color:var(--am);}
-.navbar{background:var(--v);display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:0;box-shadow:inset 0 -1px 0 rgba(0,0,0,.18);}
+.navbar{background:var(--v);display:flex;overflow-x:auto;scrollbar-width:none;}
 .navbar::-webkit-scrollbar{display:none;}
-.nitem{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 12px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;min-width:64px;transition:background .18s;}
-.nitem:hover{background:rgba(255,255,255,.06);}
+.nitem{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 11px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;min-width:58px;transition:background .15s;}
 .nitem.on{border-bottom-color:var(--d);background:rgba(255,255,255,.1);}
-.nic{font-size:16px;}.nlb{font-size:9px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.7px;}
+.nic{font-size:15px;}.nlb{font-size:8.5px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.6px;}
 .nitem.on .nlb{color:#fff;}
-.content{flex:1;padding:13px 13px 80px;}
+.content{flex:1;padding:12px 12px 80px;}
+
+/* CARDS + KPIs */
 .card{background:var(--bc);border:1px solid var(--b);border-radius:12px;margin-bottom:12px;}
-.cp{padding:14px;}
-.chd{padding:10px 14px;background:var(--v);border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;}
-.chd span{font-size:11px;color:#fff;font-weight:600;}
-.chd small{font-size:9px;color:rgba(255,255,255,.6);}
+.chd{padding:9px 14px;background:var(--v);border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;}
+.chd span{font-size:11px;color:#fff;font-weight:600;}.chd small{font-size:9px;color:rgba(255,255,255,.6);}
+.cp{padding:13px;}
 .kgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
-@media(min-width:480px){.kgrid{grid-template-columns:repeat(4,1fr);}}
-.kpi{background:var(--bc);border:1px solid var(--b);border-radius:10px;padding:10px 12px;}
-.kl{font-size:8px;color:var(--g);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
-.kv{font-size:20px;font-weight:700;line-height:1;}
-.ks{font-size:9px;color:var(--gc);margin-top:3px;}
+@media(min-width:460px){.kgrid{grid-template-columns:repeat(4,1fr);}}
+.kpi{background:var(--bc);border:1px solid var(--b);border-radius:10px;padding:10px 11px;}
+.kl{font-size:8px;color:var(--g);text-transform:uppercase;letter-spacing:.9px;margin-bottom:4px;}
+.kv{font-size:19px;font-weight:700;}.ks{font-size:9px;color:var(--gc);margin-top:3px;}
 .kv.ok{color:var(--ok);}.kv.am{color:var(--am);}.kv.ro{color:var(--ro);}.kv.d{color:var(--d);}
-.bdg{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600;}
-.bok{background:#E8F0EB;color:#3A6B45;}.bam{background:#FDF0E0;color:#C17B2A;}.bro{background:#FAEBE9;color:#B5362A;}.bd{background:#F0EDE8;color:#A67C52;}.bgr{background:var(--ba);color:var(--g);}
-.lrow{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--b);cursor:pointer;background:var(--bc);transition:background .15s;}
+
+/* ROWS */
+.lrow{display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid var(--b);cursor:pointer;background:var(--bc);transition:background .15s;}
 .lrow:last-child{border-bottom:none;}
 .lrow:hover{background:var(--vc);}
 .lrow.venc{border-left:4px solid var(--ro);background:var(--rb);}
@@ -53,20 +64,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lnm{font-size:13px;font-weight:700;}
 .ldt{font-size:10.5px;color:var(--g);margin-top:2px;line-height:1.4;}
 .lright{margin-left:auto;display:flex;gap:5px;align-items:center;flex-shrink:0;}
-.wa-btn{background:#2F7D4F;color:#fff;border:none;border-radius:7px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;}
+.wa-btn{background:#2F7D4F;color:#fff;border:none;border-radius:7px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;}
+.bdg{display:inline-flex;align-items:center;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600;}
+.bok{background:#E8F0EB;color:#3A6B45;}.bam{background:#FDF0E0;color:#C17B2A;}.bro{background:#FAEBE9;color:#B5362A;}.bd{background:#F0EDE8;color:#A67C52;}.bgr{background:var(--ba);color:var(--g);}
+
+/* KANBAN */
 .kan{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;}
-.kcol{min-width:210px;background:var(--ba);border:1px solid var(--b);border-radius:11px;padding:9px;flex-shrink:0;}
-.kctit{font-size:10px;color:var(--v);text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.kcol{min-width:200px;background:var(--ba);border:1px solid var(--b);border-radius:11px;padding:9px;flex-shrink:0;}
+.kctit{font-size:10px;color:var(--v);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;}
 .kcard{background:var(--bc);border:1px solid var(--b);border-radius:9px;padding:9px;margin-bottom:7px;cursor:pointer;transition:box-shadow .15s;}
 .kcard:hover{box-shadow:0 2px 8px rgba(44,64,50,.12);}
-.kcard b{display:block;font-size:12.5px;color:#1C1C1A;}
-.kcard .ks2{color:var(--g);font-size:10px;margin-top:3px;}
-.kcard .odoo-tag{font-size:9px;background:#714B67;color:#fff;padding:2px 5px;border-radius:5px;display:inline-block;margin-top:3px;}
-.kcard .bot-tag{font-size:9px;background:var(--ab);color:var(--am);padding:2px 5px;border-radius:5px;display:inline-block;margin-top:3px;}
+.kcard b{display:block;font-size:12.5px;}.kcard .ks2{color:var(--g);font-size:10px;margin-top:3px;}
+
+/* TABLA */
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th{background:var(--v);color:#fff;text-align:left;padding:8px 10px;font-size:10.5px;}
 td{padding:7px 10px;border-bottom:1px solid var(--b);}
-tr:last-child td{border-bottom:none;}
+
+/* FORM */
 .flabel{font-size:9px;color:var(--g);font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:4px;margin-top:10px;}
 input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--b);border-radius:9px;font-size:13px;font-family:inherit;background:var(--bc);color:#1C1C1A;outline:none;}
 input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 2px var(--vc);}
@@ -74,11 +89,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 2
 .pbar-wrap{background:var(--ba);border-radius:8px;height:10px;overflow:hidden;margin:6px 0 4px;}
 .pbar{height:100%;border-radius:8px;background:var(--v);transition:.4s;}
 .alert-m2{font-size:11px;color:var(--ro);font-weight:700;padding:6px 10px;background:var(--rb);border-radius:7px;margin-top:6px;display:none;}
+
+/* MODAL */
 .modalbg{position:fixed;inset:0;background:rgba(28,28,26,.5);display:none;z-index:200;align-items:flex-end;justify-content:center;}
 .modalbg.open{display:flex;}
 .modal{background:var(--bc);border-radius:16px 16px 0 0;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:18px 18px 32px;}
-.modal .mh{font-size:15px;font-weight:700;color:var(--v);margin-bottom:2px;}
-.modal .ms{font-size:11px;color:var(--g);margin-bottom:14px;}
+.mh{font-size:15px;font-weight:700;color:var(--v);margin-bottom:2px;}
+.ms{font-size:11px;color:var(--g);margin-bottom:14px;}
 .tpl-btns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
 .tpl-btn{background:var(--ba);border:1px solid var(--b);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:600;color:var(--v);cursor:pointer;font-family:inherit;}
 .tpl-btn:hover{background:var(--vc);}
@@ -86,124 +103,167 @@ input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 2
 .btn-p{background:var(--v);color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex:1;}
 .btn-s{background:var(--ba);border:1px solid var(--b);border-radius:9px;padding:10px 14px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--g);}
 .btn-d{background:var(--d);color:#fff;border:none;border-radius:9px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
-.save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--v);padding:11px 16px;display:flex;align-items:center;justify-content:space-between;z-index:50;box-shadow:0 -2px 12px rgba(44,64,50,.2);}
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--v);padding:11px 16px;display:flex;align-items:center;justify-content:space-between;z-index:50;}
 .save-bar span{color:rgba(255,255,255,.8);font-size:12px;}
 .save-btn{background:#fff;border:none;border-radius:8px;color:var(--v);padding:9px 22px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
 .carta-wrap{background:var(--bc);border:1px solid var(--b);border-radius:12px;padding:32px;font-size:13px;line-height:1.7;display:none;margin-top:14px;}
-.carta-wrap h3{color:var(--v);}
 @media print{body *{visibility:hidden;}.carta-wrap,.carta-wrap *{visibility:visible;}.carta-wrap{display:block!important;position:absolute;left:0;top:0;width:100%;border:none;padding:40px;}}
 .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--v);color:#fff;padding:9px 18px;border-radius:20px;font-size:12.5px;opacity:0;transition:.3s;z-index:300;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
-.empty{text-align:center;padding:32px 16px;color:var(--gc);font-size:13px;}
+.empty{text-align:center;padding:28px 16px;color:var(--gc);font-size:13px;}
 .nota-tip{font-size:10px;color:var(--ok);background:var(--vc);border:1px solid var(--bv);border-radius:7px;padding:5px 9px;margin-bottom:10px;}
 .sec-tit{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--g);font-weight:700;margin:14px 0 8px;}
-.info-box{background:var(--ab);border:1px solid var(--am);border-radius:9px;padding:11px 14px;margin-bottom:12px;font-size:12px;color:#7a4e16;line-height:1.5;}
-.odoo-banner{background:#F3EDF7;border:1px solid #C9B8D5;border-radius:9px;padding:11px 14px;margin-bottom:12px;font-size:12px;color:#714B67;line-height:1.5;}
-.filter-bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.info-box{border-radius:9px;padding:10px 13px;margin-bottom:10px;font-size:12px;line-height:1.5;}
+.info-am{background:var(--ab);border:1px solid var(--am);color:#7a4e16;}
+.info-ro{background:var(--rb);border:1px solid var(--ro);color:#7a1a10;}
+.info-ok{background:var(--vc);border:1px solid var(--bv);color:var(--ok);}
 .fchip{background:var(--ba);border:1px solid var(--b);border-radius:20px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:inherit;color:var(--g);}
 .fchip.on{background:var(--v);color:#fff;border-color:var(--v);}
-.stars{color:var(--d);font-size:12px;}
+.filter-bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+
+/* POLITICAS */
+.pol-sec{margin-bottom:16px;}
+.pol-sec h3{color:var(--v);font-size:13px;font-weight:700;margin-bottom:6px;padding-bottom:4px;border-bottom:2px solid var(--d);}
+.pol-sec p,.pol-sec li{font-size:12px;color:#2A2C24;line-height:1.65;margin-bottom:4px;}
+.pol-sec ul{padding-left:16px;}
+.pol-kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.pol-kpi-item{background:var(--ba);border-radius:8px;padding:9px 11px;font-size:11.5px;}
+.pol-kpi-item b{display:block;color:var(--v);font-size:12px;margin-bottom:3px;}
+.escalera-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+.escalera-table th{background:var(--v);color:#fff;padding:7px 10px;text-align:left;}
+.escalera-table td{padding:7px 10px;border-bottom:1px solid var(--b);}
+.escalera-table tr:last-child td{border-bottom:none;}
+.alerta-3m{background:var(--rb);border:1px solid var(--ro);border-radius:10px;padding:12px 14px;margin-bottom:14px;}
+.alerta-3m h4{color:var(--ro);font-size:13px;font-weight:700;margin-bottom:4px;}
+.alerta-3m p{font-size:11.5px;color:#7a1a10;line-height:1.5;}
 </style>
 </head>
 <body>
-<div class="app">
 
+<!-- LOGIN -->
+<div class="login-wrap" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">M</div>
+    <h2>MOSS CRM</h2>
+    <p>Ingresa tus credenciales para continuar</p>
+    <input type="text" id="usr" placeholder="Usuario" autocomplete="username">
+    <input type="password" id="pwd" placeholder="Contraseña" autocomplete="current-password">
+    <button class="login-btn" onclick="doLogin()">Ingresar</button>
+    <div class="login-err" id="login-err">Usuario o contraseña incorrectos</div>
+    <div class="login-role" id="login-hint"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
 <div class="topbar">
   <div class="tlogo">M</div>
-  <div><div class="ttitle">CRM Comercial MOSS</div><div class="tsub">v32 · Odoo + Bot integrado</div></div>
+  <div><div class="ttitle">CRM Comercial MOSS</div><div class="tsub">v33 · Playbook 2026</div></div>
   <div class="topright">
-    <span class="src-badge src-odoo">Odoo</span>
-    <span class="src-badge src-bot">Bot</span>
+    <span class="user-chip" id="user-chip">—</span>
     <div class="dbadge dno" id="badge" onclick="sync()">
       <div class="dot" style="background:var(--am)"></div>
       <span id="badge-txt">Cargando…</span>
     </div>
   </div>
 </div>
-
-<div class="navbar">
-  <div class="nitem on" onclick="nav('seg',this)"><div class="nic">📋</div><div class="nlb">Seguimiento</div></div>
-  <div class="nitem" onclick="nav('pipe',this)"><div class="nic">🔀</div><div class="nlb">Pipeline</div></div>
-  <div class="nitem" onclick="nav('bot',this)"><div class="nic">🤖</div><div class="nlb">Leads Bot</div></div>
-  <div class="nitem" onclick="nav('com',this)"><div class="nic">💰</div><div class="nlb">Comisiones</div></div>
-  <div class="nitem" onclick="nav('met',this)"><div class="nic">📊</div><div class="nlb">Métricas</div></div>
-</div>
-
+<div class="navbar" id="navbar"></div>
 <div class="content" id="content"></div>
 </div>
 
 <div class="modalbg" id="mbg" onclick="if(event.target===this)cModal()"><div class="modal" id="modal"></div></div>
 <div class="save-bar" id="savebar" style="display:none">
-  <span id="savemsg">Cambios sin sincronizar</span>
+  <span>Cambios sin sincronizar</span>
   <button class="save-btn" onclick="sync()">☁ Guardar</button>
 </div>
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// USUARIOS Y ROLES
+// ═══════════════════════════════════════════════
+var USERS = {
+  'juanma':  { pwd:'moss2026CEO', rol:'ceo',      nombre:'Juan Ma · CEO' },
+  'liz':     { pwd:'liz2026',     rol:'comercial', nombre:'Lizeth Figueroa' },
+  'care':    { pwd:'moss2026',    rol:'comercial', nombre:'Equipo Comercial' }
+};
+// CEO ve todo. Comercial ve seguimiento, pipeline, sus comisiones y políticas.
+// Comisiones: CEO puede ver cualquier mes. Comercial solo ve el suyo.
+
+var SESSION = null; // { usuario, rol, nombre }
+
+function doLogin(){
+  var u=document.getElementById('usr').value.trim().toLowerCase();
+  var p=document.getElementById('pwd').value;
+  var user=USERS[u];
+  if(!user||user.pwd!==p){
+    document.getElementById('login-err').style.display='block';
+    return;
+  }
+  SESSION={usuario:u, rol:user.rol, nombre:user.nombre};
+  document.getElementById('login-screen').style.display='none';
+  var app=document.getElementById('app');
+  app.style.display='flex';
+  document.getElementById('user-chip').textContent=user.nombre;
+  buildNavbar();
+  cargar();
+}
+document.getElementById('pwd').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+
+function buildNavbar(){
+  var isCeo=SESSION.rol==='ceo';
+  var tabs=[
+    ['seg','📋','Seguimiento'],
+    ['pipe','🔀','Pipeline'],
+    isCeo?['bot','🤖','Leads Bot']:null,
+    ['com','💰','Comisiones'],
+    isCeo?['met','📊','Métricas']:null,
+    ['pol','📜','Políticas']
+  ].filter(Boolean);
+  var nb=document.getElementById('navbar');
+  nb.innerHTML=tabs.map(function(t,i){
+    return '<div class="nitem'+(i===0?' on':'')+'" onclick="nav(\''+t[0]+'\',this)"><div class="nic">'+t[1]+'</div><div class="nlb">'+t[2]+'</div></div>';
+  }).join('');
+  _vista=tabs[0][0];
+}
+
+// ═══════════════════════════════════════════════
 // CONFIG
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 var CFG={
   scriptUrl:'https://script.google.com/macros/s/AKfycbyg653sAcOCSmU-pVDF5wEPo8M8to0-Gj3lbTUGdMpLS9GRZlKsdII-sZ4Pt0oukTDB9w/exec',
-  odooUrl:'',        // ← pegar URL Odoo: https://tuempresa.odoo.com
-  odooKey:'',        // ← API Key de Odoo (Ajustes → Usuarios → API Keys)
   igUrl:'https://www.instagram.com/moss.arquitectura',
-  vendedor:'Lizeth Figueroa',
   empresa:'MOSS Arquitectura y Mobiliario S.A.S. — NIT 901.159.078-6',
-  metaMes:300000000,
-  umbral:150000000,
-  pisoM2:1200000,
-  minCto:18000000
+  metaMes:300000000, umbral:150000000, pisoM2:1200000, minCto:18000000
 };
-
 function tasa(v){if(v<=150e6)return 0;if(v<=250e6)return 0.01;if(v<=350e6)return 0.02;return 0.035;}
 
-// ══════════════════════════════════════════════
-// ESTADO
-// ══════════════════════════════════════════════
-var LEADS=[], BOT_LEADS=[], SEG={}, ODOO_OPS=[], _dirty=false, _vista='seg', _filtro='todos';
-var _mesCom=hoyStr().slice(0,7);
+var LEADS=[], SEG={}, _dirty=false, _vista='seg', _mesCom=hoyStr().slice(0,7), _filtroBot='todos';
 
-// Etapas internas del CRM (mapea también las columnas de Odoo)
 var ETAPAS=[
-  ['prospecto','Prospecto','📥'],
-  ['contactado','Contactado','📞'],
-  ['fase0','Fase 0 · Visita','🏠'],
-  ['cotizado','Cotización enviada','📄'],
-  ['fase1','Fase 1 · Negociación','🤝'],
-  ['vendido','Vendido ✅','✅'],
+  ['prospecto','Prospecto','📥'],['contactado','Contactado','📞'],
+  ['fase0','Fase 0 · Visita','🏠'],['cotizado','Cotización enviada','📄'],
+  ['fase1','Fase 1 · Negociación','🤝'],['vendido','Vendido ✅','✅'],
   ['perdido','Dormido / Perdido','💤']
 ];
-
-// Mapa columnas Odoo → etapas internas
-var ODOO_MAP={
-  'Cliente que cierra en meses fu':'contactado',
-  'Pendiente Reunión Fase 0':'fase0',
-  'Cotización enviada':'cotizado',
-  'Alta probabilidad de cierre':'fase1',
-  'Contrato Firmado':'vendido'
-};
-
-// Plantillas protocolo 1·3·7·14·21
 var TPL=[
   ['Día 1 — Cotización','Hola {n}! Soy {x} de MOSS 🌿 Te comparto la cotización de tu proyecto. Incluye plazo fijo de 2 meses, póliza de cumplimiento y 1 año de garantía ✅ ¿Qué día te queda bien para revisarla juntos?'],
-  ['Día 3 — Video obra','Hola {n}! Mira cómo quedó una remodelación similar a la tuya que acabamos de entregar 🏡 {ig} ¿Te imaginas tu apartamento así? Cualquier duda de la cotización me avisas.'],
-  ['Día 7 — Reservar cupo','Hola {n} 👋 Esta semana iniciamos 2 obras y quiero reservarte cupo de inicio. Si firmamos esta semana congelamos los precios de materiales 🔒 ¿Agendamos para definir?'],
-  ['Día 14 — Visita obra','Hola {n}, ¿te gustaría visitar una de nuestras obras en curso? 👷 Es la mejor forma de ver la calidad MOSS antes de decidir. ¡Con gusto te coordino la visita!'],
-  ['Día 21 — Último contacto','Hola {n} 😊 No quiero ser insistente — si este no es el momento para tu remodelación, lo dejamos para más adelante y te sigo compartiendo proyectos por redes. ¿Lo retomamos pronto?']
+  ['Día 3 — Video obra','Hola {n}! Mira cómo quedó una remodelación similar a la tuya que acabamos de entregar 🏡 {ig} ¿Te imaginas tu apartamento así? Cualquier duda me avisas.'],
+  ['Día 7 — Reservar cupo','Hola {n} 👋 Esta semana iniciamos 2 obras y quiero reservarte cupo de inicio. Si firmamos esta semana congelamos precios 🔒 ¿Agendamos?'],
+  ['Día 14 — Visita obra','Hola {n}, ¿te gustaría visitar una de nuestras obras en curso? 👷 Es la mejor forma de ver la calidad MOSS. ¡Con gusto te coordino la visita!'],
+  ['Día 21 — Último contacto','Hola {n} 😊 Si este no es el momento, lo dejamos para más adelante y te sigo compartiendo proyectos por redes. ¿Lo retomamos pronto?']
 ];
 
-// ══════════════════════════════════════════════
-// CARGA DE DATOS
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// CARGA
+// ═══════════════════════════════════════════════
 function cargar(){
-  setBadge(false,'Cargando leads…');
+  setBadge(false,'Cargando…');
   var cbName='mosscrm_'+Date.now();
   var sc=document.createElement('script');
   var tm=setTimeout(function(){
-    setBadge(false,'Sin conexión — revisa el Apps Script');
-    delete window[cbName]; try{document.body.removeChild(sc);}catch(e){}
-    render();
+    setBadge(false,'Sin conexión'); delete window[cbName];
+    try{document.body.removeChild(sc);}catch(e){} render();
   },12000);
   window[cbName]=function(d){
     clearTimeout(tm); delete window[cbName];
@@ -212,75 +272,28 @@ function cargar(){
     LEADS=d.leads||[]; SEG=d.seguimiento||{};
     LEADS.forEach(function(l){if(!SEG[l.id])SEG[l.id]=nuevoSeg(l);});
     setBadge(true,'✓ Conectado · '+LEADS.length+' leads');
-    if(CFG.odooUrl&&CFG.odooKey)cargarOdoo();
-    else render();
+    render();
   };
   sc.onerror=function(){clearTimeout(tm);setBadge(false,'Error');render();};
   sc.src=CFG.scriptUrl+'?action=crm&callback='+cbName;
   document.body.appendChild(sc);
 }
-
-function cargarOdoo(){
-  // Llamada a la API JSON-RPC de Odoo para obtener oportunidades CRM
-  var body=JSON.stringify({jsonrpc:'2.0',method:'call',id:1,
-    params:{model:'crm.lead',method:'search_read',
-      args:[[['type','=','opportunity']]],
-      kwargs:{fields:['name','partner_name','planned_revenue','stage_id','user_id','activity_date_deadline','probability','phone','email_from'],
-              limit:200,order:'planned_revenue desc'}}});
-  fetch(CFG.odooUrl+'/web/dataset/call_kw',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','X-API-Key':CFG.odooKey},
-    body:body
-  }).then(function(r){return r.json();})
-    .then(function(d){
-      var ops=(d.result&&d.result.records)||d.result||[];
-      ODOO_OPS=ops.map(function(o){
-        var etapa=o.stage_id?o.stage_id[1]:'';
-        var etapaInterna=Object.keys(ODOO_MAP).find(function(k){return etapa.startsWith(k.slice(0,10));});
-        return {
-          id:'odoo_'+o.id,
-          nombre:o.partner_name||o.name||'',
-          proyecto:o.name||'',
-          valor:o.planned_revenue||0,
-          etapaOdoo:etapa,
-          stage:etapaInterna?ODOO_MAP[etapaInterna]:'contactado',
-          responsable:o.user_id?o.user_id[1]:'',
-          contacto:o.phone||o.email_from||'',
-          proxContacto:o.activity_date_deadline||'',
-          fuente:'odoo'
-        };
-      });
-      // Fusionar: leads Odoo van al SEG si no existen
-      ODOO_OPS.forEach(function(o){
-        if(!SEG[o.id]) SEG[o.id]={stage:o.stage,nota:'',proxContacto:o.proxContacto,intentos:0,
-          presupuestoCliente:'',valorCotizado:String(o.valor),valorCerrado:'',m2:'',
-          responsable:o.responsable,fase1Agendada:'',fechaCierre:'',anticipoOK:'',clasificacion:'',historial:[],fuente:'odoo'};
-      });
-      setBadge(true,'Odoo + Bot ✓');
-      render();
-    })
-    .catch(function(){
-      setBadge(true,'Solo Bot (Odoo: config pendiente)');
-      render();
-    });
-}
-
 function nuevoSeg(l){
-  var oro=/si/i.test(l.cumplePresupuesto||'')&&/menor a un mes/i.test(l.tiempoInicio||'');
+  var oro=esOro(l);
   return{stage:l.campana&&/vendido/i.test(l.campana||'')?'vendido':'prospecto',
     nota:'',proxContacto:'',intentos:0,presupuestoCliente:'',valorCotizado:'',
-    valorCerrado:'',m2:l.m2||'',responsable:CFG.vendedor,fase1Agendada:'',
-    fechaCierre:'',anticipoOK:'',clasificacion:oro?'Caliente':'',historial:[],fuente:'bot'};
+    valorCerrado:'',m2:l.m2||'',responsable:'Lizeth Figueroa',fase1Agendada:'',
+    fechaCierre:'',anticipoOK:'',clasificacion:oro?'Caliente':'',historial:[],
+    vinculadaAlCierre:''};
 }
 function esOro(l){
   var s=SEG[l.id]||{};
   return s.clasificacion==='Caliente'||(/si/i.test(l.cumplePresupuesto||'')&&/menor a un mes/i.test(l.tiempoInicio||''));
 }
-function todosLosLeads(){return LEADS.concat(ODOO_OPS);}
 
-// ══════════════════════════════════════════════
-// NAVEGACIÓN
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════
 function nav(v,el){
   _vista=v;
   document.querySelectorAll('.nitem').forEach(function(n){n.classList.remove('on');});
@@ -293,17 +306,16 @@ function render(){
   else if(_vista==='pipe') c.innerHTML=rPipe();
   else if(_vista==='bot') c.innerHTML=rBot();
   else if(_vista==='com') c.innerHTML=rCom();
-  else c.innerHTML=rMet();
+  else if(_vista==='met') c.innerHTML=rMet();
+  else c.innerHTML=rPol();
 }
 
-// ══════════════════════════════════════════════
-// VISTA: SEGUIMIENTO (todos los leads priorizados)
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// SEGUIMIENTO
+// ═══════════════════════════════════════════════
 function rSeg(){
-  var hoy=hoyStr();
-  var todos=todosLosLeads();
-  var venc=[],hoyL=[],oro=[],resto=[];
-  todos.forEach(function(l){
+  var hoy=hoyStr(), venc=[],hoyL=[],oro=[],resto=[];
+  LEADS.forEach(function(l){
     var s=SEG[l.id]||{};
     if(s.stage==='vendido'||s.stage==='perdido') return;
     var pc=s.proxContacto||'';
@@ -312,217 +324,145 @@ function rSeg(){
     else if(esOro(l)&&!s.intentos) oro.push(l);
     else resto.push(l);
   });
-  var act=todos.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='vendido'&&s.stage!=='perdido';});
-
+  var act=LEADS.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='vendido'&&s.stage!=='perdido';});
   var h='<div class="kgrid">'
-    +K(venc.length,'Vencidos ⚠',venc.length?'ro':'ok',venc.length?'Atención inmediata':'Al día')
+    +K(venc.length,'Vencidos ⚠',venc.length?'ro':'ok',venc.length?'Contactar ahora':'Al día')
     +K(hoyL.length,'Para hoy',hoyL.length?'am':'','Programados')
-    +K(oro.length,'Leads oro sin contactar','d','< 1 hora (Política)')
-    +K(act.length,'Total en pipeline','','activos')
-    +'</div>';
+    +K(oro.length,'Leads oro sin contactar','d','< 10 min (onboarding)')
+    +K(act.length,'En pipeline','','activos')+'</div>';
 
-  // Banner Odoo
-  if(CFG.odooUrl&&CFG.odooKey&&ODOO_OPS.length){
-    h+='<div class="odoo-banner">🟣 <b>Odoo conectado</b> — '+ODOO_OPS.length+' oportunidades del pipeline. Los leads del bot y de Odoo se muestran unificados. Editar desde aquí sincroniza el seguimiento; para cambiar etapas en Odoo, usar Odoo directamente.</div>';
-  } else {
-    h+='<div class="odoo-banner">🟣 <b>Conectar Odoo:</b> pegar la URL de tu instancia y la API Key en CFG.odooUrl y CFG.odooKey al inicio del archivo. Los '+LEADS.length+' leads del bot ya están disponibles. <a href="#" onclick="nav(\'bot\',null);return false" style="color:#714B67;font-weight:700">Ver leads bot →</a></div>';
+  // Alerta rendimiento (solo CEO ve el nombre de Liz)
+  var meses=calcMesesSinMeta();
+  if(meses>=2){
+    h+='<div class="alerta-3m"><h4>⚠ Alerta rendimiento — '+meses+' mes(es) sin meta</h4>'
+      +'<p>La Política Comercial establece que tres meses consecutivos sin alcanzar la meta mínima ($150M) '
+      +'son causal de terminación del contrato con justa causa (Cláusula Sexta, Otrosí No.1 — 02/03/2026). '
+      +(meses>=3?'<b>Se ha alcanzado el umbral de 3 meses. Revisar con Dirección.</b>':
+        'Mes '+(meses+1)+' en curso — evitar llegar a 3.')+'</p></div>';
   }
 
-  h+='<div class="card"><div class="chd"><span>Prioridad de hoy — protocolo 1·3·7·14·21</span><small>'+todos.length+' leads totales</small></div>';
-  var lista=venc.concat(hoyL,oro,resto.slice(0,25));
-  if(!lista.length){h+='<div class="empty">✅ Sin leads pendientes</div>';}
-  else{lista.forEach(function(l){
-    var cls=venc.indexOf(l)>=0?'venc':(hoyL.indexOf(l)>=0?'hoy':(esOro(l)?'oro':''));
-    h+=rowL(l,cls);
-  });}
+  h+='<div class="card"><div class="chd"><span>Prioridad hoy — protocolo días 1·3·7·14·21</span><small>'+LEADS.length+' leads</small></div>';
+  var lista=venc.concat(hoyL,oro,resto.slice(0,30));
+  if(!lista.length) h+='<div class="empty">✅ Sin leads pendientes</div>';
+  else lista.forEach(function(l){h+=rowL(l,venc.indexOf(l)>=0?'venc':(hoyL.indexOf(l)>=0?'hoy':(esOro(l)?'oro':'')));});
   h+='</div>';
   return h;
 }
-
 function K(v,l,c,s){return '<div class="kpi"><div class="kl">'+l+'</div><div class="kv'+(c?' '+c:'')+'">'+(v)+'</div>'+(s?'<div class="ks">'+s+'</div>':'')+'</div>';}
-
 function rowL(l,cls){
   var s=SEG[l.id]||{};
-  var fuente=s.fuente||l.fuente||'bot';
   var tel=String(l.contacto||'').replace(/\D/g,'');
   var wa=tel?'<a class="wa-btn" onclick="event.stopPropagation()" href="https://wa.me/57'+tel+'" target="_blank">WA</a>':'';
   var etq=ETAPAS.find(function(e){return e[0]===(s.stage||'prospecto');})||ETAPAS[0];
   return '<div class="lrow '+cls+'" onclick="abrirLead(\''+l.id+'\')">'
-    +'<div style="flex:1;min-width:0">'
-    +'<div class="lnm">'+(l.nombre||l.id)
-    +(fuente==='odoo'?'<span class="src-badge src-odoo" style="margin-left:6px">Odoo</span>':'')
-    +'</div>'
-    +'<div class="ldt">'+(l.proyecto||l.nombre_proyecto||'')
-    +(l.m2?' · '+l.m2+' m²':'')
-    +(l.acabado?' · '+l.acabado:'')
-    +(s.valorCotizado?' · '+fmtCOP(s.valorCotizado):'')
-    +(s.proxContacto?' · 📅 '+s.proxContacto:'')
-    +'</div></div>'
-    +'<div class="lright">'
-    +(esOro(l)?'<span class="bdg bd">ORO</span>':'')
-    +'<span class="bdg bgr">'+etq[2]+'</span>'
-    +wa+'</div></div>';
+    +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre||l.id)+'</div>'
+    +'<div class="ldt">'+(l.proyecto||'')+(l.m2?' · '+l.m2+' m²':'')+(l.acabado?' · '+l.acabado:'')
+    +(s.proxContacto?' · 📅 '+s.proxContacto:'')+(s.intentos?' · '+s.intentos+' contactos':'')+'</div></div>'
+    +'<div class="lright">'+(esOro(l)?'<span class="bdg bd">ORO</span>':'')
+    +'<span class="bdg bgr">'+etq[2]+'</span>'+wa+'</div></div>';
 }
 
-// ══════════════════════════════════════════════
-// VISTA: PIPELINE KANBAN (Odoo + Bot unificado)
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// PIPELINE
+// ═══════════════════════════════════════════════
 function rPipe(){
-  var todos=todosLosLeads();
-  // Totales por columna en Odoo (del screenshot)
-  var odooTotales={'contactado':294e6,'fase0':0,'cotizado':909e6,'fase1':175e6,'vendido':0};
-  var h='<div style="font-size:11px;color:var(--g);margin-bottom:10px">Pipeline unificado — <span style="background:#714B67;color:#fff;padding:2px 6px;border-radius:5px;font-size:10px">Odoo</span> sincroniza automáticamente · <span class="src-badge src-bot">Bot</span> se gestiona aquí</div>'
-    +'<div class="kan">';
+  var h='<div class="kan">';
   ETAPAS.forEach(function(e){
-    var ls=todos.filter(function(l){return (SEG[l.id]||{}).stage===e[0];});
-    var odooLs=ODOO_OPS.filter(function(l){return (SEG[l.id]||{}).stage===e[0];});
-    var botLs=LEADS.filter(function(l){return (SEG[l.id]||{}).stage===e[0];});
-    var totVal=ls.reduce(function(a,l){return a+(Number((SEG[l.id]||{}).valorCotizado)||Number(l.valor)||0);},0);
+    var ls=LEADS.filter(function(l){return (SEG[l.id]||{}).stage===e[0];});
+    var tot=ls.reduce(function(a,l){return a+(Number((SEG[l.id]||{}).valorCotizado)||0);},0);
     h+='<div class="kcol"><div class="kctit">'+e[2]+' '+e[1]+'<span class="bdg bgr">'+ls.length+'</span></div>';
-    if(totVal>0) h+='<div style="font-size:11px;color:var(--d);font-weight:700;margin-bottom:8px">'+fmtCOP(totVal)+'</div>';
-    if(!ls.length) h+='<div style="font-size:11px;color:var(--gc);text-align:center;padding:12px">—</div>';
-    ls.slice(0,40).forEach(function(l){
+    if(tot) h+='<div style="font-size:11px;color:var(--d);font-weight:700;margin-bottom:8px">'+fmtCOP(tot)+'</div>';
+    if(!ls.length) h+='<div style="font-size:11px;color:var(--gc);text-align:center;padding:10px">—</div>';
+    ls.forEach(function(l){
       var s=SEG[l.id]||{};
-      var fuente=s.fuente||l.fuente||'bot';
-      var v=Number(s.valorCotizado)||Number(l.valor)||0;
       h+='<div class="kcard" onclick="abrirLead(\''+l.id+'\')">'
-        +'<b>'+(l.nombre||l.partner_name||l.id)+'</b>'
-        +'<div class="ks2">'+(l.proyecto||l.nombre_proyecto||'')+(v?' · '+fmtCOP(v):'')+'</div>'
-        +(fuente==='odoo'?'<span class="odoo-tag">🟣 Odoo</span>':'<span class="bot-tag">🤖 Bot</span>')
-        +'</div>';
+        +'<b>'+(l.nombre||l.id)+'</b>'
+        +'<div class="ks2">'+(l.proyecto||'')+(s.valorCotizado?' · '+fmtCOP(s.valorCotizado):'')+'</div></div>';
     });
     h+='</div>';
   });
   return h+'</div>';
 }
 
-// ══════════════════════════════════════════════
-// VISTA: LEADS BOT (los 118 del chatbot)
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// LEADS BOT (solo CEO)
+// ═══════════════════════════════════════════════
 function rBot(){
   var filtros=['todos','Caliente','Obra Gris','Usada','Mobiliario','VENDIDO'];
   var h='<div class="kgrid">'
-    +K(LEADS.length,'Leads totales chatbot','','1.986 filas, 118 válidos')
-    +K(LEADS.filter(function(l){return esOro(l);}).length,'Leads oro (cumple + <1 mes)','d','')
+    +K(LEADS.length,'Leads válidos bot','','de 1.986 filas')
+    +K(LEADS.filter(function(l){return esOro(l);}).length,'Leads oro','d','')
     +K(LEADS.filter(function(l){return /si/i.test(l.cumplePresupuesto||'');}).length,'Cumplen presupuesto','ok','')
-    +K(LEADS.filter(function(l){return /vendido/i.test(l.campana||'');}).length,'Marcados vendidos','','')
-    +'</div>';
-
-  // Filtros
+    +K(LEADS.filter(function(l){return /vendido/i.test(l.campana||'');}).length,'Vendidos','','')+'</div>';
   h+='<div class="filter-bar">';
-  filtros.forEach(function(f){
-    h+='<button class="fchip'+(_filtro===f?' on':'')+'" onclick="_filtro=\''+f+'\';render()">'+f+'</button>';
-  });
+  filtros.forEach(function(f){h+='<button class="fchip'+(_filtroBot===f?' on':'')+'" onclick="_filtroBot=\''+f+'\';render()">'+f+'</button>';});
   h+='</div>';
-
-  // Diagnóstico del bot
-  h+='<div class="info-box">📊 <b>Diagnóstico base de datos bot:</b> De 1.986 filas totales, <b>118 leads tienen datos completos</b> (nombre + contacto). El resto son conversaciones abandonadas o filas con errores de columna. <b>Leads de oro</b> (cumplen presupuesto + inicio &lt;1 mes): <b>'+LEADS.filter(function(l){return esOro(l);}).length+'</b> — estos son la prioridad de contacto. Las razones de pérdida más frecuentes: presupuesto (37%), fuera de rango geográfico (13%), cobro de $80K por visita (8%).</div>';
-
-  // Lista filtrada
   var lista=LEADS.filter(function(l){
-    if(_filtro==='todos') return true;
-    if(_filtro==='Caliente') return esOro(l);
-    if(_filtro==='VENDIDO') return /vendido/i.test(l.campana||'');
-    return (l.tipo_proyecto||l['tipo\\_proyecto']||'').includes(_filtro);
+    if(_filtroBot==='todos') return true;
+    if(_filtroBot==='Caliente') return esOro(l);
+    if(_filtroBot==='VENDIDO') return /vendido/i.test(l.campana||'');
+    return (l.tipo||'').includes(_filtroBot);
   });
-
-  h+='<div class="card"><div class="chd"><span>Leads chatbot ('+lista.length+')</span><small>Tocar para gestionar</small></div>';
-  if(!lista.length){h+='<div class="empty">Sin leads con este filtro</div>';}
-  lista.slice(0,60).forEach(function(l){
-    var s=SEG[l.id]||{};
-    var campana=l.campana||l['Campaña']||'';
-    var esV=/vendido/i.test(campana);
-    var cls=esOro(l)&&s.stage!=='vendido'?'oro':'';
-    var tel=String(l.contacto||'').replace(/\D/g,'');
-    var wa=tel?'<a class="wa-btn" onclick="event.stopPropagation()" href="https://wa.me/57'+tel+'" target="_blank">WA</a>':'';
-    h+='<div class="lrow '+cls+'" onclick="abrirLead(\''+l.id+'\')">'
-      +'<div style="flex:1;min-width:0">'
-      +'<div class="lnm">'+(l.nombre||l.id)+(esV?' <span class="bdg bok">✅ Vendido</span>':'')+'</div>'
-      +'<div class="ldt">'+(l.proyecto||l['nombre\\_proyecto']||'')
-      +(l.ciudad?' · '+l.ciudad:'')
-      +(l.m2?' · '+l.m2+' m²':'')
-      +' · '+(l.acabado||l['Tipos\\_acabado']||'')
-      +(l.tiempoInicio?' · '+l.tiempoInicio:'')
-      +(l.fecha?' · '+l.fecha:'')
-      +'</div></div>'
-      +'<div class="lright">'
-      +(esOro(l)&&!esV?'<span class="bdg bd">ORO</span>':'')
-      +wa+'</div></div>';
-  });
-  if(lista.length>60) h+='<div style="padding:12px;text-align:center;font-size:11px;color:var(--g)">Mostrando 60 de '+lista.length+' leads</div>';
+  h+='<div class="card"><div class="chd"><span>Leads chatbot ('+lista.length+')</span></div>';
+  lista.slice(0,60).forEach(function(l){h+=rowL(l,esOro(l)?'oro':'');});
+  if(lista.length>60) h+='<div style="padding:10px;text-align:center;font-size:11px;color:var(--g)">Mostrando 60 de '+lista.length+'</div>';
   h+='</div>';
   return h;
 }
 
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // MODAL DETALLE
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 function abrirLead(id){
-  var todos=todosLosLeads();
-  var l=todos.find(function(x){return x.id===id;});
-  if(!l)return;
+  var l=LEADS.find(function(x){return x.id===id;}); if(!l)return;
   var s=SEG[id]||nuevoSeg(l); SEG[id]=s;
-  var fuente=s.fuente||l.fuente||'bot';
   var opts=ETAPAS.map(function(e){return '<option value="'+e[0]+'"'+(s.stage===e[0]?' selected':'')+'>'+e[2]+' '+e[1]+'</option>';}).join('');
   var tpls=TPL.map(function(t,i){return '<button class="tpl-btn" onclick="enviarTpl(\''+id+'\','+i+')">'+t[0]+'</button>';}).join('');
   var hist=(s.historial||[]).slice(-4).reverse().map(function(h){
     return '<div style="font-size:11px;padding:5px 8px;border-left:3px solid var(--b);margin-bottom:5px;color:var(--g)"><b>'+h.fecha+'</b> · '+(h.accion||h.stage||'')+'</div>';
   }).join('');
   document.getElementById('modal').innerHTML=
-    '<div class="mh">'+(l.nombre||id)
-    +(fuente==='odoo'?'<span class="src-badge src-odoo" style="margin-left:8px">Odoo</span>':'<span class="src-badge src-bot" style="margin-left:8px">Bot</span>')
-    +'</div>'
-    +'<div class="ms">'+(l.proyecto||l['nombre\\_proyecto']||'')
-    +(l.ciudad?' · '+l.ciudad:'')+(l.contacto?' · '+l.contacto:'')
-    +(l.m2?' · '+l.m2+' m²':'')+(l.acabado||l['Tipos\\_acabado']?(' · '+(l.acabado||l['Tipos\\_acabado'])):'')
-    +(fuente==='odoo'?'<br><span style="color:#714B67;font-size:10px">Etapa Odoo: '+(l.etapaOdoo||'')+'</span>':'')
-    +'</div>'
-
-    +(fuente==='bot'?'<div class="sec-tit">📲 Enviar seguimiento (protocolo 1·3·7·14·21)</div><div class="tpl-btns">'+tpls+'</div>':'')
-
-    +'<div class="sec-tit">Estado del lead</div>'
+    '<div class="mh">'+(l.nombre||id)+'</div>'
+    +'<div class="ms">'+(l.proyecto||'')+(l.ciudad?' · '+l.ciudad:'')+(l.contacto?' · '+l.contacto:'')+(l.m2?' · '+l.m2+' m²':'')+'</div>'
+    +'<div class="sec-tit">📲 Seguimiento — protocolo 1·3·7·14·21</div>'
+    +'<div class="tpl-btns">'+tpls+'</div>'
+    +'<div class="sec-tit">Estado</div>'
     +'<div class="grid2">'
     +'<div><label class="flabel">Etapa</label><select id="f-stage">'+opts+'</select></div>'
     +'<div><label class="flabel">Clasificación</label><select id="f-cla"><option'+(s.clasificacion==='Caliente'?' selected':'')+'>Caliente</option><option'+(s.clasificacion==='Tibio'?' selected':'')+'>Tibio</option><option'+(s.clasificacion==='Frio'?' selected':'')+'>Frio</option></select></div>'
     +'</div>'
-
     +'<div class="sec-tit">💰 Datos comerciales</div>'
     +'<div class="grid2">'
     +'<div><label class="flabel">Presupuesto cliente (Fase 0 — OBLIGATORIO)</label><input id="f-pre" type="number" value="'+(s.presupuestoCliente||'')+'"></div>'
-    +'<div><label class="flabel">Valor cotizado</label><input id="f-cot" type="number" value="'+(s.valorCotizado||l.valor||'')+'" oninput="chkM2()"></div>'
+    +'<div><label class="flabel">Valor cotizado</label><input id="f-cot" type="number" value="'+(s.valorCotizado||'')+'" oninput="chkM2()"></div>'
     +'<div><label class="flabel">Valor cerrado</label><input id="f-cer" type="number" value="'+(s.valorCerrado||'')+'" oninput="chkM2()"></div>'
     +'<div><label class="flabel">m²</label><input id="f-m2" type="number" value="'+(s.m2||'')+'" oninput="chkM2()"></div>'
     +'</div>'
     +'<div class="alert-m2" id="alm2"></div>'
-
     +'<div class="sec-tit">📅 Agenda y cierre</div>'
     +'<div class="grid2">'
     +'<div><label class="flabel">Próximo contacto</label><input id="f-px" type="date" value="'+(s.proxContacto||'')+'"></div>'
     +'<div><label class="flabel">Fase 1 agendada</label><input id="f-f1" type="date" value="'+(s.fase1Agendada||'')+'"></div>'
     +'<div><label class="flabel">Fecha de cierre</label><input id="f-fc" type="date" value="'+(s.fechaCierre||'')+'"></div>'
     +'<div><label class="flabel">Anticipo confirmado</label><select id="f-ant"><option value=""'+(!s.anticipoOK?' selected':'')+'>— Pendiente</option><option value="SI"'+(s.anticipoOK==='SI'?' selected':'')+'>✅ Sí</option></select></div>'
+    +'<div><label class="flabel">¿Vinculada al cierre de obra?</label><select id="f-vinc"><option value=""'+(!s.vinculadaAlCierre?' selected':'')+'>—</option><option value="SI"'+(s.vinculadaAlCierre==='SI'?' selected':'')+'>✅ Sí — activa</option><option value="NO"'+(s.vinculadaAlCierre==='NO'?' selected':'')+'>❌ No — ya no vinculada</option></select></div>'
     +'<div><label class="flabel">N° contactos</label><input id="f-int" type="number" value="'+(s.intentos||0)+'"></div>'
-    +'<div><label class="flabel">Responsable</label><input id="f-resp" value="'+(s.responsable||CFG.vendedor)+'"></div>'
     +'</div>'
+    +'<div class="info-am" style="margin-top:10px;font-size:11px">⚖ <b>Política comisiones:</b> El 50% restante de comisión se paga <b>únicamente si la asesora está vinculada a MOSS</b> al momento de la entrega y recaudo final. Si el vínculo termina antes, el saldo de comisión no se causa.</div>'
     +'<label class="flabel">Nota</label>'
     +'<textarea id="f-nota" rows="2">'+(s.nota||'')+'</textarea>'
     +(hist?'<div class="sec-tit">Historial</div>'+hist:'')
-    +'<div class="btm-bar">'
-    +'<button class="btn-p" onclick="guardarDet(\''+id+'\')">✅ Guardar</button>'
-    +(fuente==='odoo'?'<a class="btn-d" href="'+(CFG.odooUrl||'#')+'/odoo/crm" target="_blank" style="text-align:center;text-decoration:none">🟣 Ver en Odoo</a>':'')
-    +'<button class="btn-s" onclick="cModal()">Cerrar</button>'
-    +'</div>';
+    +'<div class="btm-bar"><button class="btn-p" onclick="guardarDet(\''+id+'\')">✅ Guardar</button><button class="btn-s" onclick="cModal()">Cerrar</button></div>';
   document.getElementById('mbg').classList.add('open');
   chkM2();
 }
-
 function chkM2(){
   var cer=Number(document.getElementById('f-cer')?document.getElementById('f-cer').value:0)||0;
   var cot=Number(document.getElementById('f-cot')?document.getElementById('f-cot').value:0)||0;
   var m2=Number(document.getElementById('f-m2')?document.getElementById('f-m2').value:0)||0;
   var v=cer||cot; var el=document.getElementById('alm2'); if(!el)return;
-  if(v&&m2){var pm=v/m2;if(pm<CFG.pisoM2){el.style.display='block';el.textContent='⚠ '+fmtCOP(Math.round(pm))+'/m² — por debajo del piso $'+fmtCOP(CFG.pisoM2)+'/m² (Regla 2 Playbook)';}else{el.style.display='none';}}
-  else{el.style.display='none';}
+  if(v&&m2){var pm=v/m2;if(pm<CFG.pisoM2){el.style.display='block';el.textContent='⚠ '+fmtCOP(Math.round(pm))+'/m² — por debajo del piso $1.200.000/m² (Regla 2 Playbook)';}else el.style.display='none';}
+  else el.style.display='none';
 }
 function guardarDet(id){
   var s=SEG[id];
@@ -535,9 +475,9 @@ function guardarDet(id){
   s.proxContacto=document.getElementById('f-px').value;
   s.fechaCierre=document.getElementById('f-fc').value;
   s.anticipoOK=document.getElementById('f-ant').value;
+  s.vinculadaAlCierre=document.getElementById('f-vinc').value;
   s.fase1Agendada=document.getElementById('f-f1').value;
   s.intentos=Number(document.getElementById('f-int').value)||0;
-  s.responsable=document.getElementById('f-resp').value;
   s.nota=document.getElementById('f-nota').value;
   if(!s.historial)s.historial=[];
   s.historial.push({fecha:hoyStr(),stage:s.stage,nota:s.nota.slice(0,60),accion:'Guardado'});
@@ -545,61 +485,64 @@ function guardarDet(id){
   document.getElementById('savebar').style.display='flex';
 }
 function enviarTpl(id,i){
-  var todos=todosLosLeads();
-  var l=todos.find(function(x){return x.id===id;}); var s=SEG[id];
-  var txt=TPL[i][1].replace('{n}',(l.nombre||'').split(' ')[0]).replace('{x}',CFG.vendedor.split(' ')[0]).replace('{ig}',CFG.igUrl);
+  var l=LEADS.find(function(x){return x.id===id;}); var s=SEG[id];
+  var txt=TPL[i][1].replace('{n}',(l.nombre||'').split(' ')[0]).replace('{x}','Lizeth').replace('{ig}',CFG.igUrl);
   var tel=String(l.contacto||'').replace(/\D/g,'');
-  if(!tel){toast('Sin teléfono registrado');return;}
+  if(!tel){toast('Sin teléfono');return;}
   s.intentos=(s.intentos||0)+1;
   if(!s.historial)s.historial=[];
   s.historial.push({fecha:hoyStr(),accion:TPL[i][0]});
-  _dirty=true;
-  document.getElementById('savebar').style.display='flex';
+  _dirty=true; document.getElementById('savebar').style.display='flex';
   window.open('https://wa.me/57'+tel+'?text='+encodeURIComponent(txt),'_blank');
   toast('WhatsApp abierto · '+TPL[i][0]);
 }
 function cModal(){document.getElementById('mbg').classList.remove('open');}
 
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // COMISIONES
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 function ventasMes(mes){
-  return todosLosLeads().map(function(l){return{l:l,s:SEG[l.id]||{}};})
+  return LEADS.map(function(l){return{l:l,s:SEG[l.id]||{}};})
     .filter(function(x){return x.s.stage==='vendido'&&x.s.anticipoOK==='SI'&&(x.s.fechaCierre||'').slice(0,7)===mes&&Number(x.s.valorCerrado)>0;});
 }
 function rCom(){
   var vs=ventasMes(_mesCom);
   var total=vs.reduce(function(a,x){return a+Number(x.s.valorCerrado);},0);
-  var t=tasa(total),com=Math.round(total*t),p1=Math.round(com/2);
+  var t=tasa(total), com=Math.round(total*t), p1=Math.round(com/2), p2=com-p1;
   var pct=Math.min(100,Math.round(total/CFG.metaMes*100));
   var d2=new Date(_mesCom+'-01T12:00:00'); d2.setMonth(d2.getMonth()+1);
   var lim='10 de '+d2.toLocaleDateString('es-CO',{month:'long',year:'numeric'});
-  var h='<div class="card"><div class="chd"><span>Comisiones — '+CFG.vendedor+'</span></div><div class="cp">'
+  // Advertencia vinculación
+  var sinVinc=vs.filter(function(x){return x.s.vinculadaAlCierre==='NO';});
+  var h='<div class="card"><div class="chd"><span>Comisiones — Lizeth Figueroa</span></div><div class="cp">'
     +'<input type="month" value="'+_mesCom+'" onchange="_mesCom=this.value;render()" style="max-width:200px;margin-bottom:12px">'
     +'<div class="kgrid">'
     +K(fmtCOP(total),'Ventas con anticipo',total<CFG.umbral?'ro':total>=CFG.metaMes?'ok':'am',pct+'% de meta $300M')
     +K((t*100)+'%','Tasa escalera',total<=CFG.umbral?'ro':'ok',total<=CFG.umbral?'No causa':'Aplica')
     +K(fmtCOP(com),'Comisión causada','d','')
-    +K(fmtCOP(p1),'50% antes del','',''+lim)
+    +K(fmtCOP(p1),'50% — antes del','',''+lim)
     +'</div>'
     +'<div class="kl">Avance meta mensual</div>'
-    +'<div class="pbar-wrap"><div class="pbar'+(pct<50?' ro':pct<85?' warn':'')+'" style="width:'+pct+'%"></div></div>'
-    +'<div style="font-size:10px;color:var(--g)">'+pct+'% — falta '+fmtCOP(Math.max(0,CFG.metaMes-total))+'</div>'
-    +'<div class="nota-tip" style="margin-top:10px">Escalera 2026: ≤$150M = 0% · $151–250M = 1% · $250–350M = 2% · $350–500M = 3,5% sobre total vendido. Se causa con contrato + anticipo. 50% en primeros 10 días del mes siguiente; 50% proporcional al recaudo.</div>'
+    +'<div class="pbar-wrap"><div class="pbar" style="width:'+pct+'%"></div></div>'
+    +'<div style="font-size:10px;color:var(--g)">'+pct+'% — falta '+fmtCOP(Math.max(0,CFG.metaMes-total))+'</div>';
+  if(sinVinc.length){
+    h+='<div class="info-ro" style="margin-top:10px">⚠ <b>'+sinVinc.length+' contrato(s) marcados como "no vinculada":</b> el 50% restante de comisión ('
+      +fmtCOP(p2)+') <b>no se pagará</b> sobre esos contratos, ya que la Política exige vinculación activa al momento del recaudo final.</div>';
+  }
+  h+='<div class="nota-tip" style="margin-top:10px">Escalera 2026: ≤$150M=0% · $151–250M=1% · $250–350M=2% · $350–500M=3,5%. Se causa con contrato firmado + anticipo. 50% primeros 10 días mes siguiente. 50% restante proporcional al recaudo, <b>solo si está vinculada a MOSS al momento de la entrega.</b></div>'
     +'</div></div>';
   h+='<div class="card"><div class="chd"><span>Cierres del mes</span></div>'
-    +'<table><tr><th>Cliente / Proyecto</th><th>Fuente</th><th>Fecha</th><th>Valor</th><th>$/m²</th></tr>';
-  if(!vs.length){h+='<tr><td colspan="5" style="color:var(--gc);text-align:center;padding:16px">Marcar leads como Vendido + Anticipo SI + Fecha de cierre para ver aquí</td></tr>';}
-  else{
-    vs.forEach(function(x){
-      var pm=x.s.m2>0?Math.round(x.s.valorCerrado/x.s.m2):0;
-      h+='<tr><td><b>'+(x.l.nombre||x.l.id)+'</b><br><span style="font-size:10px;color:var(--g)">'+(x.l.proyecto||'')+'</span></td>'
-        +'<td>'+(x.s.fuente==='odoo'?'<span class="src-badge src-odoo">Odoo</span>':'<span class="src-badge src-bot">Bot</span>')+'</td>'
-        +'<td>'+x.s.fechaCierre+'</td><td>'+fmtCOP(x.s.valorCerrado)+'</td>'
-        +'<td style="color:'+(pm&&pm<CFG.pisoM2?'var(--ro)':'inherit')+';font-weight:'+(pm&&pm<CFG.pisoM2?'700':'400')+'">'+(pm?fmtCOP(pm):'—')+'</td></tr>';
-    });
-    h+='<tr style="background:var(--vc)"><td colspan="3"><b>TOTAL</b></td><td colspan="2"><b>'+fmtCOP(total)+'</b></td></tr>';
-  }
+    +'<table><tr><th>Cliente</th><th>Fecha</th><th>Valor</th><th>$/m²</th><th>Vinculada</th></tr>';
+  if(!vs.length) h+='<tr><td colspan="5" style="color:var(--gc);text-align:center;padding:14px">Sin cierres registrados este mes</td></tr>';
+  vs.forEach(function(x){
+    var pm=x.s.m2>0?Math.round(x.s.valorCerrado/x.s.m2):0;
+    var vStr=x.s.vinculadaAlCierre==='SI'?'✅ Sí':x.s.vinculadaAlCierre==='NO'?'❌ No':'—';
+    h+='<tr><td><b>'+(x.l.nombre||x.l.id)+'</b><br><span style="font-size:10px;color:var(--g)">'+(x.l.proyecto||'')+'</span></td>'
+      +'<td>'+x.s.fechaCierre+'</td><td>'+fmtCOP(x.s.valorCerrado)+'</td>'
+      +'<td style="color:'+(pm&&pm<CFG.pisoM2?'var(--ro)':'inherit')+'">'+(pm?fmtCOP(pm):'—')+'</td>'
+      +'<td>'+vStr+'</td></tr>';
+  });
+  if(vs.length) h+='<tr style="background:var(--vc)"><td colspan="2"><b>TOTAL</b></td><td colspan="3"><b>'+fmtCOP(total)+'</b></td></tr>';
   h+='</table></div>';
   h+='<div style="display:flex;gap:8px;margin-bottom:14px"><button class="btn-p" onclick="genCarta()">📄 Carta de comisiones</button><button class="btn-s" onclick="window.print()">🖨 PDF</button></div>';
   h+='<div class="carta-wrap" id="carta-sec"></div>';
@@ -607,87 +550,81 @@ function rCom(){
 }
 
 function genCarta(){
-  var mes=_mesCom,vs=ventasMes(mes);
+  var mes=_mesCom, vs=ventasMes(mes);
   var total=vs.reduce(function(a,x){return a+Number(x.s.valorCerrado);},0);
-  var t=tasa(total),com=Math.round(total*t),p1=Math.round(com/2);
+  var t=tasa(total), com=Math.round(total*t), p1=Math.round(com/2);
   var d0=new Date(mes+'-01T12:00:00');
   var nmMes=d0.toLocaleDateString('es-CO',{month:'long',year:'numeric'});
   var d2=new Date(d0); d2.setMonth(d2.getMonth()+1);
   var lim='10 de '+d2.toLocaleDateString('es-CO',{month:'long',year:'numeric'});
-  var filas=vs.map(function(x){return '<tr><td style="padding:6px;border-bottom:1px solid #DDD5C8">'+(x.l.nombre||x.l.id)+' — '+(x.l.proyecto||'')+'</td><td style="padding:6px;border-bottom:1px solid #DDD5C8">'+x.s.fechaCierre+'</td><td style="padding:6px;border-bottom:1px solid #DDD5C8;text-align:right">'+fmtCOP(x.s.valorCerrado)+'</td></tr>';}).join('');
+  var filas=vs.map(function(x){
+    return '<tr><td style="padding:6px;border-bottom:1px solid #DDD5C8">'+(x.l.nombre||x.l.id)+' — '+(x.l.proyecto||'')+'</td>'
+      +'<td style="padding:6px;border-bottom:1px solid #DDD5C8">'+x.s.fechaCierre+'</td>'
+      +'<td style="padding:6px;border-bottom:1px solid #DDD5C8;text-align:right">'+fmtCOP(x.s.valorCerrado)+'</td>'
+      +'<td style="padding:6px;border-bottom:1px solid #DDD5C8">'+(x.s.vinculadaAlCierre==='SI'?'✅ Sí':x.s.vinculadaAlCierre==='NO'?'❌ No':'—')+'</td></tr>';
+  }).join('');
   var el=document.getElementById('carta-sec');
   el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start">'
-    +'<div><h3 style="color:#2D4A35;font-size:17px">MOSS Arquitectura y Mobiliario S.A.S.</h3><div style="font-size:10.5px;color:#6B6560">'+CFG.empresa+'</div></div>'
+    +'<div><h3 style="color:#2D4A35;font-size:17px">MOSS Arquitectura y Mobiliario S.A.S.</h3>'
+    +'<div style="font-size:10.5px;color:#6B6560">'+CFG.empresa+'</div></div>'
     +'<div style="width:36px;height:36px;background:#A67C52;border-radius:8px"></div></div>'
     +'<hr style="border:none;border-top:2px solid #A67C52;margin:12px 0">'
     +'<p>Bogotá D.C., '+new Date().toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'})+'</p>'
-    +'<p style="margin-top:12px"><b>Señor(a):</b> '+CFG.vendedor+'<br><b>Cargo:</b> Ejecutivo(a) Comercial<br><b>Asunto:</b> Liquidación de comisiones — '+nmMes+'</p>'
-    +'<p style="margin-top:12px">De acuerdo con la Política Comercial Integral MOSS 2026 y el Documento de Onboarding del cargo, se presenta la liquidación de comisiones del período:</p>'
-    +'<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px"><tr style="background:#2D4A35;color:#fff"><th style="padding:7px;text-align:left">Cliente / Proyecto</th><th style="padding:7px;text-align:left">Fecha</th><th style="padding:7px;text-align:right">Valor</th></tr>'+filas
-    +'<tr style="background:#F2EBE0"><td colspan="2" style="padding:7px"><b>TOTAL</b></td><td style="padding:7px;text-align:right"><b>'+fmtCOP(total)+'</b></td></tr></table>'
+    +'<p style="margin-top:12px"><b>Señor(a):</b> Lizeth Paola Figueroa Rodríguez<br>'
+    +'<b>C.C.:</b> 1.076.667.982<br><b>Cargo:</b> Asesor Comercial<br>'
+    +'<b>Asunto:</b> Liquidación de comisiones — '+nmMes+'</p>'
+    +'<p style="margin-top:12px">De acuerdo con el Otrosí No.1 al Contrato de Trabajo (02/03/2026) y la Política Comercial Integral MOSS 2026, se presenta la liquidación de comisiones del período, calculada sobre contratos con anticipo confirmado:</p>'
+    +'<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px">'
+    +'<tr style="background:#2D4A35;color:#fff"><th style="padding:7px;text-align:left">Cliente / Proyecto</th><th style="padding:7px;text-align:left">Fecha</th><th style="padding:7px;text-align:right">Valor</th><th style="padding:7px;text-align:left">Vinculada</th></tr>'
+    +filas
+    +'<tr style="background:#F2EBE0"><td colspan="2" style="padding:7px"><b>TOTAL</b></td><td style="padding:7px;text-align:right"><b>'+fmtCOP(total)+'</b></td><td></td></tr></table>'
     +'<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:14px">'
     +'<tr><td style="padding:5px">Meta mensual</td><td style="text-align:right">'+fmtCOP(CFG.metaMes)+'</td></tr>'
     +'<tr><td style="padding:5px">Cumplimiento</td><td style="text-align:right">'+Math.round(total/CFG.metaMes*100)+'%</td></tr>'
-    +'<tr><td style="padding:5px">Tasa escalera</td><td style="text-align:right">'+(t*100)+'%</td></tr>'
+    +'<tr><td style="padding:5px">Tasa escalera aplicable</td><td style="text-align:right">'+(t*100)+'%</td></tr>'
     +'<tr style="background:#E8F0EB"><td style="padding:7px"><b>Comisión causada</b></td><td style="text-align:right;padding:7px"><b>'+fmtCOP(com)+'</b></td></tr>'
-    +'<tr style="background:#F2EBE0"><td style="padding:7px"><b>50% a pagar antes del '+lim+'</b></td><td style="text-align:right;padding:7px"><b>'+fmtCOP(p1)+'</b></td></tr>'
-    +'<tr><td style="padding:5px">Saldo 50% — proporcional al recaudo</td><td style="text-align:right">'+fmtCOP(com-p1)+'</td></tr></table>'
-    +(total<=CFG.umbral?'<p style="color:#B5362A;font-size:12px"><b>Nota:</b> Ventas no superan el umbral de $150M — no se causa comisión.</p>':'')
-    +'<p style="margin-top:16px">Auditable conforme al numeral 17 de la Política Comercial Integral MOSS 2026.</p>'
-    +'<div style="display:flex;gap:80px;margin-top:50px"><div style="border-top:1px solid #2A2C24;padding-top:5px;width:220px">Representante Legal MOSS</div><div style="border-top:1px solid #2A2C24;padding-top:5px;width:220px">'+CFG.vendedor+'<br><span style="font-size:10px;color:#6B6560">Ejecutivo(a) Comercial</span></div></div>';
-  el.style.display='block';
-  el.scrollIntoView({behavior:'smooth'});
+    +'<tr style="background:#F2EBE0"><td style="padding:7px"><b>1er pago (50%) — antes del '+lim+'</b></td><td style="text-align:right;padding:7px"><b>'+fmtCOP(p1)+'</b></td></tr>'
+    +'<tr><td style="padding:5px">2do pago (50%) — proporcional al recaudo final, sujeto a vinculación activa</td><td style="text-align:right">'+fmtCOP(com-p1)+'</td></tr></table>'
+    +'<p style="font-size:11.5px;color:#7a1a10;background:#FAEBE9;padding:8px 10px;border-radius:7px;margin-bottom:12px">⚖ <b>Política de vinculación:</b> El segundo 50% de comisión se causa únicamente si la Asesora Comercial se encuentra vinculada laboralmente a MOSS al momento del recaudo final del contrato (Otrosí No.1, Cláusula Cuarta).</p>'
+    +(total<=CFG.umbral?'<p style="color:#B5362A;font-size:12px"><b>Nota:</b> Las ventas del período no superan $150M — no se causa comisión.</p>':'')
+    +'<p style="margin-top:14px;font-size:12px">Documento auditable conforme al numeral 17 de la Política Comercial Integral MOSS 2026.</p>'
+    +'<div style="display:flex;gap:80px;margin-top:50px">'
+    +'<div style="border-top:1px solid #2A2C24;padding-top:5px;width:220px">Juan Manuel Guevara G.<br><span style="font-size:10px;color:#6B6560">Representante Legal MOSS</span></div>'
+    +'<div style="border-top:1px solid #2A2C24;padding-top:5px;width:220px">Lizeth Paola Figueroa R.<br><span style="font-size:10px;color:#6B6560">Asesor Comercial · C.C. 1.076.667.982</span></div></div>';
+  el.style.display='block'; el.scrollIntoView({behavior:'smooth'});
   toast('Carta generada — usa 🖨 PDF');
 }
 
-// ══════════════════════════════════════════════
-// MÉTRICAS
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// MÉTRICAS (solo CEO)
+// ═══════════════════════════════════════════════
 function rMet(){
-  var todos=todosLosLeads();
-  var act=todos.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='perdido';});
-  var cot=todos.filter(function(l){return Number((SEG[l.id]||{}).valorCotizado)>0;});
-  var ven=todos.filter(function(l){return (SEG[l.id]||{}).stage==='vendido';});
+  var act=LEADS.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='perdido';});
+  var cot=LEADS.filter(function(l){return Number((SEG[l.id]||{}).valorCotizado)>0;});
+  var ven=LEADS.filter(function(l){return (SEG[l.id]||{}).stage==='vendido';});
   var oro=LEADS.filter(function(l){return esOro(l)&&(SEG[l.id]||{}).stage!=='vendido'&&(SEG[l.id]||{}).stage!=='perdido';});
-  var conPres=act.filter(function(l){return Number((SEG[l.id]||{}).presupuestoCliente)>0;});
   var tC=cot.length?Math.round(ven.length/cot.length*100):0;
   var descs=ven.map(function(l){var s=SEG[l.id];return(Number(s.valorCotizado)>0&&Number(s.valorCerrado)>0)?(1-s.valorCerrado/s.valorCotizado)*100:null;}).filter(function(x){return x!==null;});
   var dP=descs.length?Math.round(descs.reduce(function(a,b){return a+b;},0)/descs.length):0;
   var pms=ven.map(function(l){var s=SEG[l.id];return(Number(s.m2)>0&&Number(s.valorCerrado)>0)?s.valorCerrado/s.m2:null;}).filter(function(x){return x;});
   var pmP=pms.length?Math.round(pms.reduce(function(a,b){return a+b;},0)/pms.length):0;
-  var pP=act.length?Math.round(conPres.length/act.length*100):0;
-
-  var h='<div class="card"><div class="chd"><span>Métricas viernes — Playbook MOSS</span><small>Odoo + Bot</small></div><div class="cp">'
+  var meses=calcMesesSinMeta();
+  var h='';
+  if(meses>0) h+='<div class="alerta-3m"><h4>⚠ Alerta rendimiento — '+meses+' mes(es) consecutivo(s) sin meta mínima ($150M)</h4>'
+    +'<p>Política: 3 meses consecutivos sin meta = causal de terminación con justa causa (Otrosí No.1, Cláusula Sexta). '
+    +(meses>=3?'<b>UMBRAL ALCANZADO. Revisar decisión con Dirección.</b>':'Mes '+(meses+1)+' en curso.')+'</p></div>';
+  h+='<div class="card"><div class="chd"><span>Métricas viernes — Playbook MOSS</span></div><div class="cp">'
     +'<div class="kgrid">'
-    +K(oro.length,'Leads oro sin contactar',oro.length?'ro':'ok',oro.length?'Meta: 0':'✅ OK')
-    +K(pP+'%','Con presupuesto Fase 0',pP<100?'am':'ok','Meta: 100%')
+    +K(oro.length,'Leads oro sin contactar',oro.length?'ro':'ok',oro.length?'Meta: 0':'✅')
     +K(tC+'%','Tasa de cierre',tC<30?'am':'ok','Meta: 30%')
     +K(dP+'%','Descuento promedio',dP>0?'am':'ok','Meta: 0%')
-    +'</div><div class="kgrid">'
-    +K(pmP?fmtCOP(pmP):'—','$/m² promedio cerrado',pmP&&pmP<CFG.pisoM2?'ro':'ok','Piso: $1.200.000')
-    +K(ven.length,'Vendidos total','','')
-    +K(ODOO_OPS.length,'Oportunidades Odoo','','pipeline activo')
-    +K(LEADS.length,'Leads bot activos','','de '+118+' válidos')
+    +K(pmP?fmtCOP(pmP):'—','$/m² promedio',pmP&&pmP<CFG.pisoM2?'ro':'ok','Piso: $1.2M')
     +'</div>'
-    +'<div class="nota-tip">SLA: contacto &lt;1h · cotización &lt;48h · seguimiento &lt;24h · mín 5 contactos antes de marcar perdido · contrato mín $18M</div>'
+    +'<div class="nota-tip">SLA: contacto &lt;10min · cotización &lt;48h · seguimiento &lt;24h · mín 5 contactos antes de marcar perdido · contrato mín $18M</div>'
     +'</div></div>';
-
-  // Desglose pipeline Odoo (del screenshot)
-  h+='<div class="card"><div class="chd"><span>Pipeline Odoo — resumen</span><small>Datos del snapshot</small></div><div class="cp">'
-    +'<table><tr><th>Etapa Odoo</th><th>Valor pipeline</th></tr>'
-    +'<tr><td>Cliente que cierra en meses futuros</td><td>$294M</td></tr>'
-    +'<tr><td>Pendiente Reunión Fase 0</td><td>$0</td></tr>'
-    +'<tr><td>Cotización enviada</td><td>$909M</td></tr>'
-    +'<tr><td>Alta probabilidad de cierre</td><td>$175M</td></tr>'
-    +'<tr><td>Contrato Firmado</td><td>—</td></tr>'
-    +'<tr style="background:var(--vc)"><td><b>TOTAL PIPELINE</b></td><td><b>$1.378M</b></td></tr>'
-    +'</table>'
-    +'<div style="font-size:11px;color:var(--am);margin-top:10px">⚠ La mayor parte del pipeline ($909M) está en cotización enviada sin seguimiento activo — es la palanca más importante para cumplir la meta anual.</div>'
-    +'</div></div>';
-
-  // Funnel bot
-  h+='<div class="card"><div class="chd"><span>Embudo chatbot</span></div><div class="cp">';
-  var steps=[['Total filas bot',1986],['Leads válidos (nombre+contacto)',118],['Cumplen presupuesto',60],['Oro (presupuesto + inicio <1 mes)',31],['Marcados vendidos',9]];
+  // Funnel
+  h+='<div class="card"><div class="chd"><span>Embudo de conversión</span></div><div class="cp">';
+  var steps=[['Leads totales',LEADS.length],['Contactados',LEADS.filter(function(l){return (SEG[l.id]||{}).intentos>0;}).length],['Cotizados',cot.length],['Vendidos',ven.length]];
   steps.forEach(function(f,i){
     var pct=Math.round(f[1]/steps[0][1]*100);
     h+='<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>'+f[0]+'</span><span><b>'+f[1]+'</b> ('+pct+'%)</span></div>'
@@ -697,24 +634,101 @@ function rMet(){
   return h;
 }
 
-// ══════════════════════════════════════════════
-// SYNC
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// POLÍTICAS (visible para todos)
+// ═══════════════════════════════════════════════
+function rPol(){
+  return '<div class="card"><div class="chd"><span>📜 Política Comercial Integral MOSS 2026</span><small>Otrosí No.1 · 02/03/2026</small></div><div class="cp">'
+    +'<div class="info-ok" style="margin-bottom:14px">Este documento es de obligatorio conocimiento y cumplimiento. El incumplimiento es causal de terminación del contrato con justa causa (Lineamientos MOSS, numeral 11).</div>'
+
+    +'<div class="pol-sec"><h3>🎯 Meta y cargo</h3>'
+    +'<ul><li><b>Meta mensual:</b> $300.000.000 en ventas.</li>'
+    +'<li><b>Meta mínima aceptable:</b> 6 cierres / $150M.</li>'
+    +'<li><b>Meta objetivo:</b> 8 cierres.</li>'
+    +'<li><b>Pipeline mínimo:</b> 3 veces la meta = $900M activo en todo momento.</li>'
+    +'<li><b>Contrato mínimo comercializable:</b> $18.000.000 (inferior requiere autorización).</li></ul></div>'
+
+    +'<div class="pol-sec"><h3>⏱ SLA — Tiempos obligatorios</h3>'
+    +'<ul><li>Respuesta a lead del bot: <b>&lt; 10 minutos</b></li>'
+    +'<li>Contacto humano post-calificación: <b>&lt; 1 hora</b></li>'
+    +'<li>Cotización post-visita: <b>&lt; 48 horas</b></li>'
+    +'<li>Primer seguimiento tras cotización: <b>&lt; 24 horas</b></li>'
+    +'<li>Seguimientos mínimos por cotización: <b>5 estructurados</b> (días 1, 3, 7, 14, 21)</li></ul></div>'
+
+    +'<div class="pol-sec"><h3>📋 Flujo comercial oficial</h3>'
+    +'<p style="background:var(--ba);padding:9px 12px;border-radius:8px;font-family:monospace;font-size:11.5px">Lead → Bot → Calificado → Contacto humano → Visita → Cotización → Seguimiento → Cierre</p></div>'
+
+    +'<div class="pol-sec"><h3>💰 Escalera de comisiones</h3>'
+    +'<table class="escalera-table"><tr><th>Total contratos del mes</th><th>Tasa</th></tr>'
+    +'<tr><td>Hasta $150.000.000</td><td>0% — no causa comisión</td></tr>'
+    +'<tr><td>$151.000.000 – $250.000.000</td><td>1%</td></tr>'
+    +'<tr><td>$250.000.001 – $350.000.000</td><td>2%</td></tr>'
+    +'<tr><td>$350.000.001 – $500.000.000</td><td>3,5%</td></tr></table>'
+    +'<div class="info-am" style="margin-top:10px"><b>Causación:</b> La comisión se genera únicamente con (a) contrato firmado y (b) anticipo recibido. Se liquida proporcionalmente al recaudo efectivo del cliente.'
+    +'<br><br><b>⚖ Regla de vinculación:</b> El 50% restante de comisión (pagado al recaudo final) <b>se causa únicamente si la Asesora está vinculada laboralmente a MOSS en el momento de la entrega y recaudo final</b>. Si el vínculo termina antes de ese momento, el saldo de comisión no se reconoce. (Otrosí No.1, Cláusula Cuarta.)</div></div>'
+
+    +'<div class="pol-sec"><h3>📊 KPIs oficiales del cargo</h3>'
+    +'<div class="pol-kpi">'
+    +'<div class="pol-kpi-item"><b>% Lead → Contacto</b>Respuesta en menos de 10 min</div>'
+    +'<div class="pol-kpi-item"><b>% Calificado → Visita</b>Conversión a reunión Fase 0</div>'
+    +'<div class="pol-kpi-item"><b>% Visita → Cotización</b>Propuesta enviada post-visita</div>'
+    +'<div class="pol-kpi-item"><b>% Cotización → Cierre</b>Meta: 30% de conversión</div>'
+    +'<div class="pol-kpi-item"><b>Ticket promedio</b>Meta: ~$37.5M por cierre</div>'
+    +'<div class="pol-kpi-item"><b>Valor cerrado mensual</b>Meta: $300M · Mínimo: $150M</div>'
+    +'<div class="pol-kpi-item"><b>Tiempo de respuesta</b>SLA: &lt;10 min leads bot</div>'
+    +'<div class="pol-kpi-item"><b>Pipeline activo</b>Mínimo $900M en todo momento</div>'
+    +'</div></div>'
+
+    +'<div class="pol-sec"><h3>⚠ Alerta de rendimiento</h3>'
+    +'<div class="info-ro"><b>3 meses consecutivos sin alcanzar la meta mínima ($150M) son causal de terminación del contrato con justa causa</b>, conforme a la Cláusula Sexta del Otrosí No.1 al Contrato de Trabajo a Término Indefinido firmado el 02/03/2026. El seguimiento es semanal por la Gerencia Comercial.</div></div>'
+
+    +'<div class="pol-sec"><h3>🚫 Conductas no permitidas</h3>'
+    +'<ul><li>Prometer descuentos sin autorización expresa del CEO.</li>'
+    +'<li>Omitir seguimientos documentados en el CRM.</li>'
+    +'<li>Negociar margen sin autorización.</li>'
+    +'<li>Fraccionar contratos artificialmente.</li>'
+    +'<li>Programar obra sin anticipo confirmado.</li>'
+    +'<li>Cerrar negocios con margen negativo sin aprobación.</li>'
+    +'<li>Compartir información de clientes, precios o proyectos con terceros.</li></ul></div>'
+
+    +'<div class="pol-sec"><h3>✅ Disciplina operativa diaria</h3>'
+    +'<ul><li>Actualización diaria del CRM antes de las 6 PM.</li>'
+    +'<li>Reporte de pipeline 2 veces por semana.</li>'
+    +'<li>Clasificar oportunidades: Caliente / Tibio / Frío.</li>'
+    +'<li>Presentar cotizaciones en formato MOSS con 3 opciones: Funcional / Recomendada / Premium.</li></ul></div>'
+
+    +'<div style="background:var(--ba);border-radius:9px;padding:12px;font-size:11px;color:var(--g);margin-top:8px">'
+    +'Documentos de referencia: Otrosí No.1 (02/03/2026) · Política Comercial Integral MOSS 2026 · Lineamientos y Políticas MOSS · Documento de Onboarding Ejecutivo Comercial. '
+    +'La Dirección podrá auditar cotizaciones, descuentos, cierres y comisiones en cualquier momento (numeral 17, Política Comercial).</div>'
+    +'</div></div>';
+}
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function calcMesesSinMeta(){
+  // Revisar últimos 3 meses en el SEG para ver cuántos consecutivos sin $150M
+  var hoy=new Date(), meses=0;
+  for(var i=1;i<=3;i++){
+    var d=new Date(hoy.getFullYear(),hoy.getMonth()-i,1);
+    var mes=d.toISOString().slice(0,7);
+    var total=LEADS.map(function(l){return SEG[l.id]||{};})
+      .filter(function(s){return s.stage==='vendido'&&s.anticipoOK==='SI'&&(s.fechaCierre||'').slice(0,7)===mes;})
+      .reduce(function(a,s){return a+Number(s.valorCerrado||0);},0);
+    if(total<CFG.umbral) meses++; else break;
+  }
+  return meses;
+}
 function sync(){
   if(!_dirty){toast('Sin cambios pendientes');return;}
   setBadge(false,'Guardando…');
   var cbName='mosssave_'+Date.now();
   var sc=document.createElement('script');
-  var tm=setTimeout(function(){
-    delete window[cbName];try{document.body.removeChild(sc);}catch(e){}
-    toast('⚠ Timeout guardando');
-  },15000);
+  var tm=setTimeout(function(){delete window[cbName];try{document.body.removeChild(sc);}catch(e){}toast('⚠ Timeout');},15000);
   window[cbName]=function(d){
-    clearTimeout(tm);delete window[cbName];
-    try{document.body.removeChild(sc);}catch(e){}
-    if(d&&d.ok){_dirty=false;document.getElementById('savebar').style.display='none';
-      setBadge(true,'Guardado ✓');toast('✅ Guardado · '+d.guardados+' leads');}
-    else{toast('⚠ Error al guardar');}
+    clearTimeout(tm);delete window[cbName];try{document.body.removeChild(sc);}catch(e){}
+    if(d&&d.ok){_dirty=false;document.getElementById('savebar').style.display='none';setBadge(true,'Guardado ✓');toast('✅ Guardado · '+d.guardados+' leads');}
+    else toast('⚠ Error al guardar');
   };
   sc.onerror=function(){clearTimeout(tm);toast('⚠ Sin conexión');};
   var pl=encodeURIComponent(JSON.stringify(SEG));
@@ -727,15 +741,9 @@ function setBadge(ok,txt){
   b.querySelector('.dot').style.background=ok?'var(--ok)':'var(--am)';
   t.textContent=txt;
 }
-
-// ══════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════
 function hoyStr(){return new Date().toISOString().slice(0,10);}
 function fmtCOP(n){return '$'+(Number(n)||0).toLocaleString('es-CO');}
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2600);}
-
-cargar();
 </script>
 </body>
 </html>
