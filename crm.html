@@ -197,23 +197,27 @@ var TPL=[
 // CARGA DE DATOS
 // ══════════════════════════════════════════════
 function cargar(){
-  setBadge(false,'Cargando…');
-  // 1) Cargar desde Apps Script (leads bot + seguimiento)
-  fetch(CFG.scriptUrl+'?action=crm')
-    .then(function(r){return r.json();})
-    .then(function(d){
-      if(!d.ok) throw 'err';
-      LEADS=d.leads||[]; SEG=d.seguimiento||{};
-      LEADS.forEach(function(l){if(!SEG[l.id])SEG[l.id]=nuevoSeg(l);});
-      setBadge(true,'Bot conectado');
-      // 2) Intentar cargar Odoo si está configurado
-      if(CFG.odooUrl && CFG.odooKey) cargarOdoo();
-      else render();
-    })
-    .catch(function(){
-      setBadge(false,'Sin conexión');
-      render();
-    });
+  setBadge(false,'Cargando leads…');
+  var cbName='mosscrm_'+Date.now();
+  var sc=document.createElement('script');
+  var tm=setTimeout(function(){
+    setBadge(false,'Sin conexión — revisa el Apps Script');
+    delete window[cbName]; try{document.body.removeChild(sc);}catch(e){}
+    render();
+  },12000);
+  window[cbName]=function(d){
+    clearTimeout(tm); delete window[cbName];
+    try{document.body.removeChild(sc);}catch(e){}
+    if(!d||!d.ok){setBadge(false,'Error del servidor');render();return;}
+    LEADS=d.leads||[]; SEG=d.seguimiento||{};
+    LEADS.forEach(function(l){if(!SEG[l.id])SEG[l.id]=nuevoSeg(l);});
+    setBadge(true,'✓ Conectado · '+LEADS.length+' leads');
+    if(CFG.odooUrl&&CFG.odooKey)cargarOdoo();
+    else render();
+  };
+  sc.onerror=function(){clearTimeout(tm);setBadge(false,'Error');render();};
+  sc.src=CFG.scriptUrl+'?action=crm&callback='+cbName;
+  document.body.appendChild(sc);
 }
 
 function cargarOdoo(){
@@ -699,10 +703,23 @@ function rMet(){
 function sync(){
   if(!_dirty){toast('Sin cambios pendientes');return;}
   setBadge(false,'Guardando…');
-  fetch(CFG.scriptUrl,{method:'POST',body:JSON.stringify({action:'crm.guardar',payload:SEG})})
-    .then(function(r){return r.json();})
-    .then(function(){_dirty=false;document.getElementById('savebar').style.display='none';setBadge(true,'Sincronizado ✓');toast('✅ Guardado en Sheets');})
-    .catch(function(){setBadge(false,'Error de red');toast('⚠ Sin conexión');});
+  var cbName='mosssave_'+Date.now();
+  var sc=document.createElement('script');
+  var tm=setTimeout(function(){
+    delete window[cbName];try{document.body.removeChild(sc);}catch(e){}
+    toast('⚠ Timeout guardando');
+  },15000);
+  window[cbName]=function(d){
+    clearTimeout(tm);delete window[cbName];
+    try{document.body.removeChild(sc);}catch(e){}
+    if(d&&d.ok){_dirty=false;document.getElementById('savebar').style.display='none';
+      setBadge(true,'Guardado ✓');toast('✅ Guardado · '+d.guardados+' leads');}
+    else{toast('⚠ Error al guardar');}
+  };
+  sc.onerror=function(){clearTimeout(tm);toast('⚠ Sin conexión');};
+  var pl=encodeURIComponent(JSON.stringify(SEG));
+  sc.src=CFG.scriptUrl+'?action=crm.guardar&callback='+cbName+'&payload='+pl;
+  document.body.appendChild(sc);
 }
 function setBadge(ok,txt){
   var b=document.getElementById('badge'),t=document.getElementById('badge-txt');
