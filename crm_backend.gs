@@ -1,6 +1,6 @@
 /********************************************************************
- * MOSS CRM Backend v2 — independiente de ObraControl
- * Soporta JSONP (callback) para evitar bloqueo CORS desde GitHub Pages
+ * MOSS CRM Backend v3 — independiente de ObraControl
+ * Soporta JSONP (callback) + proxy hacia Odoo (evita bloqueo CORS)
  ********************************************************************/
 
 var CRM_SHEET_ID = '1kQZbimtPYBN9O-RDsAIoAQSsuiXxP8btdrGlHdXC7NU';
@@ -18,11 +18,12 @@ function doGet(e) {
   if (action === 'crm.guardar' && payload) {
     try { result = crmGuardar(JSON.parse(decodeURIComponent(payload))); }
     catch(err) { result = respJson({ok:false, error: String(err)}); }
+  } else if (action === 'odoo') {
+    result = odooProxy(e.parameter.odooUrl, e.parameter.odooKey, e.parameter.odooDb);
   } else {
     result = crmGet();
   }
 
-  // Si viene callback → JSONP
   if (callback) {
     var json = result.getContent();
     return ContentService
@@ -38,6 +39,96 @@ function doPost(e) {
     if (data.action === 'crm.guardar') return crmGuardar(data.payload);
   } catch(err) {}
   return respJson({ok:false, error:'invalid request'});
+}
+
+/********************************************************************
+ * PROXY HACIA ODOO — usa la API JSON-RPC nativa de Odoo
+ * El navegador no puede llamar a Odoo directo por CORS;
+ * Apps Script sí puede (server-to-server, sin restricción CORS).
+ ********************************************************************/
+function odooProxy(odooUrl, odooKey, odooDb) {
+  try {
+    if (!odooUrl || !odooKey || !odooDb) {
+      return respJson({ok:false, error:'Falta odooUrl, odooKey o odooDb'});
+    }
+    odooUrl = odooUrl.replace(/\/$/, ''); // quitar barra final
+
+    // PASO 1 — Autenticar para obtener el uid real (la API Key funciona como password)
+    var authPayload = {
+      jsonrpc: '2.0', method: 'call',
+      params: {
+        service: 'common', method: 'authenticate',
+        args: [odooDb, odooKey, odooKey, {}]
+        // Nota: en muchas instancias el "login" para API Key puede requerir el
+        // correo del usuario en vez de la propia key. Si esto falla con
+        // 'Acceso denegado', cambiar el primer odooKey por el correo del usuario,
+        // ej: 'juanmanuel@mosscolombia.com.co'
+      }
+    };
+    var authOpt = {method:'post',contentType:'application/json',payload:JSON.stringify(authPayload),muteHttpExceptions:true};
+    var authResp = UrlFetchApp.fetch(odooUrl + '/jsonrpc', authOpt);
+    var authData = JSON.parse(authResp.getContentText());
+
+    if (authData.error || !authData.result) {
+      return respJson({ok:false, error:'Auth falló: '+(authData.error?JSON.stringify(authData.error):'uid no obtenido')});
+    }
+    var uid = authData.result;
+
+    // PASO 2 — Consultar oportunidades con el uid obtenido
+    var payload = {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: {
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          odooDb, uid, odooKey,
+          'crm.lead', 'search_read',
+          [[['type', '=', 'opportunity']]],
+          {
+            fields: ['name','partner_name','planned_revenue','stage_id',
+                     'user_id','probability','phone','email_from','expected_revenue'],
+            limit: 300,
+            order: 'planned_revenue desc'
+          }
+        ]
+      }
+    };
+
+    var options = {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
+
+    var resp = UrlFetchApp.fetch(odooUrl + '/jsonrpc', options);
+    var data = JSON.parse(resp.getContentText());
+
+    if (data.error) {
+      return respJson({ok:false, error: data.error.data ? data.error.data.message : JSON.stringify(data.error)});
+    }
+
+    var records = data.result || [];
+    var oportunidades = records.map(function(r) {
+      return {
+        id: r.id,
+        name: r.name,
+        partner_name: r.partner_name,
+        planned_revenue: r.planned_revenue,
+        stage_name: r.stage_id ? r.stage_id[1] : '',
+        user_name: r.user_id ? r.user_id[1] : '',
+        phone: r.phone,
+        email: r.email_from,
+        probability: r.probability
+      };
+    });
+
+    return respJson({ok:true, oportunidades: oportunidades});
+
+  } catch (err) {
+    return respJson({ok:false, error: String(err)});
+  }
 }
 
 function crmGet() {
