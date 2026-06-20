@@ -238,7 +238,18 @@ var CFG={
 };
 function tasa(v){if(v<=150e6)return 0;if(v<=250e6)return 0.01;if(v<=350e6)return 0.02;return 0.035;}
 
-var LEADS=[], SEG={}, _dirty=false, _vista='seg', _mesCom=hoyStr().slice(0,7), _filtroBot='todos';
+var LEADS=[], LEADS_HIST=[], SEG={}, _dirty=false, _vista='seg', _mesCom=hoyStr().slice(0,7), _filtroBot='todos', _verHistoricos=false;
+function esLead2026(l){
+  // El lead se considera activo 2026 si su fecha de interacción es >= 2026-01-01
+  var f = String(l.fecha||'').trim();
+  if(!f) return false;
+  var anio = parseInt(f.slice(0,4),10);
+  if(!isNaN(anio)) return anio>=2026;
+  // fallback: intentar parsear formatos tipo "Tue Nov 04 2025"
+  var d = new Date(f);
+  if(!isNaN(d.getTime())) return d.getFullYear()>=2026;
+  return false;
+}
 
 var ETAPAS=[
   ['prospecto','Prospecto','📥'],['contactado','Contactado','📞'],
@@ -269,9 +280,13 @@ function cargar(){
     clearTimeout(tm); delete window[cbName];
     try{document.body.removeChild(sc);}catch(e){}
     if(!d||!d.ok){setBadge(false,'Error del servidor');render();return;}
-    LEADS=d.leads||[]; SEG=d.seguimiento||{};
+    var todos=d.leads||[];
+    LEADS_HIST=todos.filter(function(l){return !esLead2026(l);});
+    LEADS=todos.filter(function(l){return esLead2026(l);});
+    SEG=d.seguimiento||{};
     LEADS.forEach(function(l){if(!SEG[l.id])SEG[l.id]=nuevoSeg(l);});
-    setBadge(true,'✓ Conectado · '+LEADS.length+' leads');
+    LEADS_HIST.forEach(function(l){if(!SEG[l.id])SEG[l.id]=nuevoSeg(l);});
+    setBadge(true,'✓ Conectado · '+LEADS.length+' activos 2026');
     render();
   };
   sc.onerror=function(){clearTimeout(tm);setBadge(false,'Error');render();};
@@ -329,7 +344,18 @@ function rSeg(){
     +K(venc.length,'Vencidos ⚠',venc.length?'ro':'ok',venc.length?'Contactar ahora':'Al día')
     +K(hoyL.length,'Para hoy',hoyL.length?'am':'','Programados')
     +K(oro.length,'Leads oro sin contactar','d','< 10 min (onboarding)')
-    +K(act.length,'En pipeline','','activos')+'</div>';
+    +K(act.length,'En pipeline','','activos 2026')+'</div>';
+  if(LEADS_HIST.length){
+    h+='<div class="info-ok">📦 <b>'+LEADS_HIST.length+' leads históricos (2025 y anteriores)</b> ocultos del seguimiento activo — ya fueron gestionados. '
+      +'<a href="#" onclick="_verHistoricos=!_verHistoricos;render();return false" style="color:var(--ok);font-weight:700">'
+      +(_verHistoricos?'Ocultar':'Ver históricos')+'</a></div>';
+  }
+  if(_verHistoricos){
+    h+='<div class="card"><div class="chd"><span>Históricos 2025 y anteriores (solo consulta)</span><small>'+LEADS_HIST.length+' leads</small></div>';
+    LEADS_HIST.slice(0,30).forEach(function(l){h+=rowL(l,'');});
+    if(LEADS_HIST.length>30) h+='<div style="padding:10px;text-align:center;font-size:11px;color:var(--g)">Mostrando 30 de '+LEADS_HIST.length+'</div>';
+    h+='</div>';
+  }
 
   // Alerta rendimiento (solo CEO ve el nombre de Liz)
   var meses=calcMesesSinMeta();
@@ -389,11 +415,18 @@ function rPipe(){
 // ═══════════════════════════════════════════════
 function rBot(){
   var filtros=['todos','Caliente','Obra Gris','Usada','Mobiliario','VENDIDO'];
+  var todos=LEADS.concat(LEADS_HIST);
   var h='<div class="kgrid">'
-    +K(LEADS.length,'Leads válidos bot','','de 1.986 filas')
-    +K(LEADS.filter(function(l){return esOro(l);}).length,'Leads oro','d','')
-    +K(LEADS.filter(function(l){return /si/i.test(l.cumplePresupuesto||'');}).length,'Cumplen presupuesto','ok','')
-    +K(LEADS.filter(function(l){return /vendido/i.test(l.campana||'');}).length,'Vendidos','','')+'</div>';
+    +K(LEADS.length,'Leads activos 2026','d','de '+todos.length+' totales')
+    +K(LEADS_HIST.length,'Históricos 2025-','','ya gestionados')
+    +K(LEADS.filter(function(l){return esOro(l);}).length,'Oro (2026)','ok','')
+    +K(LEADS.filter(function(l){return /vendido/i.test(l.campana||'');}).length,'Vendidos 2026','','')+'</div>';
+  h+='<div class="filter-bar"><button class="fchip'+(_filtroBot==='__hist__'?' on':'')+'" onclick="_filtroBot=\'__hist__\';render()">📦 Ver históricos</button></div>';
+  if(_filtroBot==='__hist__'){
+    h+='<div class="card"><div class="chd"><span>Históricos 2025 y anteriores</span><small>'+LEADS_HIST.length+'</small></div>';
+    LEADS_HIST.slice(0,100).forEach(function(l){h+=rowL(l,'');});
+    h+='</div>'; return h;
+  }
   h+='<div class="filter-bar">';
   filtros.forEach(function(f){h+='<button class="fchip'+(_filtroBot===f?' on':'')+'" onclick="_filtroBot=\''+f+'\';render()">'+f+'</button>';});
   h+='</div>';
