@@ -232,13 +232,16 @@ function buildNavbar(){
 // ═══════════════════════════════════════════════
 var CFG={
   scriptUrl:'https://script.google.com/macros/s/AKfycbyg653sAcOCSmU-pVDF5wEPo8M8to0-Gj3lbTUGdMpLS9GRZlKsdII-sZ4Pt0oukTDB9w/exec',
+  odooUrl:'https://moss-arquitectura-y-mobiliario-sas.odoo.com',
+  odooKey:'75ca5013352d14fdaf9b59069db61c61ac5754763',
+  odooDb:'moss-arquitectura-y-mobiliario-sas',
   igUrl:'https://www.instagram.com/moss.arquitectura',
   empresa:'MOSS Arquitectura y Mobiliario S.A.S. — NIT 901.159.078-6',
   metaMes:300000000, umbral:150000000, pisoM2:1200000, minCto:18000000
 };
 function tasa(v){if(v<=150e6)return 0;if(v<=250e6)return 0.01;if(v<=350e6)return 0.02;return 0.035;}
 
-var LEADS=[], LEADS_HIST=[], SEG={}, _dirty=false, _vista='seg', _mesCom=hoyStr().slice(0,7), _filtroBot='todos', _verHistoricos=false;
+var LEADS=[], LEADS_HIST=[], ODOO_OPS=[], SEG={}, _dirty=false, _vista='seg', _mesCom=hoyStr().slice(0,7), _filtroBot='todos', _verHistoricos=false;
 function esLead2026(l){
   // El lead se considera activo 2026 si su fecha de interacción es >= 2026-01-01
   var f = String(l.fecha||'').trim();
@@ -286,13 +289,70 @@ function cargar(){
     SEG=d.seguimiento||{};
     LEADS.forEach(function(l){if(!SEG[l.id])SEG[l.id]=nuevoSeg(l);});
     LEADS_HIST.forEach(function(l){if(!SEG[l.id])SEG[l.id]=nuevoSeg(l);});
-    setBadge(true,'✓ Conectado · '+LEADS.length+' activos 2026');
+    setBadge(true,'✓ Bot: '+LEADS.length+' activos 2026');
     render();
+    if(CFG.odooUrl && CFG.odooKey) cargarOdoo();
   };
   sc.onerror=function(){clearTimeout(tm);setBadge(false,'Error');render();};
   sc.src=CFG.scriptUrl+'?action=crm&callback='+cbName;
   document.body.appendChild(sc);
 }
+function cargarOdoo(){
+  setBadge(false,'Conectando Odoo…');
+  var cbName='mossodoo_'+Date.now();
+  var sc=document.createElement('script');
+  var tm=setTimeout(function(){
+    delete window[cbName]; try{document.body.removeChild(sc);}catch(e){}
+    setBadge(true,'Bot ✓ · Odoo sin respuesta');
+    render();
+  },15000);
+  window[cbName]=function(d){
+    clearTimeout(tm); delete window[cbName];
+    try{document.body.removeChild(sc);}catch(e){}
+    if(d && d.ok && d.oportunidades){
+      ODOO_OPS = d.oportunidades.map(function(o){
+        return {
+          id:'odoo_'+o.id,
+          nombre:o.partner_name||o.name||('Oportunidad '+o.id),
+          proyecto:o.name||'',
+          valor:o.planned_revenue||0,
+          etapaOdoo:o.stage_name||'',
+          responsable:o.user_name||'',
+          contacto:o.phone||o.email||'',
+          probabilidad:o.probability||0,
+          fuente:'odoo'
+        };
+      });
+      ODOO_OPS.forEach(function(o){
+        if(!SEG[o.id]) SEG[o.id]={stage:mapOdooStage(o.etapaOdoo),nota:'',proxContacto:'',intentos:0,
+          presupuestoCliente:'',valorCotizado:String(o.valor),valorCerrado:'',m2:'',
+          responsable:o.responsable,fase1Agendada:'',fechaCierre:'',anticipoOK:'',
+          clasificacion:'',historial:[],vinculadaAlCierre:'',fuente:'odoo'};
+      });
+      setBadge(true,'✓ Bot + Odoo · '+ODOO_OPS.length+' oportunidades');
+    } else {
+      setBadge(true,'Bot ✓ · Odoo: '+(d&&d.error?d.error:'sin datos'));
+    }
+    render();
+  };
+  sc.onerror=function(){clearTimeout(tm);setBadge(true,'Bot ✓ · Odoo error conexión');render();};
+  sc.src=CFG.scriptUrl+'?action=odoo&callback='+cbName
+    +'&odooUrl='+encodeURIComponent(CFG.odooUrl)
+    +'&odooKey='+encodeURIComponent(CFG.odooKey)
+    +'&odooDb='+encodeURIComponent(CFG.odooDb);
+  document.body.appendChild(sc);
+}
+function mapOdooStage(nombreEtapa){
+  var n=(nombreEtapa||'').toLowerCase();
+  if(n.indexOf('contrato')>=0||n.indexOf('firmado')>=0) return 'vendido';
+  if(n.indexOf('alta probabilidad')>=0) return 'fase1';
+  if(n.indexOf('cotizaci')>=0) return 'cotizado';
+  if(n.indexOf('fase 0')>=0||n.indexOf('reuni')>=0) return 'fase0';
+  if(n.indexOf('meses')>=0) return 'contactado';
+  return 'prospecto';
+}
+function todosLosLeads(){ return LEADS.concat(ODOO_OPS); }
+
 function nuevoSeg(l){
   var oro=esOro(l);
   return{stage:l.campana&&/vendido/i.test(l.campana||'')?'vendido':'prospecto',
@@ -330,7 +390,8 @@ function render(){
 // ═══════════════════════════════════════════════
 function rSeg(){
   var hoy=hoyStr(), venc=[],hoyL=[],oro=[],resto=[];
-  LEADS.forEach(function(l){
+  var listaTotal=LEADS.concat(ODOO_OPS);
+  listaTotal.forEach(function(l){
     var s=SEG[l.id]||{};
     if(s.stage==='vendido'||s.stage==='perdido') return;
     var pc=s.proxContacto||'';
@@ -339,7 +400,7 @@ function rSeg(){
     else if(esOro(l)&&!s.intentos) oro.push(l);
     else resto.push(l);
   });
-  var act=LEADS.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='vendido'&&s.stage!=='perdido';});
+  var act=listaTotal.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='vendido'&&s.stage!=='perdido';});
   var h='<div class="kgrid">'
     +K(venc.length,'Vencidos ⚠',venc.length?'ro':'ok',venc.length?'Contactar ahora':'Al día')
     +K(hoyL.length,'Para hoy',hoyL.length?'am':'','Programados')
@@ -367,7 +428,7 @@ function rSeg(){
         'Mes '+(meses+1)+' en curso — evitar llegar a 3.')+'</p></div>';
   }
 
-  h+='<div class="card"><div class="chd"><span>Prioridad hoy — protocolo días 1·3·7·14·21</span><small>'+LEADS.length+' leads</small></div>';
+  h+='<div class="card"><div class="chd"><span>Prioridad hoy — protocolo días 1·3·7·14·21</span><small>'+listaTotal.length+' leads (Bot+Odoo)</small></div>';
   var lista=venc.concat(hoyL,oro,resto.slice(0,30));
   if(!lista.length) h+='<div class="empty">✅ Sin leads pendientes</div>';
   else lista.forEach(function(l){h+=rowL(l,venc.indexOf(l)>=0?'venc':(hoyL.indexOf(l)>=0?'hoy':(esOro(l)?'oro':'')));});
@@ -377,12 +438,15 @@ function rSeg(){
 function K(v,l,c,s){return '<div class="kpi"><div class="kl">'+l+'</div><div class="kv'+(c?' '+c:'')+'">'+(v)+'</div>'+(s?'<div class="ks">'+s+'</div>':'')+'</div>';}
 function rowL(l,cls){
   var s=SEG[l.id]||{};
+  var esOdoo=(s.fuente==='odoo'||l.fuente==='odoo');
   var tel=String(l.contacto||'').replace(/\D/g,'');
   var wa=tel?'<a class="wa-btn" onclick="event.stopPropagation()" href="https://wa.me/57'+tel+'" target="_blank">WA</a>':'';
   var etq=ETAPAS.find(function(e){return e[0]===(s.stage||'prospecto');})||ETAPAS[0];
   return '<div class="lrow '+cls+'" onclick="abrirLead(\''+l.id+'\')">'
-    +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre||l.id)+'</div>'
+    +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre||l.id)
+    +(esOdoo?' <span class="bdg" style="background:#714B6722;color:#714B67">🟣 Odoo</span>':'')+'</div>'
     +'<div class="ldt">'+(l.proyecto||'')+(l.m2?' · '+l.m2+' m²':'')+(l.acabado?' · '+l.acabado:'')
+    +(l.valor?' · '+fmtCOP(l.valor):'')
     +(s.proxContacto?' · 📅 '+s.proxContacto:'')+(s.intentos?' · '+s.intentos+' contactos':'')+'</div></div>'
     +'<div class="lright">'+(esOro(l)?'<span class="bdg bd">ORO</span>':'')
     +'<span class="bdg bgr">'+etq[2]+'</span>'+wa+'</div></div>';
@@ -392,18 +456,21 @@ function rowL(l,cls){
 // PIPELINE
 // ═══════════════════════════════════════════════
 function rPipe(){
+  var listaTotal=LEADS.concat(ODOO_OPS);
   var h='<div class="kan">';
   ETAPAS.forEach(function(e){
-    var ls=LEADS.filter(function(l){return (SEG[l.id]||{}).stage===e[0];});
-    var tot=ls.reduce(function(a,l){return a+(Number((SEG[l.id]||{}).valorCotizado)||0);},0);
+    var ls=listaTotal.filter(function(l){return (SEG[l.id]||{}).stage===e[0];});
+    var tot=ls.reduce(function(a,l){return a+(Number((SEG[l.id]||{}).valorCotizado)||Number(l.valor)||0);},0);
     h+='<div class="kcol"><div class="kctit">'+e[2]+' '+e[1]+'<span class="bdg bgr">'+ls.length+'</span></div>';
     if(tot) h+='<div style="font-size:11px;color:var(--d);font-weight:700;margin-bottom:8px">'+fmtCOP(tot)+'</div>';
     if(!ls.length) h+='<div style="font-size:11px;color:var(--gc);text-align:center;padding:10px">—</div>';
     ls.forEach(function(l){
       var s=SEG[l.id]||{};
+      var v=Number(s.valorCotizado)||Number(l.valor)||0;
+      var esOdoo=(s.fuente==='odoo'||l.fuente==='odoo');
       h+='<div class="kcard" onclick="abrirLead(\''+l.id+'\')">'
-        +'<b>'+(l.nombre||l.id)+'</b>'
-        +'<div class="ks2">'+(l.proyecto||'')+(s.valorCotizado?' · '+fmtCOP(s.valorCotizado):'')+'</div></div>';
+        +'<b>'+(l.nombre||l.id)+(esOdoo?' 🟣':'')+'</b>'
+        +'<div class="ks2">'+(l.proyecto||'')+(v?' · '+fmtCOP(v):'')+'</div></div>';
     });
     h+='</div>';
   });
@@ -447,7 +514,7 @@ function rBot(){
 // MODAL DETALLE
 // ═══════════════════════════════════════════════
 function abrirLead(id){
-  var l=LEADS.find(function(x){return x.id===id;}); if(!l)return;
+  var l=LEADS.concat(ODOO_OPS).find(function(x){return x.id===id;}); if(!l)return;
   var s=SEG[id]||nuevoSeg(l); SEG[id]=s;
   var opts=ETAPAS.map(function(e){return '<option value="'+e[0]+'"'+(s.stage===e[0]?' selected':'')+'>'+e[2]+' '+e[1]+'</option>';}).join('');
   var tpls=TPL.map(function(t,i){return '<button class="tpl-btn" onclick="enviarTpl(\''+id+'\','+i+')">'+t[0]+'</button>';}).join('');
