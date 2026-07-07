@@ -506,11 +506,7 @@ function rSeg(){
   var h='';
   // CEO filter bar
   if(SESSION&&SESSION.rol==='ceo'){
-    h+='<div class="filter-bar">'
-      +'<button class="fchip'+(_filtroCom==='todos'?' on':'')+'" onclick="_filtroCom='todos';render()">Todos</button>'
-      +'<button class="fchip'+(_filtroCom==='com1'?' on':'')+'" onclick="_filtroCom='com1';render()">👤 Comercial 1</button>'
-      +'<button class="fchip'+(_filtroCom==='com2'?' on':'')+'" onclick="_filtroCom='com2';render()">👤 Comercial 2</button>'
-      +'</div>';
+    h+=fchipBar([['todos','Todos'],['com1','C1'],['com2','C2']],'_filtroCom');
   }
   h+='<div class="kgrid">'
     +K(venc.length,'Vencidos ⚠',venc.length?'ro':'ok',venc.length?'Contactar ahora':'Al día')
@@ -855,16 +851,15 @@ function ventasMes(mes, comKey){
     });
 }
 function rCom(){
+  var miKey=SESSION&&USERS[SESSION.usuario]&&USERS[SESSION.usuario].key||'todos';
+  var comLabel=SESSION&&SESSION.rol==='ceo'?'Equipo Comercial':nomCom(miKey);
+  var vs=ventasMes(_mesCom, SESSION&&SESSION.rol!=='ceo'?miKey:'todos');
   var total=vs.reduce(function(a,x){return a+Number(x.s.valorCerrado);},0);
   var t=tasa(total), com=Math.round(total*t), p1=Math.round(com/2), p2=com-p1;
   var pct=Math.min(100,Math.round(total/CFG.metaMes*100));
   var d2=new Date(_mesCom+'-01T12:00:00'); d2.setMonth(d2.getMonth()+1);
   var lim='10 de '+d2.toLocaleDateString('es-CO',{month:'long',year:'numeric'});
-  // Advertencia vinculación
   var sinVinc=vs.filter(function(x){return x.s.vinculadaAlCierre==='NO';});
-  var miKey=SESSION&&USERS[SESSION.usuario]&&USERS[SESSION.usuario].key||'todos';
-  var comLabel=SESSION&&SESSION.rol==='ceo'?'Equipo Comercial':nomCom(miKey);
-  var vs=ventasMes(_mesCom, SESSION&&SESSION.rol!=='ceo'?miKey:'todos');
   var h='<div class="card"><div class="chd"><span>Comisiones — '+comLabel+'</span></div><div class="cp">'
     +'<input type="month" value="'+_mesCom+'" onchange="_mesCom=this.value;render()" style="max-width:200px;margin-bottom:12px">'
     +'<div class="kgrid">'
@@ -1057,105 +1052,78 @@ function rPol(){
 // ═══════════════════════════════════════════════
 // ASIGNACIÓN — solo CEO
 // ═══════════════════════════════════════════════
+// Helpers para onclick sin conflicto de comillas
+function abrirLeadById(el){ abrirLead(el.getAttribute('data-id')); }
+function reasignarC1(el){ reasignar(el.closest('[data-id]').getAttribute('data-id'),'com1'); }
+function reasignarC2(el){ reasignar(el.closest('[data-id]').getAttribute('data-id'),'com2'); }
+function reasignarOtro(el,otro){ reasignar(el.closest('[data-id]').getAttribute('data-id'),otro); }
+
 function rAsig(){
   var todos=LEADS.concat(ODOO_OPS);
   var activos=todos.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='perdido';});
   var com1L=activos.filter(function(l){return (SEG[l.id]||{}).responsableKey==='com1';});
   var com2L=activos.filter(function(l){return (SEG[l.id]||{}).responsableKey==='com2';});
   var sinAsig=activos.filter(function(l){var k=(SEG[l.id]||{}).responsableKey;return !k||k==='';});
-
-  // Stats por comercial
   function statsC(lista){
     var vend=lista.filter(function(l){return (SEG[l.id]||{}).stage==='vendido';});
     var cal=lista.filter(function(l){return esCaliente(l)&&(SEG[l.id]||{}).stage!=='vendido';});
     var venc=lista.filter(function(l){var s=SEG[l.id]||{};return s.proxContacto&&s.proxContacto<hoyStr()&&s.stage!=='vendido';});
     var tot=vend.reduce(function(a,l){return a+Number((SEG[l.id]||{}).valorCerrado||0);},0);
-    return {tot:lista.length, vend:vend.length, cal:cal.length, venc:venc.length, valor:tot};
+    return {tot:lista.length,vend:vend.length,cal:cal.length,venc:venc.length,valor:tot};
   }
-  var s1=statsC(com1L), s2=statsC(com2L);
+  var s1=statsC(com1L),s2=statsC(com2L);
   var actC1=com1L.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='vendido';}).length;
   var actC2=com2L.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='vendido';}).length;
-
-  var h='';
-
-  // ── KPI comparativo ───────────────────────────
-  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">';
-
-  // Com1 card
-  h+='<div class="card"><div class="chd"><span>👤 Comercial 1</span><small>'+actC1+' activos</small></div><div class="cp">'
-    +'<div class="kgrid">'
-    +K(actC1,'Leads activos',actC1>actC2+5?'ro':actC1<actC2-5?'ok':'','')
-    +K(s1.cal,'Calientes',s1.cal?'ro':'ok','')
-    +K(s1.venc,'Vencidos',s1.venc?'am':'ok','')
-    +K(fmtCOP(s1.valor),'Cerrado','d','')
-    +'</div></div></div>';
-
-  // Com2 card
-  h+='<div class="card"><div class="chd"><span>👤 Comercial 2</span><small>'+actC2+' activos</small></div><div class="cp">'
-    +'<div class="kgrid">'
-    +K(actC2,'Leads activos',actC2>actC1+5?'ro':actC2<actC1-5?'ok':'','')
-    +K(s2.cal,'Calientes',s2.cal?'ro':'ok','')
-    +K(s2.venc,'Vencidos',s2.venc?'am':'ok','')
-    +K(fmtCOP(s2.valor),'Cerrado','d','')
-    +'</div></div></div>';
+  var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">';
+  h+='<div class="card"><div class="chd"><span>&#128100; Comercial 1</span><small>'+actC1+' activos</small></div><div class="cp"><div class="kgrid">'+K(actC1,'Leads activos',actC1>actC2+5?'ro':(actC1<actC2-5?'ok':''),'')+K(s1.cal,'Calientes',s1.cal?'ro':'ok','')+K(s1.venc,'Vencidos',s1.venc?'am':'ok','')+K(fmtCOP(s1.valor),'Cerrado','d','')+'</div></div></div>';
+  h+='<div class="card"><div class="chd"><span>&#128100; Comercial 2</span><small>'+actC2+' activos</small></div><div class="cp"><div class="kgrid">'+K(actC2,'Leads activos',actC2>actC1+5?'ro':(actC2<actC1-5?'ok':''),'')+K(s2.cal,'Calientes',s2.cal?'ro':'ok','')+K(s2.venc,'Vencidos',s2.venc?'am':'ok','')+K(fmtCOP(s2.valor),'Cerrado','d','')+'</div></div></div>';
   h+='</div>';
-
-  // Diff alert
   var diff=Math.abs(actC1-actC2);
   if(diff>5){
     var masC=actC1>actC2?'Comercial 1':'Comercial 2';
-    h+='<div class="alerta-3m" style="background:var(--ab);border-color:var(--am)">'
-      +'<h4 style="color:var(--am)">Desbalance de '+diff+' leads</h4>'
-      +'<p style="color:#7a4e16">'+masC+' tiene significativamente más leads activos. Reasignar algunos manualmente para equilibrar la carga.</p></div>';
+    h+='<div class="alerta-3m" style="background:var(--ab);border-color:var(--am)"><h4 style="color:var(--am)">Desbalance de '+diff+' leads</h4><p style="color:#7a4e16">'+masC+' tiene mas leads. Reasignar para equilibrar.</p></div>';
   }
-
-  // ── Sin asignar ───────────────────────────────
   if(sinAsig.length){
     h+='<div class="card" style="margin-bottom:12px"><div class="chd" style="background:var(--ro)"><span>Sin asignar ('+sinAsig.length+')</span><small>Asignar ahora</small></div>';
     sinAsig.forEach(function(l){
-      h+='<div class="lrow" onclick="abrirLead(''+l.id+'')">'
+      h+='<div class="lrow" data-id="'+l.id+'" onclick="abrirLeadById(this)">'
         +'<div style="flex:1"><div class="lnm">'+(l.nombre||l.id)+'</div>'
         +'<div class="ldt">'+(l.proyecto||'')+(l.valor?' · '+fmtCOP(l.valor):'')+'</div></div>'
-        +'<button class="wa-btn" style="background:var(--v)" onclick="event.stopPropagation();reasignar(''+l.id+'','com1')">→ C1</button>'
-        +'<button class="wa-btn" style="background:var(--d);margin-left:4px" onclick="event.stopPropagation();reasignar(''+l.id+'','com2')">→ C2</button>'
+        +'<button class="wa-btn" style="background:var(--v)" onclick="event.stopPropagation();reasignarC1(this)">→ C1</button>'
+        +'<button class="wa-btn" style="background:var(--d);margin-left:4px" onclick="event.stopPropagation();reasignarC2(this)">→ C2</button>'
         +'</div>';
     });
     h+='</div>';
   }
-
-  // ── Lista por comercial con botón reasignar ────
-  function listaAsig(lista, key, titulo){
+  function listaAsig(lista,key,titulo){
     var activa=lista.filter(function(l){return (SEG[l.id]||{}).stage!=='vendido'&&(SEG[l.id]||{}).stage!=='perdido';});
     var r='<div class="card"><div class="chd"><span>'+titulo+'</span><small>'+activa.length+' activos</small></div>';
     if(!activa.length){r+='<div class="empty">Sin leads activos</div>';return r+'</div>';}
+    var otro=key==='com1'?'com2':'com1';
     activa.slice(0,30).forEach(function(l){
       var s=SEG[l.id]||{};
       var etq=ETAPAS.find(function(e){return e[0]===(s.stage||'prospecto');})||ETAPAS[0];
-      var otro=key==='com1'?'com2':'com1';
-      r+='<div class="lrow" onclick="abrirLead(''+l.id+'')" style="'+(esCaliente(l)?'border-left:4px solid var(--d);':'')+'">'
+      r+='<div class="lrow" data-id="'+l.id+'" data-otro="'+otro+'" onclick="abrirLeadById(this)" style="'+(esCaliente(l)?'border-left:4px solid var(--d);':'')+'">'
         +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre||l.id)+vigTag(l)+'</div>'
         +'<div class="ldt">'+(l.proyecto||'')+(l.valor?' · '+fmtCOP(l.valor):'')+' · '+etq[2]+' '+etq[1]+'</div></div>'
-        +'<div class="lright">'
-        +'<button class="wa-btn" style="background:var(--gc);font-size:10px" onclick="event.stopPropagation();reasignar(''+l.id+'',''+otro+'')" title="Reasignar a '+(otro==='com1'?'Comercial 1':'Comercial 2')+'">⇄</button>'
-        +'</div></div>';
+        +'<div class="lright"><button class="wa-btn" style="background:var(--gc);font-size:10px" data-lid="'+l.id+'" data-otro="'+otro+'" onclick="event.stopPropagation();reasignar(this.dataset.lid,this.dataset.otro)" title="Reasignar">&#8644;</button></div></div>';
     });
-    if(activa.length>30) r+='<div style="padding:8px 13px;font-size:11px;color:var(--gc)">+'+(activa.length-30)+' más</div>';
+    if(activa.length>30) r+='<div style="padding:8px 13px;font-size:11px;color:var(--gc)">+'+(activa.length-30)+' mas</div>';
     return r+'</div>';
   }
-
-  h+=listaAsig(com1L,'com1','👤 Comercial 1 — leads activos');
-  h+=listaAsig(com2L,'com2','👤 Comercial 2 — leads activos');
+  h+=listaAsig(com1L,'com1','&#128100; Comercial 1 — leads activos');
+  h+=listaAsig(com2L,'com2','&#128100; Comercial 2 — leads activos');
   return h;
 }
 
-function reasignar(id, key){
+function reasignar(id,key){
   var s=SEG[id];
   if(!s) return;
   var anterior=s.responsableKey||'—';
   s.responsableKey=key;
   s.responsable=nomCom(key);
   if(!s.historial) s.historial=[];
-  s.historial.push({fecha:hoyStr(),accion:'Reasignado: '+anterior+' → '+key,stage:s.stage});
+  s.historial.push({fecha:hoyStr(),accion:'Reasignado: '+anterior+' a '+key,stage:s.stage});
   _dirty=true;
   document.getElementById('savebar').style.display='flex';
   toast('Reasignado a '+nomCom(key));
@@ -1165,6 +1133,22 @@ function reasignar(id, key){
 // ═══════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════
+function fchipBar(opts, varName){
+  var h='<div class="filter-bar">';
+  opts.forEach(function(o){
+    var val=o[0], lbl=o[1];
+    var cur=(varName==='_filtroCom'?_filtroCom:_filtroBot);
+    var on=cur===val?' on':'';
+    h+='<button class="fchip'+on+'" data-val="'+val+'" data-var="'+varName+'" onclick="setFiltro(this)">'+lbl+'</button>';
+  });
+  return h+'</div>';
+}
+function setFiltro(el){
+  var v=el.dataset.val, vr=el.dataset.var;
+  if(vr==='_filtroCom') _filtroCom=v;
+  else _filtroBot=v;
+  render();
+}
 function calcMesesSinMeta(){
   // Revisar últimos 3 meses en el SEG para ver cuántos consecutivos sin $150M
   var hoy=new Date(), meses=0;
