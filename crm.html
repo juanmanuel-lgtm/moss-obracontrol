@@ -136,6 +136,30 @@ input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 2
 .alerta-3m{background:var(--rb);border:1px solid var(--ro);border-radius:10px;padding:12px 14px;margin-bottom:14px;}
 .alerta-3m h4{color:var(--ro);font-size:13px;font-weight:700;margin-bottom:4px;}
 .alerta-3m p{font-size:11.5px;color:#7a1a10;line-height:1.5;}
+/* PIPELINE MENSUAL */
+.mes-selector{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.mes-selector::-webkit-scrollbar{display:none;}
+.mes-chip{padding:5px 12px;border-radius:20px;border:1px solid var(--b);background:var(--ba);font-size:11px;cursor:pointer;white-space:nowrap;font-family:inherit;color:var(--g);}
+.mes-chip.on{background:var(--v);color:#fff;border-color:var(--v);}
+.mes-chip.alert{border-color:var(--ro);color:var(--ro);}
+/* VIGENCIA LEADS */
+.vtag{display:inline-flex;align-items:center;padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;margin-left:4px;}
+.vhot{background:#FAEBE9;color:#B5362A;}   /* vencido >21 días sin contacto */
+.vwarm{background:#FDF0E0;color:#C17B2A;}  /* 8-21 días */
+.vok{background:#E8F0EB;color:#3A6B45;}    /* ≤7 días */
+.vnew{background:#F0EDE8;color:#A67C52;}   /* nuevo bot — sin contacto aún */
+/* CALIENTES PANEL */
+.hot-card{background:var(--rb);border:1px solid var(--ro);border-radius:11px;padding:10px 13px;margin-bottom:8px;cursor:pointer;}
+.hot-card:hover{box-shadow:0 2px 8px rgba(181,54,42,.15);}
+.hot-card .hc-nm{font-size:13px;font-weight:700;color:#B5362A;}
+.hot-card .hc-dt{font-size:10.5px;color:#7a1a10;margin-top:3px;}
+.hot-badge{display:inline-flex;align-items:center;gap:4px;background:#FAEBE9;border:1px solid var(--ro);border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700;color:var(--ro);}
+/* PIPELINE MONTH HEADER */
+.pipe-month-hd{padding:10px 14px;background:var(--v);border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;}
+.pipe-month-hd span{font-size:11px;color:#fff;font-weight:600;}
+.pipe-month-hd small{font-size:9px;color:rgba(255,255,255,.6);}
+.pipe-mes-total{font-size:11px;font-weight:700;color:var(--d);padding:6px 14px;background:var(--vc);border-bottom:1px solid var(--bv);}
+
 </style>
 </head>
 <body>
@@ -158,7 +182,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 2
 <div class="app" id="app">
 <div class="topbar">
   <div class="tlogo">M</div>
-  <div><div class="ttitle">CRM Comercial MOSS</div><div class="tsub">v33 · Playbook 2026</div></div>
+  <div><div class="ttitle">CRM Comercial MOSS</div><div class="tsub">v34 · Pipeline Mensual</div></div>
   <div class="topright">
     <span class="user-chip" id="user-chip">—</span>
     <div class="dbadge dno" id="badge" onclick="sync()">
@@ -183,12 +207,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 2
 // USUARIOS Y ROLES
 // ═══════════════════════════════════════════════
 var USERS = {
-  'juanma':  { pwd:'moss2026CEO', rol:'ceo',      nombre:'Juan Ma · CEO' },
-  'liz':     { pwd:'liz2026',     rol:'comercial', nombre:'Lizeth Figueroa' },
-  'care':    { pwd:'moss2026',    rol:'comercial', nombre:'Equipo Comercial' }
+  'juanma':  { pwd:'moss2026CEO', rol:'ceo',       nombre:'Juan Ma · CEO' },
+  'com1':    { pwd:'com1moss26',  rol:'comercial', nombre:'Comercial 1',  key:'com1' },
+  'com2':    { pwd:'com2moss26',  rol:'comercial', nombre:'Comercial 2',  key:'com2' },
+  'liz':     { pwd:'liz2026',     rol:'comercial', nombre:'Lizeth Figueroa', key:'com1' },
+  'care':    { pwd:'moss2026',    rol:'comercial', nombre:'Equipo Comercial', key:'com1' }
 };
-// CEO ve todo. Comercial ve seguimiento, pipeline, sus comisiones y políticas.
-// Comisiones: CEO puede ver cualquier mes. Comercial solo ve el suyo.
+// CEO ve todos los leads y puede filtrar por comercial.
+// Comercial solo ve sus leads asignados (campo responsableKey en SEG).
+// Asignación automática aleatoria equitativa al crear SEG de lead nuevo.
 
 var SESSION = null; // { usuario, rol, nombre }
 
@@ -215,7 +242,9 @@ function buildNavbar(){
   var tabs=[
     ['seg','📋','Seguimiento'],
     ['pipe','🔀','Pipeline'],
+    ['cal','🔴','Calientes'],
     isCeo?['bot','🤖','Leads Bot']:null,
+    isCeo?['asig','👥','Asignación']:null,
     ['com','💰','Comisiones'],
     isCeo?['met','📊','Métricas']:null,
     ['pol','📜','Políticas']
@@ -242,6 +271,72 @@ var CFG={
 function tasa(v){if(v<=150e6)return 0;if(v<=250e6)return 0.01;if(v<=350e6)return 0.02;return 0.035;}
 
 var LEADS=[], LEADS_HIST=[], ODOO_OPS=[], SEG={}, _dirty=false, _vista='seg', _mesCom=hoyStr().slice(0,7), _filtroBot='todos', _verHistoricos=false;
+var _mesPipe=hoyStr().slice(0,7);
+var _filtroCom='todos'; // CEO filter: 'todos' | 'com1' | 'com2'
+
+// ── Asignación aleatoria equitativa ──────────────────────────────────────────
+// Lee cuántos leads activos tiene cada comercial y asigna al que tenga menos.
+// En empate: elige aleatoriamente entre los empatados.
+function asignarComercial(){
+  var coms=['com1','com2'];
+  // Contar leads activos por comercial
+  var conteo={com1:0, com2:0};
+  LEADS.concat(ODOO_OPS).forEach(function(l){
+    var s=SEG[l.id]||{};
+    if(s.stage==='perdido') return; // excluir perdidos del conteo
+    var k=s.responsableKey||'';
+    if(conteo[k]!==undefined) conteo[k]++;
+  });
+  // El que tenga menos leads activos recibe el nuevo
+  if(conteo.com1 < conteo.com2) return 'com1';
+  if(conteo.com2 < conteo.com1) return 'com2';
+  // Empate: aleatorio
+  return coms[Math.floor(Math.random()*2)];
+}
+
+// Nombre visible de un comercial key
+function nomCom(key){
+  var u=Object.values(USERS).find(function(u){return u.key===key;});
+  return u?u.nombre:(key||'—');
+}
+
+// ¿El usuario actual puede ver este lead?
+function puedoVerLead(l){
+  if(!SESSION) return false;
+  if(SESSION.rol==='ceo') return true;
+  var s=SEG[l.id]||{};
+  var miKey=USERS[SESSION.usuario]&&USERS[SESSION.usuario].key;
+  if(!miKey) return true; // sin key: ve todo (legacy)
+  return (s.responsableKey||'')=== miKey;
+}
+
+function diasSinContacto(l){
+  var s=SEG[l.id]||{};
+  if(s.proxContacto && s.proxContacto >= hoyStr()) return 0;
+  var fechas=[s.proxContacto, String(l.fecha||'').slice(0,10)].filter(Boolean).sort().reverse();
+  if(!fechas.length) return 999;
+  var d=new Date(fechas[0]+'T12:00:00');
+  if(isNaN(d)) return 999;
+  return Math.floor((new Date()-d)/(1000*60*60*24));
+}
+function vigTag(l){
+  var s=SEG[l.id]||{};
+  if(s.stage==='vendido'||s.stage==='perdido') return '';
+  var d=diasSinContacto(l);
+  if(!s.intentos && !s.proxContacto) return '<span class="vtag vnew">NUEVO</span>';
+  if(d<=7)  return '<span class="vtag vok">Activo</span>';
+  if(d<=21) return '<span class="vtag vwarm">'+d+'d</span>';
+  return '<span class="vtag vhot">'+d+'d inactivo</span>';
+}
+function esCaliente(l){
+  var s=SEG[l.id]||{};
+  if(s.clasificacion==='Caliente') return true;
+  var tp=String(l.tiempoInicio||'').toLowerCase();
+  var cp=String(l.cumplePresupuesto||'').toLowerCase();
+  if(/si|sí/.test(cp) && /menor a un mes|un mes|1 mes|1-3|1 a 3/.test(tp)) return true;
+  if(Number(l.valor)>=80000000) return true;
+  return false;
+}
 function esLead2026(l){
   // El lead se considera activo 2026 si su fecha de interacción es >= 2026-01-01
   var f = String(l.fecha||'').trim();
@@ -355,11 +450,12 @@ function todosLosLeads(){ return LEADS.concat(ODOO_OPS); }
 
 function nuevoSeg(l){
   var oro=esOro(l);
+  var key=asignarComercial();
   return{stage:l.campana&&/vendido/i.test(l.campana||'')?'vendido':'prospecto',
     nota:'',proxContacto:'',intentos:0,presupuestoCliente:'',valorCotizado:'',
-    valorCerrado:'',m2:l.m2||'',responsable:'Lizeth Figueroa',fase1Agendada:'',
-    fechaCierre:'',anticipoOK:'',clasificacion:oro?'Caliente':'',historial:[],
-    vinculadaAlCierre:''};
+    valorCerrado:'',m2:l.m2||'',responsable:nomCom(key),responsableKey:key,
+    fase1Agendada:'',fechaCierre:'',anticipoOK:'',clasificacion:oro?'Caliente':'',
+    historial:[],vinculadaAlCierre:''};
 }
 function esOro(l){
   var s=SEG[l.id]||{};
@@ -379,6 +475,8 @@ function render(){
   var c=document.getElementById('content');
   if(_vista==='seg') c.innerHTML=rSeg();
   else if(_vista==='pipe') c.innerHTML=rPipe();
+  else if(_vista==='cal') c.innerHTML=rCal();
+  else if(_vista==='asig') c.innerHTML=rAsig();
   else if(_vista==='bot') c.innerHTML=rBot();
   else if(_vista==='com') c.innerHTML=rCom();
   else if(_vista==='met') c.innerHTML=rMet();
@@ -390,7 +488,11 @@ function render(){
 // ═══════════════════════════════════════════════
 function rSeg(){
   var hoy=hoyStr(), venc=[],hoyL=[],oro=[],resto=[];
-  var listaTotal=LEADS.concat(ODOO_OPS);
+  var listaTotal=LEADS.concat(ODOO_OPS).filter(puedoVerLead);
+  // CEO filter by comercial
+  if(SESSION&&SESSION.rol==='ceo'&&_filtroCom!=='todos'){
+    listaTotal=listaTotal.filter(function(l){return (SEG[l.id]||{}).responsableKey===_filtroCom;});
+  }
   listaTotal.forEach(function(l){
     var s=SEG[l.id]||{};
     if(s.stage==='vendido'||s.stage==='perdido') return;
@@ -401,7 +503,16 @@ function rSeg(){
     else resto.push(l);
   });
   var act=listaTotal.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='vendido'&&s.stage!=='perdido';});
-  var h='<div class="kgrid">'
+  var h='';
+  // CEO filter bar
+  if(SESSION&&SESSION.rol==='ceo'){
+    h+='<div class="filter-bar">'
+      +'<button class="fchip'+(_filtroCom==='todos'?' on':'')+'" onclick="_filtroCom='todos';render()">Todos</button>'
+      +'<button class="fchip'+(_filtroCom==='com1'?' on':'')+'" onclick="_filtroCom='com1';render()">👤 Comercial 1</button>'
+      +'<button class="fchip'+(_filtroCom==='com2'?' on':'')+'" onclick="_filtroCom='com2';render()">👤 Comercial 2</button>'
+      +'</div>';
+  }
+  h+='<div class="kgrid">'
     +K(venc.length,'Vencidos ⚠',venc.length?'ro':'ok',venc.length?'Contactar ahora':'Al día')
     +K(hoyL.length,'Para hoy',hoyL.length?'am':'','Programados')
     +K(oro.length,'Leads oro sin contactar','d','< 10 min (onboarding)')
@@ -447,19 +558,76 @@ function rowL(l,cls){
     +(esOdoo?' <span class="bdg" style="background:#714B6722;color:#714B67">🟣 Odoo</span>':'')+'</div>'
     +'<div class="ldt">'+(l.proyecto||'')+(l.m2?' · '+l.m2+' m²':'')+(l.acabado?' · '+l.acabado:'')
     +(l.valor?' · '+fmtCOP(l.valor):'')
-    +(s.proxContacto?' · 📅 '+s.proxContacto:'')+(s.intentos?' · '+s.intentos+' contactos':'')+'</div></div>'
+    +(s.responsableKey?' · 👤 '+nomCom(s.responsableKey):'')+(s.proxContacto?' · 📅 '+s.proxContacto:'')+(s.intentos?' · '+s.intentos+' contactos':'')+'</div></div>'
     +'<div class="lright">'+(esOro(l)?'<span class="bdg bd">ORO</span>':'')
     +'<span class="bdg bgr">'+etq[2]+'</span>'+wa+'</div></div>';
 }
 
 // ═══════════════════════════════════════════════
-// PIPELINE
+// PIPELINE MENSUAL v34
 // ═══════════════════════════════════════════════
 function rPipe(){
-  var listaTotal=LEADS.concat(ODOO_OPS);
-  var h='<div class="kan">';
+  var listaTotal=LEADS.concat(ODOO_OPS).filter(puedoVerLead);
+  var hoy=hoyStr(), mesActual=hoy.slice(0,7);
+
+  // Build month list
+  var mesesSet={};
+  listaTotal.forEach(function(l){
+    var s=SEG[l.id]||{};
+    if(s.stage==='vendido'||s.stage==='perdido') return;
+    var f=s.proxContacto||String(l.fecha||'').slice(0,10);
+    var m=f?f.slice(0,7):'';
+    if(m) mesesSet[m]=(mesesSet[m]||0)+1;
+    else mesesSet['sin-mes']=(mesesSet['sin-mes']||0)+1;
+  });
+  if(!mesesSet[mesActual]) mesesSet[mesActual]=0;
+  var mesesOrden=Object.keys(mesesSet).filter(function(m){return m!=='sin-mes';}).sort();
+  if(!mesesOrden.includes(_mesPipe)) _mesPipe=mesActual;
+
+  // Month selector chips
+  var h='<div class="mes-selector">';
+  mesesOrden.forEach(function(m){
+    var cnt=mesesSet[m]||0;
+    var nm=new Date(m+'-01T12:00:00').toLocaleDateString('es-CO',{month:'short',year:'numeric'});
+    var venc=listaTotal.filter(function(l){
+      var s=SEG[l.id]||{};
+      if(s.stage==='vendido'||s.stage==='perdido') return false;
+      var f=s.proxContacto||String(l.fecha||'').slice(0,10);
+      return (f?f.slice(0,7):mesActual)===m && s.proxContacto && s.proxContacto<hoy;
+    }).length;
+    h+='<button class="mes-chip'+(_mesPipe===m?' on':'')+(venc?' alert':'')+'" onclick="_mesPipe=\''+m+'\';render()">'+nm+' ('+cnt+')'+(venc?' ⚠':'')+'</button>';
+  });
+  h+='</div>';
+
+  // Filter leads for selected month
+  var leadsDelMes=listaTotal.filter(function(l){
+    var s=SEG[l.id]||{};
+    if(s.stage==='vendido'||s.stage==='perdido') return false;
+    var f=s.proxContacto||String(l.fecha||'').slice(0,10);
+    return (f?f.slice(0,7):mesActual)===_mesPipe;
+  });
+  var huerfanos=listaTotal.filter(function(l){
+    var s=SEG[l.id]||{};
+    if(s.stage==='vendido'||s.stage==='perdido') return false;
+    var f=s.proxContacto||String(l.fecha||'').slice(0,10);
+    return !f;
+  });
+
+  var totMes=leadsDelMes.reduce(function(a,l){return a+(Number((SEG[l.id]||{}).valorCotizado)||Number(l.valor)||0);},0);
+  var calMes=leadsDelMes.filter(function(l){return esCaliente(l);}).length;
+  var vencMes=leadsDelMes.filter(function(l){var s=SEG[l.id]||{};return s.proxContacto&&s.proxContacto<hoy;}).length;
+
+  h+='<div class="kgrid">'
+    +K(leadsDelMes.length,'Leads este mes','',new Date(_mesPipe+'-01T12:00:00').toLocaleDateString('es-CO',{month:'long',year:'numeric'}))
+    +K(calMes,'Calientes',calMes?'ro':'ok',calMes?'prioridad ahora':'ninguno')
+    +K(vencMes,'Vencidos',vencMes?'ro':'ok',vencMes?'sin seguimiento':'Al dia')
+    +K(totMes?fmtCOP(totMes):'$0','Pipeline del mes','d','cotizado+valor')
+    +'</div>';
+
+  // Kanban
+  h+='<div class="kan">';
   ETAPAS.forEach(function(e){
-    var ls=listaTotal.filter(function(l){return (SEG[l.id]||{}).stage===e[0];});
+    var ls=leadsDelMes.filter(function(l){return (SEG[l.id]||{}).stage===e[0];});
     var tot=ls.reduce(function(a,l){return a+(Number((SEG[l.id]||{}).valorCotizado)||Number(l.valor)||0);},0);
     h+='<div class="kcol"><div class="kctit">'+e[2]+' '+e[1]+'<span class="bdg bgr">'+ls.length+'</span></div>';
     if(tot) h+='<div style="font-size:11px;color:var(--d);font-weight:700;margin-bottom:8px">'+fmtCOP(tot)+'</div>';
@@ -468,15 +636,84 @@ function rPipe(){
       var s=SEG[l.id]||{};
       var v=Number(s.valorCotizado)||Number(l.valor)||0;
       var esOdoo=(s.fuente==='odoo'||l.fuente==='odoo');
-      h+='<div class="kcard" onclick="abrirLead(\''+l.id+'\')">'
-        +'<b>'+(l.nombre||l.id)+(esOdoo?' 🟣':'')+'</b>'
-        +'<div class="ks2">'+(l.proyecto||'')+(v?' · '+fmtCOP(v):'')+'</div></div>';
+      h+='<div class="kcard" onclick="abrirLead(\''+l.id+'\')" style="'+(esCaliente(l)?'border-left:3px solid var(--d);':'')+'">'
+        +'<b>'+(l.nombre||l.id)+(esOdoo?' 🟣':'')+(esCaliente(l)?' 🔴':'')+'</b>'
+        +'<div class="ks2">'+(l.proyecto||'')+(v?' · '+fmtCOP(v):'')+vigTag(l)+'</div></div>';
     });
     h+='</div>';
   });
-  return h+'</div>';
+  h+='</div>';
+
+  if(huerfanos.length){
+    h+='<div class="card" style="margin-top:10px"><div class="chd"><span>Sin mes asignado</span><small>Asigna proxContacto para ubicarlos</small></div>';
+    huerfanos.slice(0,20).forEach(function(l){
+      h+='<div class="lrow" onclick="abrirLead(\''+l.id+'\')">'
+        +'<div style="flex:1"><div class="lnm">'+(l.nombre||l.id)+'</div>'
+        +'<div class="ldt">'+(l.proyecto||'Sin proyecto')+'</div></div>'
+        +'<span class="bdg bgr">Sin fecha</span></div>';
+    });
+    if(huerfanos.length>20) h+='<div style="padding:8px 13px;font-size:11px;color:var(--gc)">+'+(huerfanos.length-20)+' mas</div>';
+    h+='</div>';
+  }
+  return h;
 }
 
+// ═══════════════════════════════════════════════
+// LEADS CALIENTES — tab comercial + CEO
+// ═══════════════════════════════════════════════
+function rCal(){
+  var todos=LEADS.concat(ODOO_OPS).filter(puedoVerLead);
+  var calientes=todos.filter(function(l){
+    var s=SEG[l.id]||{};
+    return esCaliente(l)&&s.stage!=='vendido'&&s.stage!=='perdido';
+  });
+  calientes.sort(function(a,b){return diasSinContacto(b)-diasSinContacto(a);});
+  var sin1=calientes.filter(function(l){return !((SEG[l.id]||{}).intentos);}).length;
+  var venc=calientes.filter(function(l){var pc=(SEG[l.id]||{}).proxContacto;return pc&&pc<hoyStr();}).length;
+
+  var h='<div class="kgrid">'
+    +K(calientes.length,'Leads calientes','ro','prioridad maxima')
+    +K(sin1,'Sin primer contacto',sin1?'ro':'ok',sin1?'SLA < 10 min':'OK')
+    +K(venc,'Vencidos',venc?'ro':'ok',venc?'sin seguimiento':'Al dia')
+    +K(calientes.filter(function(l){return diasSinContacto(l)<=7;}).length,'Activos 7d','ok','')
+    +'</div>';
+
+  if(sin1>0){
+    h+='<div class="alerta-3m"><h4>'+sin1+' leads calientes sin primer contacto</h4>'
+      +'<p>SLA: respuesta al lead del bot en menos de 10 minutos. Atender ahora.</p></div>';
+  }
+
+  if(!calientes.length){
+    h+='<div class="card"><div class="cp"><div class="empty">Sin leads calientes pendientes</div></div></div>';
+    return h;
+  }
+
+  h+='<div class="card"><div class="chd"><span>Leads Calientes — orden de urgencia</span><small>'+calientes.length+' leads</small></div>';
+  calientes.forEach(function(l){
+    var s=SEG[l.id]||{};
+    var dias=diasSinContacto(l);
+    var tel=String(l.contacto||'').replace(/\D/g,'');
+    var wa=tel?'<a class="wa-btn" onclick="event.stopPropagation()" href="https://wa.me/57'+tel+'" target="_blank">WA</a>':'';
+    var etq=ETAPAS.find(function(e){return e[0]===(s.stage||'prospecto');})||ETAPAS[0];
+    var urgColor=dias>21?'var(--ro)':dias>7?'var(--am)':'var(--ok)';
+    var urgLabel=!s.intentos?'NUEVO — contactar ya':dias>21?dias+'d inactivo':dias>7?dias+'d sin contacto':'Activo';
+    h+='<div class="lrow oro" onclick="abrirLead(\''+l.id+'\')" style="border-left:4px solid '+urgColor+'">'
+      +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre||l.id)+'<span class="hot-badge" style="margin-left:6px">Caliente</span></div>'
+      +'<div class="ldt">'+(l.proyecto||'')+(l.m2?' · '+l.m2+' m2':'')+(l.valor?' · '+fmtCOP(l.valor):'')
+        +' · <span style="color:'+urgColor+';font-weight:700">'+urgLabel+'</span>'+(s.proxContacto?' · '+s.proxContacto:'')+'</div></div>'
+      +'<div class="lright"><span class="bdg bgr">'+etq[2]+'</span>'+wa+'</div></div>';
+  });
+  h+='</div>';
+
+  h+='<div class="card" style="margin-top:8px"><div class="chd"><span>Protocolo leads calientes</span></div><div class="cp">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +'<div style="background:var(--rb);border-radius:8px;padding:9px"><div style="font-size:10px;font-weight:700;color:var(--ro);margin-bottom:4px">NUEVO</div><div style="font-size:11px;color:#7a1a10">Contactar en menos de 10 min. Plantilla Dia 1. Registrar intento.</div></div>'
+    +'<div style="background:var(--ab);border-radius:8px;padding:9px"><div style="font-size:10px;font-weight:700;color:var(--am);margin-bottom:4px">8-21 dias sin contacto</div><div style="font-size:11px;color:#7a4e16">Plantilla Dia 7. Ofrecer visita a obra terminada. Registrar.</div></div>'
+    +'<div style="background:var(--rb);border-radius:8px;padding:9px"><div style="font-size:10px;font-weight:700;color:var(--ro);margin-bottom:4px">+21 dias inactivo</div><div style="font-size:11px;color:#7a1a10">Plantilla Dia 21. Si no responde: marcar Dormido.</div></div>'
+    +'<div style="background:var(--vc);border-radius:8px;padding:9px"><div style="font-size:10px;font-weight:700;color:var(--ok);margin-bottom:4px">Activo 7 dias</div><div style="font-size:11px;color:#2A5C35">Mantener seguimiento. Avanzar a Fase 1 si hay senal de cierre.</div></div>'
+    +'</div></div></div>';
+  return h;
+}
 // ═══════════════════════════════════════════════
 // LEADS BOT (solo CEO)
 // ═══════════════════════════════════════════════
@@ -530,6 +767,10 @@ function abrirLead(id){
     +'<div class="grid2">'
     +'<div><label class="flabel">Etapa</label><select id="f-stage">'+opts+'</select></div>'
     +'<div><label class="flabel">Clasificación</label><select id="f-cla"><option'+(s.clasificacion==='Caliente'?' selected':'')+'>Caliente</option><option'+(s.clasificacion==='Tibio'?' selected':'')+'>Tibio</option><option'+(s.clasificacion==='Frio'?' selected':'')+'>Frio</option></select></div>'
+    +'<div><label class="flabel">Responsable</label><select id="f-resp">'
+    +'<option value="com1"'+(s.responsableKey==='com1'?' selected':'')+'>Comercial 1</option>'
+    +'<option value="com2"'+(s.responsableKey==='com2'?' selected':'')+'>Comercial 2</option>'
+    +'</select></div>'
     +'</div>'
     +'<div class="sec-tit">💰 Datos comerciales</div>'
     +'<div class="grid2">'
@@ -568,6 +809,8 @@ function guardarDet(id){
   var s=SEG[id];
   s.stage=document.getElementById('f-stage').value;
   s.clasificacion=document.getElementById('f-cla').value;
+  var respEl=document.getElementById('f-resp');
+  if(respEl){ s.responsableKey=respEl.value; s.responsable=nomCom(respEl.value); }
   s.presupuestoCliente=document.getElementById('f-pre').value;
   s.valorCotizado=document.getElementById('f-cot').value;
   s.valorCerrado=document.getElementById('f-cer').value;
@@ -586,7 +829,7 @@ function guardarDet(id){
 }
 function enviarTpl(id,i){
   var l=LEADS.find(function(x){return x.id===id;}); var s=SEG[id];
-  var txt=TPL[i][1].replace('{n}',(l.nombre||'').split(' ')[0]).replace('{x}','Lizeth').replace('{ig}',CFG.igUrl);
+  var txt=TPL[i][1].replace('{n}',(l.nombre||'').split(' ')[0]).replace('{x}',SESSION?SESSION.nombre.split(' ')[0]:'Lizeth').replace('{ig}',CFG.igUrl);
   var tel=String(l.contacto||'').replace(/\D/g,'');
   if(!tel){toast('Sin teléfono');return;}
   s.intentos=(s.intentos||0)+1;
@@ -601,12 +844,17 @@ function cModal(){document.getElementById('mbg').classList.remove('open');}
 // ═══════════════════════════════════════════════
 // COMISIONES
 // ═══════════════════════════════════════════════
-function ventasMes(mes){
+function ventasMes(mes, comKey){
   return LEADS.map(function(l){return{l:l,s:SEG[l.id]||{}};})
-    .filter(function(x){return x.s.stage==='vendido'&&x.s.anticipoOK==='SI'&&(x.s.fechaCierre||'').slice(0,7)===mes&&Number(x.s.valorCerrado)>0;});
+    .filter(function(x){
+      if(x.s.stage!=='vendido'||x.s.anticipoOK!=='SI') return false;
+      if((x.s.fechaCierre||'').slice(0,7)!==mes) return false;
+      if(Number(x.s.valorCerrado)<=0) return false;
+      if(comKey && comKey!=='todos') return x.s.responsableKey===comKey;
+      return true;
+    });
 }
 function rCom(){
-  var vs=ventasMes(_mesCom);
   var total=vs.reduce(function(a,x){return a+Number(x.s.valorCerrado);},0);
   var t=tasa(total), com=Math.round(total*t), p1=Math.round(com/2), p2=com-p1;
   var pct=Math.min(100,Math.round(total/CFG.metaMes*100));
@@ -614,7 +862,10 @@ function rCom(){
   var lim='10 de '+d2.toLocaleDateString('es-CO',{month:'long',year:'numeric'});
   // Advertencia vinculación
   var sinVinc=vs.filter(function(x){return x.s.vinculadaAlCierre==='NO';});
-  var h='<div class="card"><div class="chd"><span>Comisiones — Lizeth Figueroa</span></div><div class="cp">'
+  var miKey=SESSION&&USERS[SESSION.usuario]&&USERS[SESSION.usuario].key||'todos';
+  var comLabel=SESSION&&SESSION.rol==='ceo'?'Equipo Comercial':nomCom(miKey);
+  var vs=ventasMes(_mesCom, SESSION&&SESSION.rol!=='ceo'?miKey:'todos');
+  var h='<div class="card"><div class="chd"><span>Comisiones — '+comLabel+'</span></div><div class="cp">'
     +'<input type="month" value="'+_mesCom+'" onchange="_mesCom=this.value;render()" style="max-width:200px;margin-bottom:12px">'
     +'<div class="kgrid">'
     +K(fmtCOP(total),'Ventas con anticipo',total<CFG.umbral?'ro':total>=CFG.metaMes?'ok':'am',pct+'% de meta $300M')
@@ -801,6 +1052,114 @@ function rPol(){
     +'Documentos de referencia: Otrosí No.1 (02/03/2026) · Política Comercial Integral MOSS 2026 · Lineamientos y Políticas MOSS · Documento de Onboarding Ejecutivo Comercial. '
     +'La Dirección podrá auditar cotizaciones, descuentos, cierres y comisiones en cualquier momento (numeral 17, Política Comercial).</div>'
     +'</div></div>';
+}
+
+// ═══════════════════════════════════════════════
+// ASIGNACIÓN — solo CEO
+// ═══════════════════════════════════════════════
+function rAsig(){
+  var todos=LEADS.concat(ODOO_OPS);
+  var activos=todos.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='perdido';});
+  var com1L=activos.filter(function(l){return (SEG[l.id]||{}).responsableKey==='com1';});
+  var com2L=activos.filter(function(l){return (SEG[l.id]||{}).responsableKey==='com2';});
+  var sinAsig=activos.filter(function(l){var k=(SEG[l.id]||{}).responsableKey;return !k||k==='';});
+
+  // Stats por comercial
+  function statsC(lista){
+    var vend=lista.filter(function(l){return (SEG[l.id]||{}).stage==='vendido';});
+    var cal=lista.filter(function(l){return esCaliente(l)&&(SEG[l.id]||{}).stage!=='vendido';});
+    var venc=lista.filter(function(l){var s=SEG[l.id]||{};return s.proxContacto&&s.proxContacto<hoyStr()&&s.stage!=='vendido';});
+    var tot=vend.reduce(function(a,l){return a+Number((SEG[l.id]||{}).valorCerrado||0);},0);
+    return {tot:lista.length, vend:vend.length, cal:cal.length, venc:venc.length, valor:tot};
+  }
+  var s1=statsC(com1L), s2=statsC(com2L);
+  var actC1=com1L.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='vendido';}).length;
+  var actC2=com2L.filter(function(l){var s=SEG[l.id]||{};return s.stage!=='vendido';}).length;
+
+  var h='';
+
+  // ── KPI comparativo ───────────────────────────
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">';
+
+  // Com1 card
+  h+='<div class="card"><div class="chd"><span>👤 Comercial 1</span><small>'+actC1+' activos</small></div><div class="cp">'
+    +'<div class="kgrid">'
+    +K(actC1,'Leads activos',actC1>actC2+5?'ro':actC1<actC2-5?'ok':'','')
+    +K(s1.cal,'Calientes',s1.cal?'ro':'ok','')
+    +K(s1.venc,'Vencidos',s1.venc?'am':'ok','')
+    +K(fmtCOP(s1.valor),'Cerrado','d','')
+    +'</div></div></div>';
+
+  // Com2 card
+  h+='<div class="card"><div class="chd"><span>👤 Comercial 2</span><small>'+actC2+' activos</small></div><div class="cp">'
+    +'<div class="kgrid">'
+    +K(actC2,'Leads activos',actC2>actC1+5?'ro':actC2<actC1-5?'ok':'','')
+    +K(s2.cal,'Calientes',s2.cal?'ro':'ok','')
+    +K(s2.venc,'Vencidos',s2.venc?'am':'ok','')
+    +K(fmtCOP(s2.valor),'Cerrado','d','')
+    +'</div></div></div>';
+  h+='</div>';
+
+  // Diff alert
+  var diff=Math.abs(actC1-actC2);
+  if(diff>5){
+    var masC=actC1>actC2?'Comercial 1':'Comercial 2';
+    h+='<div class="alerta-3m" style="background:var(--ab);border-color:var(--am)">'
+      +'<h4 style="color:var(--am)">Desbalance de '+diff+' leads</h4>'
+      +'<p style="color:#7a4e16">'+masC+' tiene significativamente más leads activos. Reasignar algunos manualmente para equilibrar la carga.</p></div>';
+  }
+
+  // ── Sin asignar ───────────────────────────────
+  if(sinAsig.length){
+    h+='<div class="card" style="margin-bottom:12px"><div class="chd" style="background:var(--ro)"><span>Sin asignar ('+sinAsig.length+')</span><small>Asignar ahora</small></div>';
+    sinAsig.forEach(function(l){
+      h+='<div class="lrow" onclick="abrirLead(''+l.id+'')">'
+        +'<div style="flex:1"><div class="lnm">'+(l.nombre||l.id)+'</div>'
+        +'<div class="ldt">'+(l.proyecto||'')+(l.valor?' · '+fmtCOP(l.valor):'')+'</div></div>'
+        +'<button class="wa-btn" style="background:var(--v)" onclick="event.stopPropagation();reasignar(''+l.id+'','com1')">→ C1</button>'
+        +'<button class="wa-btn" style="background:var(--d);margin-left:4px" onclick="event.stopPropagation();reasignar(''+l.id+'','com2')">→ C2</button>'
+        +'</div>';
+    });
+    h+='</div>';
+  }
+
+  // ── Lista por comercial con botón reasignar ────
+  function listaAsig(lista, key, titulo){
+    var activa=lista.filter(function(l){return (SEG[l.id]||{}).stage!=='vendido'&&(SEG[l.id]||{}).stage!=='perdido';});
+    var r='<div class="card"><div class="chd"><span>'+titulo+'</span><small>'+activa.length+' activos</small></div>';
+    if(!activa.length){r+='<div class="empty">Sin leads activos</div>';return r+'</div>';}
+    activa.slice(0,30).forEach(function(l){
+      var s=SEG[l.id]||{};
+      var etq=ETAPAS.find(function(e){return e[0]===(s.stage||'prospecto');})||ETAPAS[0];
+      var otro=key==='com1'?'com2':'com1';
+      r+='<div class="lrow" onclick="abrirLead(''+l.id+'')" style="'+(esCaliente(l)?'border-left:4px solid var(--d);':'')+'">'
+        +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre||l.id)+vigTag(l)+'</div>'
+        +'<div class="ldt">'+(l.proyecto||'')+(l.valor?' · '+fmtCOP(l.valor):'')+' · '+etq[2]+' '+etq[1]+'</div></div>'
+        +'<div class="lright">'
+        +'<button class="wa-btn" style="background:var(--gc);font-size:10px" onclick="event.stopPropagation();reasignar(''+l.id+'',''+otro+'')" title="Reasignar a '+(otro==='com1'?'Comercial 1':'Comercial 2')+'">⇄</button>'
+        +'</div></div>';
+    });
+    if(activa.length>30) r+='<div style="padding:8px 13px;font-size:11px;color:var(--gc)">+'+(activa.length-30)+' más</div>';
+    return r+'</div>';
+  }
+
+  h+=listaAsig(com1L,'com1','👤 Comercial 1 — leads activos');
+  h+=listaAsig(com2L,'com2','👤 Comercial 2 — leads activos');
+  return h;
+}
+
+function reasignar(id, key){
+  var s=SEG[id];
+  if(!s) return;
+  var anterior=s.responsableKey||'—';
+  s.responsableKey=key;
+  s.responsable=nomCom(key);
+  if(!s.historial) s.historial=[];
+  s.historial.push({fecha:hoyStr(),accion:'Reasignado: '+anterior+' → '+key,stage:s.stage});
+  _dirty=true;
+  document.getElementById('savebar').style.display='flex';
+  toast('Reasignado a '+nomCom(key));
+  render();
 }
 
 // ═══════════════════════════════════════════════
