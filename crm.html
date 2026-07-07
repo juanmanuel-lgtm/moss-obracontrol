@@ -159,6 +159,57 @@ input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 2
 .pipe-month-hd span{font-size:11px;color:#fff;font-weight:600;}
 .pipe-month-hd small{font-size:9px;color:rgba(255,255,255,.6);}
 .pipe-mes-total{font-size:11px;font-weight:700;color:var(--d);padding:6px 14px;background:var(--vc);border-bottom:1px solid var(--bv);}
+/* ALERTA AUTOMÁTICA MODAL */
+.alert-modal{position:fixed;inset:0;background:rgba(28,28,26,.6);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
+.alert-modal.open{display:flex;}
+.alert-box{background:var(--bc);border-radius:16px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.25);}
+.alert-box-hd{background:var(--ro);padding:14px 18px;display:flex;align-items:center;gap:10px;}
+.alert-box-hd h3{color:#fff;font-size:14px;margin:0;}
+.alert-box-hd span{background:rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;margin-left:auto;}
+.alert-item{padding:12px 16px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:10px;}
+.alert-item:last-child{border-bottom:none;}
+.alert-item-info{flex:1;min-width:0;}
+.alert-item-name{font-size:13px;font-weight:700;color:var(--v);}
+.alert-item-time{font-size:10.5px;color:var(--ro);font-weight:700;margin-top:2px;}
+.alert-item-det{font-size:10px;color:var(--g);margin-top:1px;}
+.wa-action-btn{display:flex;align-items:center;gap:6px;background:#25D366;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;text-decoration:none;}
+.wa-action-btn:hover{background:#1fb356;}
+.dismiss-btn{background:var(--ba);border:1px solid var(--b);border-radius:10px;padding:8px 12px;font-size:11px;cursor:pointer;font-family:inherit;color:var(--g);}
+.alert-footer{padding:12px 16px;background:var(--ba);display:flex;justify-content:space-between;align-items:center;}
+/* FLOATING ALERT BELL */
+.alert-bell{position:fixed;bottom:80px;right:16px;z-index:400;background:var(--ro);color:#fff;border:none;border-radius:50%;width:48px;height:48px;font-size:20px;cursor:pointer;box-shadow:0 4px 12px rgba(181,54,42,.4);display:none;align-items:center;justify-content:center;animation:bellring .6s ease-in-out infinite;}
+.alert-bell.show{display:flex;}
+@keyframes bellring{0%,100%{transform:rotate(-8deg);}50%{transform:rotate(8deg);}}
+.alert-bell-badge{position:absolute;top:-4px;right:-4px;background:#fff;color:var(--ro);border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+/* QUICK ACTION in row */
+.qa-btn{display:inline-flex;align-items:center;gap:4px;background:#25D366;color:#fff;border:none;border-radius:7px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;}
+.qa-btn:hover{background:#1fb356;}
+
+/* SEMÁFORO TIEMPO DE RESPUESTA */
+.sla-bar{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;font-size:11px;font-weight:700;margin-bottom:2px;}
+.sla-ok  {background:#E8F0EB;color:#3A6B45;}
+.sla-warn{background:#FDF0E0;color:#C17B2A;}
+.sla-hot {background:#FAEBE9;color:#B5362A;}
+.sla-new {background:#F0EDE8;color:#A67C52;}
+.sla-dot {width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sla-dot-ok  {background:#3A6B45;}
+.sla-dot-warn{background:#C17B2A;animation:pulse 1.5s infinite;}
+.sla-dot-hot {background:#B5362A;animation:pulse .8s infinite;}
+.sla-dot-new {background:#A67C52;animation:pulse 1s infinite;}
+/* LEAD CARD MEJORADA */
+.lrow-time{font-size:9.5px;color:var(--gc);margin-top:1px;}
+.timer-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;white-space:nowrap;}
+.tb-new {background:#F0EDE8;color:#A67C52;border:1px solid #D4C4B0;}
+.tb-ok  {background:#E8F0EB;color:#3A6B45;border:1px solid #C2D1C5;}
+.tb-warn{background:#FDF0E0;color:#C17B2A;border:1px solid #E8C88A;}
+.tb-hot {background:#FAEBE9;color:#B5362A;border:1px solid #E8A8A0;}
+/* PANEL SLA HEADER */
+.sla-header{background:var(--v);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+.sla-kpi{text-align:center;}
+.sla-kpi-v{font-size:20px;font-weight:700;color:#fff;}
+.sla-kpi-l{font-size:9px;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.8px;}
+.sla-sep{width:1px;background:rgba(255,255,255,.15);align-self:stretch;}
+
 
 </style>
 </head>
@@ -266,7 +317,9 @@ var CFG={
   odooDb:'moss-arquitectura-y-mobiliario-sas',
   igUrl:'https://www.instagram.com/moss.arquitectura',
   empresa:'MOSS Arquitectura y Mobiliario S.A.S. — NIT 901.159.078-6',
-  metaMes:300000000, umbral:150000000, pisoM2:1200000, minCto:18000000
+  metaMes:300000000, umbral:150000000, pisoM2:1200000, minCto:18000000,
+  waCom1:'573213516016',   // Comercial 1 — alertas urgentes
+  waCom2:'573134379479'    // Comercial 2 — alertas urgentes
 };
 function tasa(v){if(v<=150e6)return 0;if(v<=250e6)return 0.01;if(v<=350e6)return 0.02;return 0.035;}
 
@@ -318,6 +371,77 @@ function diasSinContacto(l){
   var d=new Date(fechas[0]+'T12:00:00');
   if(isNaN(d)) return 999;
   return Math.floor((new Date()-d)/(1000*60*60*24));
+}
+
+// ── Tiempo desde que llegó el lead (usando fechaIngreso si existe, sino l.fecha) ──
+function horasDesdeIngreso(l){
+  var s=SEG[l.id]||{};
+  // Si ya tiene primer contacto registrado: tiempo=0 (ya fue atendido)
+  if(s.intentos && s.intentos>0 && s.primerContactoTs) return 0;
+  // Usar timestamp exacto si existe, sino fecha del lead
+  var ts=s.fechaIngresoTs || l.fechaTs || null;
+  if(ts){
+    var diff=(new Date()-new Date(ts))/(1000*60*60);
+    return Math.round(diff*10)/10;
+  }
+  // Fallback: usar l.fecha como día (sin hora exacta)
+  var f=String(l.fecha||'').slice(0,10);
+  if(!f) return null;
+  var d=new Date(f+'T12:00:00');
+  if(isNaN(d)) return null;
+  var diff=(new Date()-d)/(1000*60*60);
+  return Math.round(diff);
+}
+
+// ── Registrar primer contacto con timestamp ──────────────────────────────────
+function registrarPrimerContacto(id){
+  var s=SEG[id]||{};
+  if(!s.primerContactoTs && (s.intentos||0)===0){
+    s.primerContactoTs=new Date().toISOString();
+    // Calcular tiempo de respuesta en minutos
+    var ts=s.fechaIngresoTs||null;
+    if(ts){
+      s.tiempoRespuestaMin=Math.round((new Date()-new Date(ts))/60000);
+    }
+  }
+}
+
+// ── Badge de tiempo para mostrar en cada lead ────────────────────────────────
+function timerBadge(l){
+  var s=SEG[l.id]||{};
+  if(s.stage==='vendido'||s.stage==='perdido') return '';
+  // Si ya tiene contactos: mostrar tiempo desde último contacto
+  if(s.intentos && s.intentos>0){
+    var d=diasSinContacto(l);
+    if(d===0) return '<span class="timer-badge tb-ok">✓ Contactado</span>';
+    if(d<=3)  return '<span class="timer-badge tb-ok">'+d+'d</span>';
+    if(d<=7)  return '<span class="timer-badge tb-warn">'+d+'d sin contacto</span>';
+    if(d<=21) return '<span class="timer-badge tb-warn">⚠ '+d+'d</span>';
+    return '<span class="timer-badge tb-hot">🔴 '+d+'d inactivo</span>';
+  }
+  // Sin ningún contacto: mostrar urgencia de primer contacto
+  var h=horasDesdeIngreso(l);
+  if(h===null) return '<span class="timer-badge tb-new">NUEVO</span>';
+  if(h<1) return '<span class="timer-badge tb-hot">🔴 Hace '+(Math.round(h*60))+'min — ATENDER YA</span>';
+  if(h<10) return '<span class="timer-badge tb-hot">🔴 Hace '+Math.round(h)+'h sin respuesta</span>';
+  if(h<24) return '<span class="timer-badge tb-warn">⚠ Hace '+Math.round(h)+'h</span>';
+  var d2=Math.floor(h/24);
+  return '<span class="timer-badge tb-hot">🔴 '+d2+'d sin primer contacto</span>';
+}
+
+// ── SLA score: % leads calientes respondidos en <10 min este mes ─────────────
+function slaScore(){
+  var cal=LEADS.filter(function(l){return esCaliente(l);});
+  if(!cal.length) return {pct:100, total:0, ok:0, vencidos:0};
+  var ok=cal.filter(function(l){
+    var s=SEG[l.id]||{};
+    return s.primerContactoTs && (s.tiempoRespuestaMin||999)<10;
+  }).length;
+  var venc=cal.filter(function(l){
+    var s=SEG[l.id]||{};
+    return !s.intentos || s.intentos===0;
+  }).length;
+  return {pct:Math.round(ok/Math.max(cal.length,1)*100), total:cal.length, ok:ok, vencidos:venc};
 }
 function vigTag(l){
   var s=SEG[l.id]||{};
@@ -386,6 +510,7 @@ function cargar(){
     LEADS_HIST.forEach(function(l){if(!SEG[l.id])SEG[l.id]=nuevoSeg(l);});
     setBadge(true,'✓ Bot: '+LEADS.length+' activos 2026');
     render();
+    setTimeout(checkAlertas, 800); // revisar alertas después de cargar
     if(CFG.odooUrl && CFG.odooKey) cargarOdoo();
   };
   sc.onerror=function(){clearTimeout(tm);setBadge(false,'Error');render();};
@@ -451,11 +576,16 @@ function todosLosLeads(){ return LEADS.concat(ODOO_OPS); }
 function nuevoSeg(l){
   var oro=esOro(l);
   var key=asignarComercial();
+  // Registrar timestamp exacto de ingreso al CRM (primer vez que se ve el lead)
+  var ahora=new Date().toISOString();
   return{stage:l.campana&&/vendido/i.test(l.campana||'')?'vendido':'prospecto',
     nota:'',proxContacto:'',intentos:0,presupuestoCliente:'',valorCotizado:'',
     valorCerrado:'',m2:l.m2||'',responsable:nomCom(key),responsableKey:key,
     fase1Agendada:'',fechaCierre:'',anticipoOK:'',clasificacion:oro?'Caliente':'',
-    historial:[],vinculadaAlCierre:''};
+    historial:[],vinculadaAlCierre:'',
+    fechaIngresoTs:l.fechaTs||ahora,  // timestamp de ingreso al sistema
+    primerContactoTs:'',              // se llena al primer envío de WA
+    tiempoRespuestaMin:null};         // minutos entre ingreso y primer contacto
 }
 function esOro(l){
   var s=SEG[l.id]||{};
@@ -508,6 +638,24 @@ function rSeg(){
   if(SESSION&&SESSION.rol==='ceo'){
     h+=fchipBar([['todos','Todos'],['com1','C1'],['com2','C2']],'_filtroCom');
   }
+  // ── Panel SLA tiempo de respuesta ─────────────────────────────────────────
+  var sla=slaScore();
+  var sinResp=act.filter(function(l){var s=SEG[l.id]||{};return esCaliente(l)&&(!s.intentos||s.intentos===0);});
+  var respHoy=act.filter(function(l){var s=SEG[l.id]||{};
+    return s.primerContactoTs&&s.primerContactoTs.slice(0,10)===hoyStr();}).length;
+  var slaColor=sla.pct>=80?'#3A6B45':sla.pct>=50?'#C17B2A':'#B5362A';
+  if(sinResp.length||act.length){
+    h+='<div class="sla-header">'
+      +'<div class="sla-kpi"><div class="sla-kpi-v" style="color:'+(sinResp.length?'#FAEBE9':'#C8E6C9')+'">'+sinResp.length+'</div><div class="sla-kpi-l">Sin primer contacto</div></div>'
+      +'<div class="sla-sep"></div>'
+      +'<div class="sla-kpi"><div class="sla-kpi-v">'+respHoy+'</div><div class="sla-kpi-l">Respondidos hoy</div></div>'
+      +'<div class="sla-sep"></div>'
+      +'<div class="sla-kpi"><div class="sla-kpi-v" style="color:'+slaColor+'">'+sla.pct+'%</div><div class="sla-kpi-l">SLA &lt;10min cumplido</div></div>'
+      +'<div class="sla-sep"></div>'
+      +'<div class="sla-kpi"><div class="sla-kpi-v">'+act.length+'</div><div class="sla-kpi-l">En pipeline</div></div>'
+      +(sinResp.length?'<div style="margin-left:auto;background:#FAEBE9;border:1px solid var(--ro);border-radius:8px;padding:6px 12px;font-size:11px;color:var(--ro);font-weight:700">⚡ '+sinResp.length+' lead(s) caliente(s) sin responder — SLA &lt; 10 min</div>':'')
+      +'</div>';
+  }
   h+='<div class="kgrid">'
     +K(venc.length,'Vencidos ⚠',venc.length?'ro':'ok',venc.length?'Contactar ahora':'Al día')
     +K(hoyL.length,'Para hoy',hoyL.length?'am':'','Programados')
@@ -548,6 +696,13 @@ function rowL(l,cls){
   var esOdoo=(s.fuente==='odoo'||l.fuente==='odoo');
   var tel=String(l.contacto||'').replace(/\D/g,'');
   var wa=tel?'<a class="wa-btn" onclick="event.stopPropagation()" href="https://wa.me/57'+tel+'" target="_blank">WA</a>':'';
+  // Quick action: mensaje pre-escrito para calientes sin contacto
+  var s0=SEG[l.id]||{};
+  var qaMsg=construirMsgCliente(l,s0);
+  var qa='';
+  if(esCaliente(l)&&(!s0.intentos||s0.intentos===0)&&tel){
+    qa='<a class="qa-btn" data-lid="'+l.id+'" href="https://wa.me/57'+tel+'?text='+encodeURIComponent(qaMsg)+'" target="_blank" onclick="event.stopPropagation();registrarContactoAlerta(this.dataset.lid)">⚡ Contactar ya</a>';
+  }
   var etq=ETAPAS.find(function(e){return e[0]===(s.stage||'prospecto');})||ETAPAS[0];
   return '<div class="lrow '+cls+'" onclick="abrirLead(\''+l.id+'\')">'
     +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre||l.id)
@@ -555,7 +710,7 @@ function rowL(l,cls){
     +'<div class="ldt">'+(l.proyecto||'')+(l.m2?' · '+l.m2+' m²':'')+(l.acabado?' · '+l.acabado:'')
     +(l.valor?' · '+fmtCOP(l.valor):'')
     +(s.responsableKey?' · 👤 '+nomCom(s.responsableKey):'')+(s.proxContacto?' · 📅 '+s.proxContacto:'')+(s.intentos?' · '+s.intentos+' contactos':'')+'</div></div>'
-    +'<div class="lright">'+(esOro(l)?'<span class="bdg bd">ORO</span>':'')
+    +'<div class="lright">'+timerBadge(l)+qa+(esOro(l)?'<span class="bdg bd">ORO</span>':'')
     +'<span class="bdg bgr">'+etq[2]+'</span>'+wa+'</div></div>';
 }
 
@@ -690,6 +845,13 @@ function rCal(){
     var dias=diasSinContacto(l);
     var tel=String(l.contacto||'').replace(/\D/g,'');
     var wa=tel?'<a class="wa-btn" onclick="event.stopPropagation()" href="https://wa.me/57'+tel+'" target="_blank">WA</a>':'';
+  // Quick action: mensaje pre-escrito para calientes sin contacto
+  var s0=SEG[l.id]||{};
+  var qaMsg=construirMsgCliente(l,s0);
+  var qa='';
+  if(esCaliente(l)&&(!s0.intentos||s0.intentos===0)&&tel){
+    qa='<a class="qa-btn" data-lid="'+l.id+'" href="https://wa.me/57'+tel+'?text='+encodeURIComponent(qaMsg)+'" target="_blank" onclick="event.stopPropagation();registrarContactoAlerta(this.dataset.lid)">⚡ Contactar ya</a>';
+  }
     var etq=ETAPAS.find(function(e){return e[0]===(s.stage||'prospecto');})||ETAPAS[0];
     var urgColor=dias>21?'var(--ro)':dias>7?'var(--am)':'var(--ok)';
     var urgLabel=!s.intentos?'NUEVO — contactar ya':dias>21?dias+'d inactivo':dias>7?dias+'d sin contacto':'Activo';
@@ -788,6 +950,15 @@ function abrirLead(id){
     +'<div class="info-am" style="margin-top:10px;font-size:11px">⚖ <b>Política comisiones:</b> El 50% restante de comisión se paga <b>únicamente si la asesora está vinculada a MOSS</b> al momento de la entrega y recaudo final. Si el vínculo termina antes, el saldo de comisión no se causa.</div>'
     +'<label class="flabel">Nota</label>'
     +'<textarea id="f-nota" rows="2">'+(s.nota||'')+'</textarea>'
+    +(s.fechaIngresoTs?'<div class="sec-tit">⏱ Tiempos de respuesta</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'
+      +'<div style="background:var(--ba);border-radius:8px;padding:8px 10px"><div style="font-size:9px;color:var(--g);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Ingresó al CRM</div>'
+      +'<div style="font-size:12px;font-weight:700">'+((s.fechaIngresoTs||'').slice(0,16).replace('T',' '))+'</div></div>'
+      +(s.primerContactoTs?'<div style="background:var(--vc);border-radius:8px;padding:8px 10px"><div style="font-size:9px;color:var(--g);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Primer contacto</div>'
+      +'<div style="font-size:12px;font-weight:700">'+(s.tiempoRespuestaMin!=null?'⏱ '+s.tiempoRespuestaMin+' min · ':'')+((s.primerContactoTs||'').slice(0,16).replace('T',' '))+'</div></div>'
+      :'<div style="background:var(--rb);border-radius:8px;padding:8px 10px"><div style="font-size:9px;color:var(--ro);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Primer contacto</div>'
+      +'<div style="font-size:12px;font-weight:700;color:var(--ro)">⚠ Pendiente</div></div>')
+      +'</div>':'')
     +(hist?'<div class="sec-tit">Historial</div>'+hist:'')
     +'<div class="btm-bar"><button class="btn-p" onclick="guardarDet(\''+id+'\')">✅ Guardar</button><button class="btn-s" onclick="cModal()">Cerrar</button></div>';
   document.getElementById('mbg').classList.add('open');
@@ -828,6 +999,8 @@ function enviarTpl(id,i){
   var txt=TPL[i][1].replace('{n}',(l.nombre||'').split(' ')[0]).replace('{x}',SESSION?SESSION.nombre.split(' ')[0]:'Lizeth').replace('{ig}',CFG.igUrl);
   var tel=String(l.contacto||'').replace(/\D/g,'');
   if(!tel){toast('Sin teléfono');return;}
+  // Registrar primer contacto con timestamp para medir SLA
+  registrarPrimerContacto(id);
   s.intentos=(s.intentos||0)+1;
   if(!s.historial)s.historial=[];
   s.historial.push({fecha:hoyStr(),accion:TPL[i][0]});
@@ -1184,9 +1357,149 @@ function setBadge(ok,txt){
   b.querySelector('.dot').style.background=ok?'var(--ok)':'var(--am)';
   t.textContent=txt;
 }
+
+// ═══════════════════════════════════════════════
+// ALERTAS AUTOMÁTICAS — leads calientes >30 min sin respuesta
+// ═══════════════════════════════════════════════
+var _alertaVista=false;
+var _alertaDismissed={};  // ids ya descartados en esta sesión
+
+function leadsUrgentes(){
+  // Leads calientes sin primer contacto con >30 min desde ingreso
+  return LEADS.concat(ODOO_OPS).filter(function(l){
+    var s=SEG[l.id]||{};
+    if(s.stage==='vendido'||s.stage==='perdido') return false;
+    if(!esCaliente(l)) return false;
+    if(s.intentos&&s.intentos>0) return false;       // ya contactado
+    if(_alertaDismissed[l.id]) return false;          // ya descartado
+    // Solo los que llevan >30 min sin respuesta
+    var h=horasDesdeIngreso(l);
+    if(h===null) return false;
+    return h >= 0.5; // 0.5h = 30 minutos
+  });
+}
+
+function checkAlertas(){
+  var urgentes=leadsUrgentes();
+  var bell=document.getElementById('alert-bell');
+  var badge=document.getElementById('bell-badge');
+  if(!bell) return;
+  if(urgentes.length>0){
+    bell.classList.add('show');
+    badge.textContent=urgentes.length;
+    // Auto-abrir si hay nuevos urgentes y no se ha visto ya
+    if(!_alertaVista && urgentes.length>0){
+      _alertaVista=true;
+      abrirAlerta();
+    }
+  } else {
+    bell.classList.remove('show');
+    _alertaVista=false;
+  }
+}
+
+function construirMsgCliente(l,s){
+  var nombre=(l.nombre||'').split(' ')[0]||'';
+  var nombreCom=s.responsableKey?nomCom(s.responsableKey):'MOSS';
+  return 'Hola '+nombre+' 👋, soy '+nombreCom.split(' ')[0]+' de MOSS Arquitectura y Mobiliario.'
+    +' Vi que te interesaste en una remodelación 🏠'
+    +' Tengo 3 preguntas rápidas para prepararte una propuesta personalizada.'
+    +' ¿Tienes un momento? 💪';
+}
+
+function abrirAlerta(){
+  var urgentes=leadsUrgentes();
+  if(!urgentes.length){ toast('Sin leads urgentes en este momento ✅'); return; }
+  var list=document.getElementById('alert-list');
+  var cnt=document.getElementById('alert-count');
+  cnt.textContent=urgentes.length;
+  list.innerHTML='';
+  urgentes.forEach(function(l){
+    var s=SEG[l.id]||{};
+    var h=horasDesdeIngreso(l);
+    var tiempoStr=h<1?Math.round(h*60)+'min':Math.round(h)+'h';
+    var tel=String(l.contacto||'').replace(/\D/g,'');
+    var msg=construirMsgCliente(l,s);
+    var waUrl=tel?'https://wa.me/57'+tel+'?text='+encodeURIComponent(msg):'';
+    var item=document.createElement('div');
+    item.className='alert-item';
+    item.dataset.lid=l.id;
+    var infoDiv=document.createElement('div');
+    infoDiv.className='alert-item-info';
+    infoDiv.innerHTML='<div class="alert-item-name">'+(l.nombre||l.id)+'</div>'
+      +'<div class="alert-item-time">⏱ Hace '+tiempoStr+' sin respuesta</div>'
+      +'<div class="alert-item-det">'+(l.proyecto||'Sin proyecto')+(l.valor?' · $'+(Number(l.valor)/1e6).toFixed(0)+'M':'')
+        +' · 👤 '+(s.responsableKey?nomCom(s.responsableKey):'Sin asignar')+'</div>';
+    item.appendChild(infoDiv);
+    if(waUrl){
+      var aBtn=document.createElement('a');
+      aBtn.className='wa-action-btn'; aBtn.href=waUrl; aBtn.target='_blank';
+      aBtn.innerHTML='📲 Contactar';
+      aBtn.addEventListener('click',function(){registrarContactoAlerta(l.id);});
+      item.appendChild(aBtn);
+    }
+    var dBtn=document.createElement('button');
+    dBtn.className='dismiss-btn'; dBtn.style.cssText='margin-left:6px;font-size:10px;padding:5px 8px';
+    dBtn.textContent='✕';
+    dBtn.addEventListener('click',function(){descartarAlerta(l.id);});
+    item.appendChild(dBtn);
+    list.appendChild(item);
+  });
+  document.getElementById('alert-modal').classList.add('open');
+}
+
+function cerrarAlerta(){
+  document.getElementById('alert-modal').classList.remove('open');
+}
+
+function descartarAlerta(id){
+  _alertaDismissed[id]=true;
+  // Re-render lista
+  var urgentes=leadsUrgentes();
+  if(!urgentes.length){ cerrarAlerta(); checkAlertas(); return; }
+  abrirAlerta();
+}
+
+function registrarContactoAlerta(id){
+  // Al hacer clic en Contactar: registrar el intento igual que al enviar plantilla
+  registrarPrimerContacto(id);
+  var s=SEG[id];
+  if(s){ 
+    s.intentos=(s.intentos||0)+1;
+    if(!s.historial)s.historial=[];
+    s.historial.push({fecha:hoyStr(),accion:'Contacto desde alerta automática (WA)'});
+    _dirty=true;
+    document.getElementById('savebar').style.display='flex';
+  }
+  descartarAlerta(id);
+  toast('✅ Contacto registrado — '+nomCom((SEG[id]||{}).responsableKey||''));
+}
+
+// Revisar alertas cada 2 minutos
+setInterval(checkAlertas, 120000);
+
 function hoyStr(){return new Date().toISOString().slice(0,10);}
 function fmtCOP(n){return '$'+(Number(n)||0).toLocaleString('es-CO');}
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2600);}
 </script>
+
+<!-- ALERTA AUTOMÁTICA LEADS CALIENTES -->
+<div class="alert-modal" id="alert-modal">
+  <div class="alert-box">
+    <div class="alert-box-hd">
+      <span style="font-size:18px">🔴</span>
+      <h3>Leads calientes sin respuesta</h3>
+      <span id="alert-count">0</span>
+    </div>
+    <div id="alert-list" style="max-height:320px;overflow-y:auto;"></div>
+    <div class="alert-footer">
+      <span style="font-size:11px;color:var(--g)">SLA: responder en menos de 10 minutos</span>
+      <button class="dismiss-btn" onclick="cerrarAlerta()">Cerrar</button>
+    </div>
+  </div>
+</div>
+<button class="alert-bell" id="alert-bell" onclick="abrirAlerta()">
+  🔔<span class="alert-bell-badge" id="bell-badge">0</span>
+</button>
 </body>
 </html>
