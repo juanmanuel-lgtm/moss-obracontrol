@@ -410,7 +410,7 @@ function puedoVerLead(l){
 function diasSinContacto(l){
   var s=SEG[l.id]||{};
   if(s.proxContacto && s.proxContacto >= hoyStr()) return 0;
-  var fechas=[s.proxContacto, String(l.fecha||'').slice(0,10)].filter(Boolean).sort().reverse();
+  var fechas=[s.proxContacto, fechaLeadStr(l)].filter(Boolean).sort().reverse();
   if(!fechas.length) return 999;
   var d=new Date(fechas[0]+'T12:00:00');
   if(isNaN(d)) return 999;
@@ -498,23 +498,51 @@ function vigTag(l){
 }
 function esCaliente(l){
   var s=SEG[l.id]||{};
+  // Marcado manualmente como caliente
   if(s.clasificacion==='Caliente') return true;
+  // Criterios del bot: cumple presupuesto + urgencia de tiempo
   var tp=String(l.tiempoInicio||'').toLowerCase();
   var cp=String(l.cumplePresupuesto||'').toLowerCase();
   if(/si|sí/.test(cp) && /menor a un mes|un mes|1 mes|1-3|1 a 3/.test(tp)) return true;
+  // Valor declarado alto
+  if(Number(l.valor)>=80000000) return true;
+  // Criterio adicional: cumple presupuesto sin importar tiempo
+  if(/si|sí/.test(cp) && tp) return true;
+  return false;
+}
+
+// esOro actualizado — incluye calientes + leads con cumplePresupuesto=SÍ
+function esOroV2(l){
+  var s=SEG[l.id]||{};
+  if(s.clasificacion==='Caliente') return true;
+  var cp=String(l.cumplePresupuesto||'').toLowerCase();
+  if(/si|sí/.test(cp)) return true;
   if(Number(l.valor)>=80000000) return true;
   return false;
 }
+// Parsear fecha de lead en cualquier formato → Date object (o null)
+function parseFechaLead(l){
+  var f=String(l.fecha||'').trim();
+  if(!f) return null;
+  // ISO yyyy-MM-dd
+  if(/^\d{4}-\d{2}-\d{2}/.test(f)) return new Date(f+'T12:00:00');
+  // "Tue Nov 04 2025" / JS Date.toString
+  var d=new Date(f);
+  if(!isNaN(d.getTime())) return d;
+  return null;
+}
+
+// Fecha de lead como string ISO yyyy-MM-dd para comparar/ordenar
+function fechaLeadStr(l){
+  var d=parseFechaLead(l);
+  if(!d) return '';
+  return d.toISOString().slice(0,10);
+}
+
 function esLead2026(l){
-  // El lead se considera activo 2026 si su fecha de interacción es >= 2026-01-01
-  var f = String(l.fecha||'').trim();
-  if(!f) return false;
-  var anio = parseInt(f.slice(0,4),10);
-  if(!isNaN(anio)) return anio>=2026;
-  // fallback: intentar parsear formatos tipo "Tue Nov 04 2025"
-  var d = new Date(f);
-  if(!isNaN(d.getTime())) return d.getFullYear()>=2026;
-  return false;
+  var d=parseFechaLead(l);
+  if(!d) return false;
+  return d.getFullYear()>=2026;
 }
 
 var ETAPAS=[
@@ -632,10 +660,7 @@ function nuevoSeg(l){
     primerContactoTs:'',              // se llena al primer envío de WA
     tiempoRespuestaMin:null};         // minutos entre ingreso y primer contacto
 }
-function esOro(l){
-  var s=SEG[l.id]||{};
-  return s.clasificacion==='Caliente'||(/si/i.test(l.cumplePresupuesto||'')&&/menor a un mes/i.test(l.tiempoInicio||''));
-}
+function esOro(l){ return esOroV2(l); }
 
 // ═══════════════════════════════════════════════
 // NAV
@@ -728,8 +753,13 @@ function rSeg(){
         'Mes '+(meses+1)+' en curso — evitar llegar a 3.')+'</p></div>';
   }
 
+  // Ordenar resto por fecha DESC (más reciente primero)
+  resto.sort(function(a,b){
+    var fa=fechaLeadStr(a)||'0000-00-00', fb=fechaLeadStr(b)||'0000-00-00';
+    return fb>fa?1:fb<fa?-1:0;
+  });
   h+='<div class="card"><div class="chd"><span>Prioridad hoy — protocolo días 1·3·7·14·21</span><small>'+listaTotal.length+' leads (Bot+Odoo)</small></div>';
-  var lista=venc.concat(hoyL,oro,resto.slice(0,30));
+  var lista=venc.concat(hoyL,oro,resto.slice(0,50));
   if(!lista.length) h+='<div class="empty">✅ Sin leads pendientes</div>';
   else lista.forEach(function(l){h+=rowL(l,venc.indexOf(l)>=0?'venc':(hoyL.indexOf(l)>=0?'hoy':(esOro(l)?'oro':'')));});
   h+='</div>';
@@ -754,6 +784,7 @@ function rowL(l,cls){
     +(esOdoo?' <span class="bdg" style="background:#714B6722;color:#714B67">🟣 Odoo</span>':'')+'</div>'
     +'<div class="ldt">'+(l.proyecto||'')+(l.m2?' · '+l.m2+' m²':'')+(l.acabado?' · '+l.acabado:'')
     +(l.valor?' · '+fmtCOP(l.valor):'')
+    +(function(){var f=fechaLeadStr(l);return f?(' · ingresó: '+new Date(f+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'})):'';})()
     +(s.responsableKey?' · 👤 '+nomCom(s.responsableKey):'')+(s.proxContacto?' · 📅 '+s.proxContacto:'')+(s.intentos?' · '+s.intentos+' contactos':'')+'</div></div>'
     +'<div class="lright">'+timerBadge(l)+qa+(esOro(l)?'<span class="bdg bd">ORO</span>':'')
     +'<span class="bdg bgr">'+etq[2]+'</span>'+wa+'</div></div>';
@@ -859,11 +890,27 @@ function rPipe(){
 // ═══════════════════════════════════════════════
 function rCal(){
   var todos=LEADS.concat(ODOO_OPS).filter(puedoVerLead);
+  // Incluir: (a) calientes automáticos, (b) cualquier lead activo sin contacto previo
   var calientes=todos.filter(function(l){
     var s=SEG[l.id]||{};
-    return esCaliente(l)&&s.stage!=='vendido'&&s.stage!=='perdido';
+    if(s.stage==='vendido'||s.stage==='perdido') return false;
+    return esCaliente(l)||esOro(l)||(s.clasificacion&&s.clasificacion!=='Frio');
   });
-  calientes.sort(function(a,b){return diasSinContacto(b)-diasSinContacto(a);});
+  // Si el comercial no tiene leads "calientes" mostramos TODOS los activos sin contacto
+  if(!calientes.length){
+    calientes=todos.filter(function(l){
+      var s=SEG[l.id]||{};
+      return s.stage!=='vendido'&&s.stage!=='perdido';
+    });
+  }
+  // Ordenar: primero los MÁS RECIENTES (fecha de ingreso DESC), luego por días sin contacto
+  calientes.sort(function(a,b){
+    // Primero comparar por fecha de lead (más nuevo primero)
+    var fa=fechaLeadStr(a)||'', fb=fechaLeadStr(b)||'';
+    if(fa!==fb) return fb>fa?1:-1; // DESC
+    // Empate en fecha: el más urgente (más días sin contacto) primero
+    return diasSinContacto(b)-diasSinContacto(a);
+  });
   var sin1=calientes.filter(function(l){return !((SEG[l.id]||{}).intentos);}).length;
   var venc=calientes.filter(function(l){var pc=(SEG[l.id]||{}).proxContacto;return pc&&pc<hoyStr();}).length;
 
@@ -884,7 +931,9 @@ function rCal(){
     return h;
   }
 
-  h+='<div class="card"><div class="chd"><span>Leads Calientes — orden de urgencia</span><small>'+calientes.length+' leads</small></div>';
+  var hoyLeads=calientes.filter(function(l){return fechaLeadStr(l)===hoyStr();}).length;
+  h+='<div class="card"><div class="chd"><span>Leads — más recientes primero</span>'
+    +'<small>'+calientes.length+' leads'+(hoyLeads?' · '+hoyLeads+' de hoy':'')+'</small></div>';
   calientes.forEach(function(l){
     var s=SEG[l.id]||{};
     var dias=diasSinContacto(l);
@@ -900,11 +949,20 @@ function rCal(){
     var etq=ETAPAS.find(function(e){return e[0]===(s.stage||'prospecto');})||ETAPAS[0];
     var urgColor=dias>21?'var(--ro)':dias>7?'var(--am)':'var(--ok)';
     var urgLabel=!s.intentos?'NUEVO — contactar ya':dias>21?dias+'d inactivo':dias>7?dias+'d sin contacto':'Activo';
-    h+='<div class="lrow oro" onclick="abrirLead(\''+l.id+'\')" style="border-left:4px solid '+urgColor+'">'
-      +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre||l.id)+'<span class="hot-badge" style="margin-left:6px">Caliente</span></div>'
-      +'<div class="ldt">'+(l.proyecto||'')+(l.m2?' · '+l.m2+' m2':'')+(l.valor?' · '+fmtCOP(l.valor):'')
-        +' · <span style="color:'+urgColor+';font-weight:700">'+urgLabel+'</span>'+(s.proxContacto?' · '+s.proxContacto:'')+'</div></div>'
-      +'<div class="lright"><span class="bdg bgr">'+etq[2]+'</span>'+wa+'</div></div>';
+    var fStr=fechaLeadStr(l);
+    var fechaMostrar=fStr?new Date(fStr+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}):'';
+    var esHoy=fStr===hoyStr();
+    h+='<div class="lrow oro" onclick="abrirLead(this.dataset.lid)" data-lid="'+l.id+'" style="border-left:4px solid '+urgColor+'">'
+      +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre||l.id)
+        +(esCaliente(l)?'<span class="hot-badge" style="margin-left:6px">Caliente</span>':'')
+        +(esHoy?'<span class="hot-badge" style="margin-left:4px;background:#E8F0EB;border-color:var(--bv);color:var(--ok);border:1px solid">HOY</span>':'')
+      +'</div>'
+      +'<div class="ldt">'+(l.proyecto||'')+(l.m2?' · '+l.m2+' m²':'')
+        +(l.valor?' · '+fmtCOP(l.valor):'')
+        +(fechaMostrar?' · ingresó '+fechaMostrar:'')
+        +' · <span style="color:'+urgColor+';font-weight:700">'+urgLabel+'</span>'
+        +(s.proxContacto?' · próx: '+s.proxContacto:'')+'</div></div>'
+      +'<div class="lright">'+qa+'<span class="bdg bgr">'+etq[2]+'</span>'+wa+'</div></div>';
   });
   h+='</div>';
 
