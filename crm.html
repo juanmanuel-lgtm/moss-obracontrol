@@ -159,6 +159,38 @@ input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 2
 .pipe-month-hd span{font-size:11px;color:#fff;font-weight:600;}
 .pipe-month-hd small{font-size:9px;color:rgba(255,255,255,.6);}
 .pipe-mes-total{font-size:11px;font-weight:700;color:var(--d);padding:6px 14px;background:var(--vc);border-bottom:1px solid var(--bv);}
+/* PROPUESTA PDF */
+.prop-preview{background:var(--bc);border:1px solid var(--b);border-radius:12px;padding:24px;margin-top:12px;display:none;font-size:13px;line-height:1.6;}
+.prop-preview.show{display:block;}
+@media print{
+  body *{visibility:hidden!important;}
+  .prop-preview,.prop-preview *{visibility:visible!important;}
+  .prop-preview{display:block!important;position:absolute;left:0;top:0;width:100%;border:none;padding:32px;border-radius:0;}
+}
+.prop-logo-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #5C6E46;}
+.prop-logo-nm{font-size:22px;font-weight:700;color:#3B4F2E;letter-spacing:-0.5px;}
+.prop-logo-sub{font-size:10px;color:#6B7060;text-transform:uppercase;letter-spacing:.8px;}
+.prop-section{margin-bottom:14px;}
+.prop-section h4{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#6B7060;font-weight:700;margin-bottom:6px;}
+.prop-table{width:100%;border-collapse:collapse;}
+.prop-table td{padding:6px 10px;border-bottom:1px solid #E8E0D0;font-size:12px;}
+.prop-table td:first-child{color:#6B7060;width:40%;}
+.prop-table td:last-child{font-weight:600;color:#3B4F2E;}
+.prop-total{background:#F5F0E8;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin:12px 0;}
+.prop-total-label{font-size:11px;color:#6B7060;text-transform:uppercase;letter-spacing:.6px;}
+.prop-total-value{font-size:20px;font-weight:700;color:#3B4F2E;}
+.prop-note{font-size:11px;color:#8FA478;background:#E8F0EB;border-radius:7px;padding:8px 12px;margin-top:10px;}
+.prop-sign{display:flex;gap:40px;margin-top:28px;padding-top:16px;border-top:1px solid #E8E0D0;}
+.prop-sign-box{flex:1;text-align:center;}
+.prop-sign-line{border-top:1px solid #3B4F2E;padding-top:6px;font-size:11px;color:#6B7060;}
+
+/* ODOO SYNC INDICATOR */
+.odoo-sync{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:9.5px;font-weight:700;}
+.odoo-synced {background:#EDE7F6;color:#5E35B1;}
+.odoo-syncing{background:#E8EAF6;color:#3949AB;animation:pulse 1s infinite;}
+.odoo-sync-err{background:#FAEBE9;color:#B5362A;}
+.odoo-sync-na {background:var(--ba);color:var(--gc);}
+
 /* ALERTA AUTOMÁTICA MODAL */
 .alert-modal{position:fixed;inset:0;background:rgba(28,28,26,.6);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
 .alert-modal.open{display:flex;}
@@ -330,20 +362,32 @@ var _filtroCom='todos'; // CEO filter: 'todos' | 'com1' | 'com2'
 // ── Asignación aleatoria equitativa ──────────────────────────────────────────
 // Lee cuántos leads activos tiene cada comercial y asigna al que tenga menos.
 // En empate: elige aleatoriamente entre los empatados.
-function asignarComercial(){
+function asignarComercial(lead){
   var coms=['com1','com2'];
-  // Contar leads activos por comercial
-  var conteo={com1:0, com2:0};
-  LEADS.concat(ODOO_OPS).forEach(function(l){
+  var todos=LEADS.concat(ODOO_OPS);
+  // Para leads calientes: asignar al que tenga MENOS calientes activos
+  var esUrgente=lead&&(esCaliente(lead)||esOro(lead));
+  if(esUrgente){
+    var cal={com1:0,com2:0};
+    todos.forEach(function(l){
+      var s=SEG[l.id]||{};
+      if(s.stage==='perdido'||s.stage==='vendido') return;
+      if(esCaliente(l)&&s.responsableKey&&cal[s.responsableKey]!==undefined) cal[s.responsableKey]++;
+    });
+    if(cal.com1<cal.com2) return 'com1';
+    if(cal.com2<cal.com1) return 'com2';
+    return coms[Math.floor(Math.random()*2)];
+  }
+  // Para leads normales: al que tenga menos leads activos totales
+  var conteo={com1:0,com2:0};
+  todos.forEach(function(l){
     var s=SEG[l.id]||{};
-    if(s.stage==='perdido') return; // excluir perdidos del conteo
+    if(s.stage==='perdido') return;
     var k=s.responsableKey||'';
     if(conteo[k]!==undefined) conteo[k]++;
   });
-  // El que tenga menos leads activos recibe el nuevo
-  if(conteo.com1 < conteo.com2) return 'com1';
-  if(conteo.com2 < conteo.com1) return 'com2';
-  // Empate: aleatorio
+  if(conteo.com1<conteo.com2) return 'com1';
+  if(conteo.com2<conteo.com1) return 'com2';
   return coms[Math.floor(Math.random()*2)];
 }
 
@@ -511,6 +555,7 @@ function cargar(){
     setBadge(true,'✓ Bot: '+LEADS.length+' activos 2026');
     render();
     setTimeout(checkAlertas, 800); // revisar alertas después de cargar
+    setTimeout(checkRecordatorios, 1500); // revisar recordatorios D+N
     if(CFG.odooUrl && CFG.odooKey) cargarOdoo();
   };
   sc.onerror=function(){clearTimeout(tm);setBadge(false,'Error');render();};
@@ -575,7 +620,7 @@ function todosLosLeads(){ return LEADS.concat(ODOO_OPS); }
 
 function nuevoSeg(l){
   var oro=esOro(l);
-  var key=asignarComercial();
+  var key=asignarComercial(l); // pasa el lead para priorizar calientes
   // Registrar timestamp exacto de ingreso al CRM (primer vez que se ve el lead)
   var ahora=new Date().toISOString();
   return{stage:l.campana&&/vendido/i.test(l.campana||'')?'vendido':'prospecto',
@@ -694,7 +739,7 @@ function K(v,l,c,s){return '<div class="kpi"><div class="kl">'+l+'</div><div cla
 function rowL(l,cls){
   var s=SEG[l.id]||{};
   var esOdoo=(s.fuente==='odoo'||l.fuente==='odoo');
-  var tel=String(l.contacto||'').replace(/\D/g,'');
+  var tel=String(l.contacto||'').replace(/[^0-9]/g,'');
   var wa=tel?'<a class="wa-btn" onclick="event.stopPropagation()" href="https://wa.me/57'+tel+'" target="_blank">WA</a>':'';
   // Quick action: mensaje pre-escrito para calientes sin contacto
   var s0=SEG[l.id]||{};
@@ -843,7 +888,7 @@ function rCal(){
   calientes.forEach(function(l){
     var s=SEG[l.id]||{};
     var dias=diasSinContacto(l);
-    var tel=String(l.contacto||'').replace(/\D/g,'');
+    var tel=String(l.contacto||'').replace(/[^0-9]/g,'');
     var wa=tel?'<a class="wa-btn" onclick="event.stopPropagation()" href="https://wa.me/57'+tel+'" target="_blank">WA</a>':'';
   // Quick action: mensaje pre-escrito para calientes sin contacto
   var s0=SEG[l.id]||{};
@@ -921,6 +966,11 @@ function abrirLead(id){
     +'<div class="ms">'+(l.proyecto||'')+(l.ciudad?' · '+l.ciudad:'')+(l.contacto?' · '+l.contacto:'')+(l.m2?' · '+l.m2+' m²':'')+'</div>'
     +'<div class="sec-tit">📲 Seguimiento — protocolo 1·3·7·14·21</div>'
     +'<div class="tpl-btns">'+tpls+'</div>'
+    +(getOdooId(l)?'<div style="background:#EDE7F6;border:1px solid #B39DDB;border-radius:9px;padding:8px 13px;margin-bottom:8px;font-size:11px;display:flex;align-items:center;gap:8px">'
+        +'<span style="font-size:14px">🟣</span>'
+        +'<div><b style="color:#5E35B1">Lead de Odoo</b> — al guardar la etapa se actualiza automáticamente en Odoo CRM.'
+        +'<br><span style="color:#7C6AAA">ID Odoo: '+getOdooId(l)+' · Estado sync: '+(function(){var st=_odooSyncState[l.id]||'pendiente';return st==='synced'?'✓ Sincronizado':st==='error'?'⚠ Error':st==='syncing'?'⏳ Sincronizando':'Pendiente';})()+'</span></div>'
+        +'</div>':'')
     +'<div class="sec-tit">Estado</div>'
     +'<div class="grid2">'
     +'<div><label class="flabel">Etapa</label><select id="f-stage">'+opts+'</select></div>'
@@ -993,11 +1043,16 @@ function guardarDet(id){
   s.historial.push({fecha:hoyStr(),stage:s.stage,nota:s.nota.slice(0,60),accion:'Guardado'});
   _dirty=true; cModal(); toast('Guardado — recuerda sincronizar ☁'); render();
   document.getElementById('savebar').style.display='flex';
+  // Si es lead de Odoo: sincronizar etapa automáticamente
+  var _lOdoo=ODOO_OPS.find(function(x){return x.id===id;});
+  if(_lOdoo && getOdooId(_lOdoo)){
+    syncEtapaOdoo(id, s.stage, s.valorCotizado||s.valorCerrado||'');
+  }
 }
 function enviarTpl(id,i){
   var l=LEADS.find(function(x){return x.id===id;}); var s=SEG[id];
   var txt=TPL[i][1].replace('{n}',(l.nombre||'').split(' ')[0]).replace('{x}',SESSION?SESSION.nombre.split(' ')[0]:'Lizeth').replace('{ig}',CFG.igUrl);
-  var tel=String(l.contacto||'').replace(/\D/g,'');
+  var tel=String(l.contacto||'').replace(/[^0-9]/g,'');
   if(!tel){toast('Sin teléfono');return;}
   // Registrar primer contacto con timestamp para medir SLA
   registrarPrimerContacto(id);
@@ -1008,6 +1063,81 @@ function enviarTpl(id,i){
   window.open('https://wa.me/57'+tel+'?text='+encodeURIComponent(txt),'_blank');
   toast('WhatsApp abierto · '+TPL[i][0]);
 }
+
+// ═══════════════════════════════════════════════
+// PROPUESTA PDF AUTOMÁTICA
+// ═══════════════════════════════════════════════
+function genPropuesta(id){
+  var l=LEADS.concat(ODOO_OPS).find(function(x){return x.id===id;});
+  if(!l) return;
+  var s=SEG[id]||{};
+  var hoy=new Date().toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'});
+  var val=Number(s.valorCotizado)||Number(l.valor)||0;
+  var piso=val*0.30; // anticipo sugerido 30%
+  var iva=Math.round(val*0.19);
+  var comNom=s.responsableKey?nomCom(s.responsableKey):'Equipo Comercial';
+  var m2=s.m2||l.m2||'—';
+  var pmq=m2&&m2!=='—'&&val?fmtCOP(Math.round(val/Number(m2)))+'/m²':'—';
+
+  // Estimar duración según m²
+  var dias=60;
+  if(m2&&m2!=='—'){
+    var mq=Number(m2);
+    if(mq<=15) dias=28; else if(mq<=40) dias=45; else if(mq<=80) dias=60; else dias=90;
+  }
+  var inicio=new Date(); inicio.setDate(inicio.getDate()+14);
+  var fin=new Date(inicio); fin.setDate(fin.getDate()+dias);
+  var fmtF=function(d){return d.toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'});};
+
+  var contenido='<div class="prop-logo-bar">'
+    +'<div><div class="prop-logo-nm">MOSS</div><div class="prop-logo-sub">Arquitectura y Mobiliario S.A.S. · NIT 901.159.078-6</div></div>'
+    +'<div style="text-align:right"><div style="font-size:10px;color:#6B7060;text-transform:uppercase;letter-spacing:.6px">Propuesta comercial</div>'
+    +'<div style="font-size:11px;font-weight:700;color:#3B4F2E">'+hoy+'</div></div>'
+    +'</div>'
+
+    +'<div class="prop-section"><h4>Cliente</h4><table class="prop-table">'
+    +'<tr><td>Nombre</td><td>'+(l.nombre||'—')+'</td></tr>'
+    +'<tr><td>Proyecto</td><td>'+(l.proyecto||'—')+'</td></tr>'
+    +'<tr><td>Área</td><td>'+(m2!=='—'?m2+' m²':'—')+'</td></tr>'
+    +(l.ciudad?'<tr><td>Ciudad</td><td>'+l.ciudad+'</td></tr>':'')
+    +'</table></div>'
+
+    +'<div class="prop-section"><h4>Alcance y valores</h4><table class="prop-table">'
+    +'<tr><td>Tipo de obra</td><td>'+(l.tipo||l.proyecto||'Remodelación integral')+'</td></tr>'
+    +(l.espacios?'<tr><td>Espacios</td><td>'+l.espacios+'</td></tr>':'')
+    +(l.acabado?'<tr><td>Nivel de acabado</td><td>'+l.acabado+'</td></tr>':'')
+    +'<tr><td>Valor total</td><td>'+(val?fmtCOP(val):'A convenir')+'</td></tr>'
+    +(val&&m2&&m2!=='—'?'<tr><td>Precio por m²</td><td>'+pmq+'</td></tr>':'')
+    +'<tr><td>IVA incluido</td><td>Sí (AIU aplicado)</td></tr>'
+    +'</table></div>'
+
+    +(val?'<div class="prop-total"><div><div class="prop-total-label">Total propuesta</div>'
+    +'<div class="prop-total-value">'+fmtCOP(val)+'</div></div>'
+    +'<div style="text-align:right"><div class="prop-total-label">Anticipo para iniciar (30%)</div>'
+    +'<div style="font-size:14px;font-weight:700;color:#B8832A">'+fmtCOP(Math.round(val*0.30))+'</div></div></div>':'')
+
+    +'<div class="prop-section"><h4>Cronograma estimado</h4><table class="prop-table">'
+    +'<tr><td>Inicio estimado</td><td>'+fmtF(inicio)+'</td></tr>'
+    +'<tr><td>Entrega estimada</td><td>'+fmtF(fin)+'</td></tr>'
+    +'<tr><td>Duración</td><td>'+dias+' días hábiles</td></tr>'
+    +'</table></div>'
+
+    +'<div class="prop-note">Esta propuesta incluye: dirección técnica de obra, materiales de primera calidad, mano de obra especializada, póliza de cumplimiento y 1 año de garantía en mano de obra. Precios congelados por 15 días.</div>'
+
+    +'<div class="prop-sign">'
+    +'<div class="prop-sign-box"><div class="prop-sign-line">'+comNom+'<br>Asesor Comercial MOSS</div></div>'
+    +'<div class="prop-sign-box"><div class="prop-sign-line">'+(l.nombre||'Cliente')+'<br>Aprobación de propuesta</div></div>'
+    +'</div>';
+
+  var sec=document.getElementById('prop-sec-'+id);
+  if(sec){
+    sec.innerHTML=contenido;
+    sec.classList.add('show');
+    sec.scrollIntoView({behavior:'smooth'});
+    toast('📄 Propuesta generada — usa 🖨 Ctrl+P para PDF');
+  }
+}
+
 function cModal(){document.getElementById('mbg').classList.remove('open');}
 
 // ═══════════════════════════════════════════════
@@ -1286,6 +1416,95 @@ function rAsig(){
   }
   h+=listaAsig(com1L,'com1','&#128100; Comercial 1 — leads activos');
   h+=listaAsig(com2L,'com2','&#128100; Comercial 2 — leads activos');
+
+  // ── RANKING DE DESEMPEÑO ─────────────────────────────────────────────
+  h+=rRanking(com1L,com2L);
+  return h;
+}
+
+function rRanking(com1L,com2L){
+  var hoy=hoyStr(), mesActual=hoy.slice(0,7);
+  function metricas(lista,key){
+    var todos=lista;
+    // Ventas este mes
+    var vendMes=todos.filter(function(l){
+      var s=SEG[l.id]||{};
+      return s.stage==='vendido'&&s.anticipoOK==='SI'&&(s.fechaCierre||'').slice(0,7)===mesActual&&Number(s.valorCerrado)>0;
+    });
+    var totalMes=vendMes.reduce(function(a,l){return a+Number((SEG[l.id]||{}).valorCerrado||0);},0);
+    // Tasa de cierre (vendidos / cotizados)
+    var cotizados=todos.filter(function(l){return Number((SEG[l.id]||{}).valorCotizado)>0;}).length;
+    var vendidos=todos.filter(function(l){return (SEG[l.id]||{}).stage==='vendido';}).length;
+    var tasaCierre=cotizados?Math.round(vendidos/cotizados*100):0;
+    // SLA: leads respondidos en <10 min
+    var calientes=todos.filter(function(l){return esCaliente(l);});
+    var slaOk=calientes.filter(function(l){var s=SEG[l.id]||{};return s.tiempoRespuestaMin!=null&&s.tiempoRespuestaMin<10;}).length;
+    var slaPct=calientes.length?Math.round(slaOk/calientes.length*100):100;
+    // Leads activos calientes
+    var calAct=todos.filter(function(l){var s=SEG[l.id]||{};return esCaliente(l)&&s.stage!=='vendido'&&s.stage!=='perdido';}).length;
+    // Vencidos
+    var venc=todos.filter(function(l){var s=SEG[l.id]||{};return s.proxContacto&&s.proxContacto<hoy&&s.stage!=='vendido'&&s.stage!=='perdido';}).length;
+    return {totalMes:totalMes,tasaCierre:tasaCierre,slaPct:slaPct,calAct:calAct,venc:venc,vendMes:vendMes.length,cotizados:cotizados};
+  }
+  var m1=metricas(com1L,'com1'), m2=metricas(com2L,'com2');
+
+  function barRace(v1,v2,label,fmt,higherIsBetter){
+    var max=Math.max(v1,v2,1);
+    var p1=Math.round(v1/max*100), p2=Math.round(v2/max*100);
+    var w1=higherIsBetter?(v1>=v2?'var(--ok)':'var(--am)'):(v1<=v2?'var(--ok)':'var(--am)');
+    var w2=higherIsBetter?(v2>=v1?'var(--ok)':'var(--am)'):(v2<=v1?'var(--ok)':'var(--am)');
+    return '<div style="margin-bottom:12px">'
+      +'<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--g);margin-bottom:4px">'
+      +'<span style="font-weight:700;color:var(--v)">'+fmt(v1)+'</span><span>'+label+'</span><span style="font-weight:700;color:var(--d)">'+fmt(v2)+'</span></div>'
+      +'<div style="display:flex;gap:3px">'
+      +'<div style="flex:1;display:flex;justify-content:flex-end"><div style="height:8px;width:'+p1+'%;background:'+w1+';border-radius:4px 0 0 4px;transition:width .5s"></div></div>'
+      +'<div style="width:2px;background:var(--b)"></div>'
+      +'<div style="flex:1"><div style="height:8px;width:'+p2+'%;background:'+w2+';border-radius:0 4px 4px 0;transition:width .5s"></div></div>'
+      +'</div></div>';
+  }
+
+  var cop=function(v){return v?'$'+(v/1e6).toFixed(1)+'M':'$0';};
+  var pct=function(v){return v+'%';};
+  var num=function(v){return String(v);};
+
+  // Ganador del mes
+  var ganador=m1.totalMes>m2.totalMes?'&#128100; Comercial 1':m2.totalMes>m1.totalMes?'&#128100; Comercial 2':'Empate';
+
+  var h='<div class="card" style="margin-top:8px"><div class="chd"><span>&#127942; Ranking de desempeño — '+new Date(mesActual+'-01T12:00:00').toLocaleDateString('es-CO',{month:'long',year:'numeric'})+'</span><small>C1 vs C2</small></div><div class="cp">';
+
+  // Winner banner
+  if(m1.totalMes!==m2.totalMes){
+    h+='<div style="background:var(--ab);border:1px solid var(--am);border-radius:9px;padding:8px 12px;margin-bottom:14px;text-align:center;font-size:12px;font-weight:700;color:var(--am)">&#127942; Líder del mes: '+ganador+'</div>';
+  }
+
+  // Race bars
+  h+=barRace(m1.totalMes,m2.totalMes,'Ventas cerradas mes',cop,true);
+  h+=barRace(m1.tasaCierre,m2.tasaCierre,'Tasa de cierre %',pct,true);
+  h+=barRace(m1.slaPct,m2.slaPct,'SLA respuesta <10min',pct,true);
+  h+=barRace(m1.calAct,m2.calAct,'Calientes activos',num,false); // menos es mejor (ya los gestionó)
+  h+=barRace(m1.venc,m2.venc,'Leads vencidos',num,false); // menos es mejor
+
+  // Tabla resumen
+  h+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">'
+    +'<tr style="background:var(--v)"><th style="padding:5px 8px;text-align:left;color:#fff;font-size:10px">Métrica</th>'
+    +'<th style="padding:5px 8px;text-align:center;color:#fff;font-size:10px">Comercial 1</th>'
+    +'<th style="padding:5px 8px;text-align:center;color:#fff;font-size:10px">Comercial 2</th></tr>';
+  [
+    ['Ventas este mes',cop(m1.totalMes),cop(m2.totalMes),m1.totalMes>=m2.totalMes],
+    ['Cierres mes',m1.vendMes,m2.vendMes,m1.vendMes>=m2.vendMes],
+    ['Cotizaciones',m1.cotizados,m2.cotizados,m1.cotizados>=m2.cotizados],
+    ['Tasa de cierre',pct(m1.tasaCierre),pct(m2.tasaCierre),m1.tasaCierre>=m2.tasaCierre],
+    ['SLA <10min',pct(m1.slaPct),pct(m2.slaPct),m1.slaPct>=m2.slaPct],
+    ['Calientes activos',m1.calAct,m2.calAct,m1.calAct<=m2.calAct],
+    ['Leads vencidos',m1.venc,m2.venc,m1.venc<=m2.venc],
+  ].forEach(function(row,i){
+    var bg=i%2===0?'var(--ba)':'var(--bc)';
+    var c1win=row[3];
+    h+='<tr style="background:'+bg+'"><td style="padding:5px 8px;color:var(--g)">'+row[0]+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;font-weight:700;color:'+(c1win?'var(--ok)':'var(--ro)')+'">'+row[1]+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;font-weight:700;color:'+(!c1win?'var(--ok)':'var(--ro)')+'">'+row[2]+'</td></tr>';
+  });
+  h+='</table></div></div>';
   return h;
 }
 
@@ -1358,6 +1577,233 @@ function setBadge(ok,txt){
   t.textContent=txt;
 }
 
+
+// ═══════════════════════════════════════════════
+// SINCRONIZACIÓN ODOO — Opción A: solo etapas
+// ═══════════════════════════════════════════════
+var _odooSyncState = {}; // id → 'synced'|'syncing'|'error'|'pending'
+
+// Mapeo etapa MOSS → etapa Odoo (nombre)
+var ETAPA_ODOO_MAP = {
+  'prospecto':  'Nuevo',
+  'contactado': 'Calificado',
+  'fase0':      'Propuesta',
+  'cotizado':   'Propuesta',
+  'fase1':      'Alta probabilidad',
+  'vendido':    'Ganado',
+  'perdido':    'Perdido'
+};
+
+// ¿Este lead viene de Odoo y tiene ID numérico?
+function getOdooId(l){
+  if(l.fuente==='odoo' && String(l.id).startsWith('odoo_')){
+    return String(l.id).replace('odoo_','');
+  }
+  return null;
+}
+
+// Sincronizar etapa de UN lead a Odoo
+function syncEtapaOdoo(leadId, etapa, valor){
+  var l = ODOO_OPS.find(function(x){return x.id===leadId;});
+  if(!l) return; // no es lead de Odoo
+  var odooId = getOdooId(l);
+  if(!odooId) return;
+
+  _odooSyncState[leadId]='syncing';
+  render(); // mostrar spinner
+
+  var cbName='mossodoo_write_'+Date.now();
+  var sc=document.createElement('script');
+  var tm=setTimeout(function(){
+    delete window[cbName];
+    try{document.body.removeChild(sc);}catch(e){}
+    _odooSyncState[leadId]='error';
+    toast('⚠ Odoo: timeout al sincronizar '+l.nombre);
+    render();
+  },12000);
+
+  window[cbName]=function(d){
+    clearTimeout(tm); delete window[cbName];
+    try{document.body.removeChild(sc);}catch(e){}
+    if(d&&d.ok){
+      _odooSyncState[leadId]='synced';
+      toast('🟣 Odoo actualizado — '+ETAPA_ODOO_MAP[etapa]+' · '+l.nombre);
+    } else {
+      _odooSyncState[leadId]='error';
+      toast('⚠ Odoo error: '+(d&&d.error?d.error:'sin respuesta'));
+    }
+    render();
+  };
+  sc.onerror=function(){
+    clearTimeout(tm);
+    _odooSyncState[leadId]='error';
+    toast('⚠ Odoo: sin conexión');
+    render();
+  };
+  sc.src=CFG.scriptUrl
+    +'?action=odoo.etapa&callback='+cbName
+    +'&odooUrl='+encodeURIComponent(CFG.odooUrl)
+    +'&odooKey='+encodeURIComponent(CFG.odooKey)
+    +'&odooDb='+encodeURIComponent(CFG.odooDb)
+    +'&odooId='+encodeURIComponent(odooId)
+    +'&etapa='+encodeURIComponent(etapa)
+    +(valor?'&valor='+encodeURIComponent(valor):'');
+  document.body.appendChild(sc);
+}
+
+// Badge de estado de sync para mostrar en kcard / rowL
+function odooBadge(l){
+  var odooId=getOdooId(l);
+  if(!odooId) return '';
+  var st=_odooSyncState[l.id]||'pending';
+  if(st==='synced')  return '<span class="odoo-sync odoo-synced">🟣 Odoo ✓</span>';
+  if(st==='syncing') return '<span class="odoo-sync odoo-syncing">🟣 Sincronizando…</span>';
+  if(st==='error')   return '<span class="odoo-sync odoo-sync-err">🟣 Error sync</span>';
+  return '<span class="odoo-sync odoo-sync-na">🟣 Odoo</span>';
+}
+
+
+// ═══════════════════════════════════════════════
+// RECORDATORIOS AUTOMÁTICOS D+3 / D+7 / D+14 / D+21
+// ═══════════════════════════════════════════════
+var _recDismissed={};
+
+function leadsConRecordatorio(){
+  var hoy=hoyStr();
+  return LEADS.concat(ODOO_OPS).filter(function(l){
+    var s=SEG[l.id]||{};
+    if(s.stage==='vendido'||s.stage==='perdido') return false;
+    if(_recDismissed[l.id]) return false;
+    if(!s.proxContacto) return false;
+    // Incluir: vencidos + hoy
+    return s.proxContacto<=hoy;
+  }).sort(function(a,b){
+    // Primero los calientes, luego por fecha más antigua
+    var ac=esCaliente(a)?0:1, bc=esCaliente(b)?0:1;
+    if(ac!==bc) return ac-bc;
+    return (SEG[a.id]||{}).proxContacto<(SEG[b.id]||{}).proxContacto?-1:1;
+  });
+}
+
+function plantillaAutoParaLead(l){
+  var s=SEG[l.id]||{};
+  var intentos=s.intentos||0;
+  // Elegir plantilla según número de intentos anteriores
+  if(intentos===0) return 0;      // Día 1
+  if(intentos===1) return 1;      // Día 3
+  if(intentos===2) return 2;      // Día 7
+  if(intentos===3) return 3;      // Día 14
+  return 4;                       // Día 21
+}
+
+function checkRecordatorios(){
+  var lista=leadsConRecordatorio();
+  if(!lista.length) return;
+  // Mostrar panel flotante de recordatorios si hay pendientes
+  var existing=document.getElementById('rec-panel');
+  if(existing) existing.remove();
+  var panel=document.createElement('div');
+  panel.id='rec-panel';
+  panel.style.cssText='position:fixed;bottom:140px;right:16px;z-index:390;width:300px;'
+    +'background:var(--bc);border:1px solid var(--b);border-radius:14px;'
+    +'box-shadow:0 4px 20px rgba(0,0,0,.18);overflow:hidden;';
+  var hd=document.createElement('div');
+  hd.style.cssText='background:#A67C52;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;';
+  var hdTitle=document.createElement('span');
+  hdTitle.style.cssText='color:#fff;font-size:12px;font-weight:700';
+  hdTitle.textContent='📅 '+lista.length+' seguimiento'+(lista.length>1?'s':'')+' pendiente'+(lista.length>1?'s':'');
+  var hdClose=document.createElement('button');
+  hdClose.style.cssText='background:none;border:none;color:rgba(255,255,255,.8);cursor:pointer;font-size:16px;line-height:1';
+  hdClose.textContent='×';
+  hdClose.addEventListener('click',function(){var p=document.getElementById('rec-panel');if(p)p.remove();});
+  hd.appendChild(hdTitle);
+  hd.appendChild(hdClose);
+  panel.appendChild(hd);
+  var body=document.createElement('div');
+  body.style.cssText='max-height:260px;overflow-y:auto;';
+  lista.slice(0,5).forEach(function(l){
+    var s=SEG[l.id]||{};
+    var tplIdx=plantillaAutoParaLead(l);
+    var tplNom=TPL[tplIdx][0];
+    var tel=String(l.contacto||'').replace(/[^0-9]/g,'');
+    var nombre=(l.nombre||'').split(' ')[0];
+    var comNom=s.responsableKey?nomCom(s.responsableKey):'';
+    var msg=TPL[tplIdx][1].replace('{n}',nombre).replace('{x}',comNom.split(' ')[0]||'MOSS').replace('{ig}',CFG.igUrl);
+    var waUrl=tel?'https://wa.me/57'+tel+'?text='+encodeURIComponent(msg):'';
+    var dias=s.proxContacto<hoyStr()?Math.floor((new Date()-new Date(s.proxContacto+'T12:00:00'))/(86400000)):0;
+    var item=document.createElement('div');
+    item.style.cssText='padding:10px 12px;border-bottom:1px solid var(--b);display:flex;flex-direction:column;gap:5px;';
+    var nameRow=document.createElement('div');
+    nameRow.style.cssText='display:flex;align-items:center;justify-content:space-between;';
+    nameRow.innerHTML='<span style="font-size:12px;font-weight:700;color:var(--v)">'+(l.nombre||l.id)+'</span>'
+      +'<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:'+(esCaliente(l)?'var(--rb)':'var(--ba)')+';color:'+(esCaliente(l)?'var(--ro)':'var(--g)')+';">'
+      +(esCaliente(l)?'Caliente':'Tibio')+'</span>';
+    var subRow=document.createElement('div');
+    subRow.style.cssText='font-size:10px;color:var(--g);';
+    subRow.textContent=tplNom+(dias>0?' · vencido hace '+dias+'d':'· hoy');
+    var actRow=document.createElement('div');
+    actRow.style.cssText='display:flex;gap:6px;';
+    if(waUrl){
+      var waBtn=document.createElement('a');
+      waBtn.href=waUrl; waBtn.target='_blank';
+      waBtn.style.cssText='flex:1;background:#25D366;color:#fff;border:none;border-radius:7px;padding:5px 8px;font-size:11px;font-weight:700;text-align:center;text-decoration:none;cursor:pointer;';
+      waBtn.textContent='📲 '+tplNom;
+      waBtn.addEventListener('click',function(){
+        registrarContactoRecordatorio(l.id,tplIdx);
+        _recDismissed[l.id]=true;
+        setTimeout(function(){checkRecordatorios();},300);
+      });
+      actRow.appendChild(waBtn);
+    }
+    var skipBtn=document.createElement('button');
+    skipBtn.style.cssText='background:var(--ba);border:1px solid var(--b);border-radius:7px;padding:5px 8px;font-size:11px;cursor:pointer;font-family:inherit;color:var(--g);';
+    skipBtn.textContent='Posponer';
+    skipBtn.addEventListener('click',function(){
+      _recDismissed[l.id]=true;
+      item.remove();
+      if(!body.querySelector('div')) document.getElementById('rec-panel').remove();
+    });
+    actRow.appendChild(skipBtn);
+    item.appendChild(nameRow);
+    item.appendChild(subRow);
+    item.appendChild(actRow);
+    body.appendChild(item);
+  });
+  if(lista.length>5){
+    var more=document.createElement('div');
+    more.style.cssText='padding:8px 12px;font-size:11px;color:var(--g);text-align:center;';
+    more.textContent='+'+(lista.length-5)+' más — ver en Seguimiento';
+    body.appendChild(more);
+  }
+  panel.appendChild(body);
+  document.body.appendChild(panel);
+}
+
+function registrarContactoRecordatorio(id,tplIdx){
+  var s=SEG[id]; if(!s) return;
+  registrarPrimerContacto(id);
+  s.intentos=(s.intentos||0)+1;
+  // Calcular próximo contacto automáticamente según protocolo
+  var siguientes=[3,4,7,7,0]; // días hasta próximo contacto
+  var dias=siguientes[Math.min(tplIdx,siguientes.length-1)];
+  if(dias>0){
+    var d=new Date(); d.setDate(d.getDate()+dias);
+    s.proxContacto=d.toISOString().slice(0,10);
+    toast('✅ Enviado · Próximo seguimiento: '+s.proxContacto);
+  } else {
+    s.proxContacto='';
+    toast('✅ Ciclo completado · Marcar como Dormido si no responde');
+  }
+  if(!s.historial) s.historial=[];
+  s.historial.push({fecha:hoyStr(),accion:TPL[tplIdx][0]+' (recordatorio auto)'});
+  _dirty=true;
+  document.getElementById('savebar').style.display='flex';
+  render();
+}
+
+// Revisar recordatorios cada 10 minutos
+setInterval(checkRecordatorios, 600000);
+
 // ═══════════════════════════════════════════════
 // ALERTAS AUTOMÁTICAS — leads calientes >30 min sin respuesta
 // ═══════════════════════════════════════════════
@@ -1418,7 +1864,7 @@ function abrirAlerta(){
     var s=SEG[l.id]||{};
     var h=horasDesdeIngreso(l);
     var tiempoStr=h<1?Math.round(h*60)+'min':Math.round(h)+'h';
-    var tel=String(l.contacto||'').replace(/\D/g,'');
+    var tel=String(l.contacto||'').replace(/[^0-9]/g,'');
     var msg=construirMsgCliente(l,s);
     var waUrl=tel?'https://wa.me/57'+tel+'?text='+encodeURIComponent(msg):'';
     var item=document.createElement('div');
