@@ -265,7 +265,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 2
 <div class="app" id="app">
 <div class="topbar">
   <div class="tlogo">M</div>
-  <div><div class="ttitle">CRM Comercial MOSS</div><div class="tsub">v34 · Pipeline Mensual</div></div>
+  <div><div class="ttitle">CRM Comercial MOSS</div><div class="tsub">V42 · Pipeline Mensual</div></div>
   <div class="topright">
     <span class="user-chip" id="user-chip">—</span>
     <div class="dbadge dno" id="badge" onclick="sync()">
@@ -729,7 +729,7 @@ function rSeg(){
   h+='<div class="kgrid">'
     +K(venc.length,'Vencidos ⚠',venc.length?'ro':'ok',venc.length?'Contactar ahora':'Al día')
     +K(hoyL.length,'Para hoy',hoyL.length?'am':'','Programados')
-    +K(oro.length,'Leads oro sin contactar','d','< 10 min (onboarding)')
+    +K(oro.length,'Sin contactar (nuevos)','d',oro.length?'SLA < 10 min':'')
     +K(act.length,'En pipeline','','activos 2026')+'</div>';
   if(LEADS_HIST.length){
     h+='<div class="info-ok">📦 <b>'+LEADS_HIST.length+' leads históricos (2025 y anteriores)</b> ocultos del seguimiento activo — ya fueron gestionados. '
@@ -753,15 +753,31 @@ function rSeg(){
         'Mes '+(meses+1)+' en curso — evitar llegar a 3.')+'</p></div>';
   }
 
-  // Ordenar resto por fecha DESC (más reciente primero)
-  resto.sort(function(a,b){
+  // Unificar todo en una sola lista ordenada por fecha DESC
+  // Prioridad: vencidos y de hoy siempre primero, luego resto por fecha más reciente
+  var vencSet=new Set(venc.map(function(l){return l.id;}));
+  var hoySet=new Set(hoyL.map(function(l){return l.id;}));
+  // Todos los activos sin duplicados, ordenados fecha DESC
+  var todosActivos=act.slice();
+  todosActivos.sort(function(a,b){
+    // 1. Vencidos primero
+    var av=vencSet.has(a.id)?0:1, bv=vencSet.has(b.id)?0:1;
+    if(av!==bv) return av-bv;
+    // 2. Para hoy segundo
+    var ah=hoySet.has(a.id)?0:1, bh=hoySet.has(b.id)?0:1;
+    if(ah!==bh) return ah-bh;
+    // 3. Resto: fecha de ingreso DESC (más reciente primero)
     var fa=fechaLeadStr(a)||'0000-00-00', fb=fechaLeadStr(b)||'0000-00-00';
-    return fb>fa?1:fb<fa?-1:0;
+    if(fb!==fa) return fb>fa?1:-1;
+    // 4. Empate de fecha: ORO primero
+    var ao=esOro(a)?0:1, bo=esOro(b)?0:1;
+    return ao-bo;
   });
-  h+='<div class="card"><div class="chd"><span>Prioridad hoy — protocolo días 1·3·7·14·21</span><small>'+listaTotal.length+' leads (Bot+Odoo)</small></div>';
-  var lista=venc.concat(hoyL,oro,resto.slice(0,50));
-  if(!lista.length) h+='<div class="empty">✅ Sin leads pendientes</div>';
-  else lista.forEach(function(l){h+=rowL(l,venc.indexOf(l)>=0?'venc':(hoyL.indexOf(l)>=0?'hoy':(esOro(l)?'oro':'')));});
+  h+='<div class="card"><div class="chd"><span>Prioridad hoy — más recientes primero</span><small>'+act.length+' leads activos · '+listaTotal.length+' total (Bot+Odoo)</small></div>';
+  if(!todosActivos.length) h+='<div class="empty">✅ Sin leads pendientes</div>';
+  else todosActivos.forEach(function(l){
+    h+=rowL(l,vencSet.has(l.id)?'venc':(hoySet.has(l.id)?'hoy':(esOro(l)?'oro':'')));
+  });
   h+='</div>';
   return h;
 }
@@ -780,7 +796,7 @@ function rowL(l,cls){
   }
   var etq=ETAPAS.find(function(e){return e[0]===(s.stage||'prospecto');})||ETAPAS[0];
   return '<div class="lrow '+cls+'" onclick="abrirLead(\''+l.id+'\')">'
-    +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre||l.id)
+    +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre&&l.nombre.trim()?l.nombre:"#"+String(l.id).slice(-6))
     +(esOdoo?' <span class="bdg" style="background:#714B6722;color:#714B67">🟣 Odoo</span>':'')+'</div>'
     +'<div class="ldt">'+(l.proyecto||'')+(l.m2?' · '+l.m2+' m²':'')+(l.acabado?' · '+l.acabado:'')
     +(l.valor?' · '+fmtCOP(l.valor):'')
@@ -875,7 +891,7 @@ function rPipe(){
     h+='<div class="card" style="margin-top:10px"><div class="chd"><span>Sin mes asignado</span><small>Asigna proxContacto para ubicarlos</small></div>';
     huerfanos.slice(0,20).forEach(function(l){
       h+='<div class="lrow" onclick="abrirLead(\''+l.id+'\')">'
-        +'<div style="flex:1"><div class="lnm">'+(l.nombre||l.id)+'</div>'
+        +'<div style="flex:1"><div class="lnm">'+(l.nombre&&l.nombre.trim()?l.nombre:"#"+String(l.id).slice(-6))+'</div>'
         +'<div class="ldt">'+(l.proyecto||'Sin proyecto')+'</div></div>'
         +'<span class="bdg bgr">Sin fecha</span></div>';
     });
@@ -905,10 +921,11 @@ function rCal(){
   }
   // Ordenar: primero los MÁS RECIENTES (fecha de ingreso DESC), luego por días sin contacto
   calientes.sort(function(a,b){
-    // Primero comparar por fecha de lead (más nuevo primero)
-    var fa=fechaLeadStr(a)||'', fb=fechaLeadStr(b)||'';
-    if(fa!==fb) return fb>fa?1:-1; // DESC
-    // Empate en fecha: el más urgente (más días sin contacto) primero
+    // Fecha DESC: el más reciente (mayor fecha) primero
+    var fa=fechaLeadStr(a)||'0000-00-00', fb=fechaLeadStr(b)||'0000-00-00';
+    if(fb>fa) return 1;   // b es más reciente → b va primero
+    if(fa>fb) return -1;  // a es más reciente → a va primero
+    // Empate: más días sin contacto primero
     return diasSinContacto(b)-diasSinContacto(a);
   });
   var sin1=calientes.filter(function(l){return !((SEG[l.id]||{}).intentos);}).length;
@@ -953,7 +970,7 @@ function rCal(){
     var fechaMostrar=fStr?new Date(fStr+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}):'';
     var esHoy=fStr===hoyStr();
     h+='<div class="lrow oro" onclick="abrirLead(this.dataset.lid)" data-lid="'+l.id+'" style="border-left:4px solid '+urgColor+'">'
-      +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre||l.id)
+      +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre&&l.nombre.trim()?l.nombre:"#"+String(l.id).slice(-6))
         +(esCaliente(l)?'<span class="hot-badge" style="margin-left:6px">Caliente</span>':'')
         +(esHoy?'<span class="hot-badge" style="margin-left:4px;background:#E8F0EB;border-color:var(--bv);color:var(--ok);border:1px solid">HOY</span>':'')
       +'</div>'
@@ -1448,7 +1465,7 @@ function rAsig(){
     h+='<div class="card" style="margin-bottom:12px"><div class="chd" style="background:var(--ro)"><span>Sin asignar ('+sinAsig.length+')</span><small>Asignar ahora</small></div>';
     sinAsig.forEach(function(l){
       h+='<div class="lrow" data-id="'+l.id+'" onclick="abrirLeadById(this)">'
-        +'<div style="flex:1"><div class="lnm">'+(l.nombre||l.id)+'</div>'
+        +'<div style="flex:1"><div class="lnm">'+(l.nombre&&l.nombre.trim()?l.nombre:"#"+String(l.id).slice(-6))+'</div>'
         +'<div class="ldt">'+(l.proyecto||'')+(l.valor?' · '+fmtCOP(l.valor):'')+'</div></div>'
         +'<button class="wa-btn" style="background:var(--v)" onclick="event.stopPropagation();reasignarC1(this)">→ C1</button>'
         +'<button class="wa-btn" style="background:var(--d);margin-left:4px" onclick="event.stopPropagation();reasignarC2(this)">→ C2</button>'
@@ -1465,7 +1482,7 @@ function rAsig(){
       var s=SEG[l.id]||{};
       var etq=ETAPAS.find(function(e){return e[0]===(s.stage||'prospecto');})||ETAPAS[0];
       r+='<div class="lrow" data-id="'+l.id+'" data-otro="'+otro+'" onclick="abrirLeadById(this)" style="'+(esCaliente(l)?'border-left:4px solid var(--d);':'')+'">'
-        +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre||l.id)+vigTag(l)+'</div>'
+        +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre&&l.nombre.trim()?l.nombre:"#"+String(l.id).slice(-6))+vigTag(l)+'</div>'
         +'<div class="ldt">'+(l.proyecto||'')+(l.valor?' · '+fmtCOP(l.valor):'')+' · '+etq[2]+' '+etq[1]+'</div></div>'
         +'<div class="lright"><button class="wa-btn" style="background:var(--gc);font-size:10px" data-lid="'+l.id+'" data-otro="'+otro+'" onclick="event.stopPropagation();reasignar(this.dataset.lid,this.dataset.otro)" title="Reasignar">&#8644;</button></div></div>';
     });
