@@ -159,6 +159,59 @@ input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 2
 .pipe-month-hd span{font-size:11px;color:#fff;font-weight:600;}
 .pipe-month-hd small{font-size:9px;color:rgba(255,255,255,.6);}
 .pipe-mes-total{font-size:11px;font-weight:700;color:var(--d);padding:6px 14px;background:var(--vc);border-bottom:1px solid var(--bv);}
+/* INGRESO MANUAL DE LEADS */
+.nuevo-lead-form{background:var(--bc);border:1.5px solid var(--bv);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+.nlf-hd{padding:10px 16px;background:var(--v);display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.nlf-hd h4{color:#fff;font-size:13px;font-weight:600;margin:0;}
+.nlf-hd small{color:rgba(255,255,255,.65);font-size:10px;}
+.nlf-body{padding:14px;display:none;}
+.nlf-body.open{display:block;}
+.nlf-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;}
+@media(max-width:520px){.nlf-grid{grid-template-columns:1fr;}}
+.nlf-full{grid-column:1/-1;}
+.nlf-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g);margin-bottom:4px;display:block;}
+.nlf-input{width:100%;padding:9px 11px;border:1.5px solid var(--b);border-radius:9px;font-size:13px;font-family:inherit;background:var(--bc);color:#1C1C1A;outline:none;transition:border-color .15s;}
+.nlf-input:focus{border-color:var(--v);box-shadow:0 0 0 2px var(--vc);}
+.nlf-select{width:100%;padding:9px 11px;border:1.5px solid var(--b);border-radius:9px;font-size:13px;font-family:inherit;background:var(--bc);color:#1C1C1A;outline:none;}
+.nlf-select:focus{border-color:var(--v);}
+.nlf-fuente-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--b);background:var(--ba);}
+.nlf-fuente-tag.sel{background:var(--v);color:#fff;border-color:var(--v);}
+.fuente-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;}
+.nlf-ok{background:var(--vc);border:1px solid var(--bv);border-radius:9px;padding:8px 12px;font-size:11px;color:var(--ok);display:none;margin-top:8px;}
+
+/* INGRESO DE CONTRATOS */
+.contrato-form{background:var(--bc);border:1px solid var(--b);border-radius:12px;margin-bottom:14px;}
+.contrato-form-hd{padding:10px 14px;background:var(--v);border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;}
+.contrato-form-hd span{font-size:12px;font-weight:600;color:#fff;}
+.contrato-form-body{padding:14px;}
+.cf-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;}
+@media(max-width:500px){.cf-grid{grid-template-columns:1fr;}}
+.cf-full{grid-column:1/-1;}
+.cf-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g);margin-bottom:4px;display:block;}
+.cf-input{width:100%;padding:9px 11px;border:1.5px solid var(--b);border-radius:9px;font-size:13px;font-family:inherit;background:var(--bc);color:#1C1C1A;outline:none;transition:border-color .15s;}
+.cf-input:focus{border-color:var(--v);box-shadow:0 0 0 2px var(--vc);}
+.cf-select{width:100%;padding:9px 11px;border:1.5px solid var(--b);border-radius:9px;font-size:13px;font-family:inherit;background:var(--bc);color:#1C1C1A;outline:none;}
+.cf-select:focus{border-color:var(--v);}
+.cf-total{background:var(--vc);border:1px solid var(--bv);border-radius:9px;padding:10px 14px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;}
+.cf-total-label{font-size:10px;color:var(--ok);text-transform:uppercase;letter-spacing:.6px;}
+.cf-total-value{font-size:18px;font-weight:700;color:var(--ok);}
+.cf-warn{background:var(--rb);border:1px solid var(--ro);border-radius:9px;padding:8px 12px;font-size:11px;color:var(--ro);display:none;margin-top:6px;}
+.contrato-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--b);background:var(--bc);}
+.contrato-row:last-child{border-bottom:none;border-radius:0 0 12px 12px;}
+.contrato-row:hover{background:var(--vc);}
+.cr-name{font-size:13px;font-weight:700;flex:1;}
+.cr-det{font-size:10px;color:var(--g);margin-top:2px;}
+.cr-val{font-size:13px;font-weight:700;color:var(--d);white-space:nowrap;}
+.cr-badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600;}
+.cr-ok{background:var(--vc);color:var(--ok);}
+.cr-pend{background:var(--ab);color:var(--am);}
+.cr-edit{background:var(--ba);border:1px solid var(--b);border-radius:7px;padding:4px 9px;font-size:11px;cursor:pointer;font-family:inherit;color:var(--g);}
+.cr-edit:hover{background:var(--vc);}
+.mes-nav{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.mes-nav button{background:var(--ba);border:1px solid var(--b);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;}
+.mes-nav button:hover{background:var(--vc);}
+.mes-nav span{font-size:14px;font-weight:700;color:var(--v);flex:1;text-align:center;}
+
 /* PROPUESTA PDF */
 .prop-preview{background:var(--bc);border:1px solid var(--b);border-radius:12px;padding:24px;margin-top:12px;display:none;font-size:13px;line-height:1.6;}
 .prop-preview.show{display:block;}
@@ -326,6 +379,7 @@ function buildNavbar(){
     ['seg','📋','Seguimiento'],
     ['pipe','🔀','Pipeline'],
     ['cal','🔴','Calientes'],
+    ['nuevo','➕','Nuevo Lead'],
     isCeo?['bot','🤖','Leads Bot']:null,
     isCeo?['asig','👥','Asignación']:null,
     ['com','💰','Comisiones'],
@@ -676,6 +730,7 @@ function render(){
   if(_vista==='seg') c.innerHTML=rSeg();
   else if(_vista==='pipe') c.innerHTML=rPipe();
   else if(_vista==='cal') c.innerHTML=rCal();
+  else if(_vista==='nuevo') c.innerHTML=rNuevoLead();
   else if(_vista==='asig') c.innerHTML=rAsig();
   else if(_vista==='bot') c.innerHTML=rBot();
   else if(_vista==='com') c.innerHTML=rCom();
@@ -995,6 +1050,287 @@ function rCal(){
 // ═══════════════════════════════════════════════
 // LEADS BOT (solo CEO)
 // ═══════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════
+// INGRESO MANUAL DE LEADS
+// ═══════════════════════════════════════════════
+var _fuenteSel = 'Referido';
+
+function rNuevoLead(){
+  var miKey=SESSION&&USERS[SESSION.usuario]&&USERS[SESSION.usuario].key||'com1';
+  var isCeo=SESSION&&SESSION.rol==='ceo';
+
+  // Leads manuales ya ingresados
+  var manuales=LEADS.filter(function(l){
+    return l.fuente==='manual';
+  }).sort(function(a,b){
+    var fa=fechaLeadStr(a)||'', fb=fechaLeadStr(b)||'';
+    return fb>fa?1:fb<fa?-1:0;
+  });
+
+  var h='<div class="kgrid">'
+    +K(manuales.length,'Leads manuales','d','ingresados por el equipo')
+    +K(manuales.filter(function(l){return (SEG[l.id]||{}).stage==='vendido';}).length,'Convertidos','ok','cerrados')
+    +K(manuales.filter(function(l){
+      var s=SEG[l.id]||{};
+      return s.stage!=='vendido'&&s.stage!=='perdido'&&(!s.intentos||s.intentos===0);
+    }).length,'Sin contactar','ro','pendientes')
+    +K(manuales.filter(function(l){
+      var f=String(l.fuente2||'').toLowerCase();
+      return f.includes('refer');
+    }).length,'Referidos','','')
+    +'</div>';
+
+  // ── FORMULARIO ──────────────────────────────────────────────────────
+  h+='<div class="nuevo-lead-form">'
+    +'<div class="nlf-hd" onclick="toggleNLF()">'
+    +'<h4>➕ Ingresar nuevo cliente manualmente</h4>'
+    +'<small>Referidos, contactos directos, ferias, etc.</small>'
+    +'</div>'
+    +'<div class="nlf-body open" id="nlf-body">'
+    +'<div class="nlf-grid">'
+
+    // Nombre completo
+    +'<div class="nlf-full">'
+    +'<label class="nlf-label">Nombre completo del cliente *</label>'
+    +'<input class="nlf-input" id="nl-nombre" type="text" placeholder="Ej: María Fernanda López" autocomplete="off">'
+    +'</div>'
+
+    // WhatsApp
+    +'<div>'
+    +'<label class="nlf-label">WhatsApp / Teléfono *</label>'
+    +'<input class="nlf-input" id="nl-tel" type="tel" placeholder="Ej: 3001234567">'
+    +'</div>'
+
+    // Fuente
+    +'<div>'
+    +'<label class="nlf-label">Fuente de origen *</label>'
+    +'<div class="fuente-bar" id="nl-fuente-bar">';
+
+  var fuentes=[
+    {k:'Referido',ico:'🤝'},
+    {k:'Contacto directo',ico:'📞'},
+    {k:'Feria / evento',ico:'🏢'},
+    {k:'Conjunto residencial',ico:'🏠'},
+    {k:'Red social',ico:'📱'},
+    {k:'Otro',ico:'💬'},
+  ];
+  fuentes.forEach(function(f){
+    h+='<span class="nlf-fuente-tag'+(_fuenteSel===f.k?' sel':'')+'" data-fuente="'+f.k+'" onclick="selFuente(this)">'+f.ico+' '+f.k+'</span>';
+  });
+
+  h+='</div>'
+    +'<input class="nlf-input" id="nl-fuente-txt" type="text" placeholder="¿Quién lo refirió? (si aplica)" style="margin-top:6px">'
+    +'</div>'
+
+    // Proyecto
+    +'<div>'
+    +'<label class="nlf-label">Conjunto / proyecto</label>'
+    +'<input class="nlf-input" id="nl-proyecto" type="text" placeholder="Ej: Tramonte Living, Torre 3">'
+    +'</div>'
+
+    // Tipo de remodelación
+    +'<div>'
+    +'<label class="nlf-label">Tipo de remodelación</label>'
+    +'<select class="nlf-select" id="nl-tipo">'
+    +'<option value="">— Seleccionar —</option>'
+    +'<option>Baño completo</option>'
+    +'<option>Cocina</option>'
+    +'<option>Sala / comedor</option>'
+    +'<option>Apartamento completo</option>'
+    +'<option>Solo mobiliario</option>'
+    +'<option>Obra gris + acabados</option>'
+    +'<option>Vivienda usada</option>'
+    +'</select>'
+    +'</div>'
+
+    // m²
+    +'<div>'
+    +'<label class="nlf-label">Área aproximada (m²)</label>'
+    +'<input class="nlf-input" id="nl-m2" type="number" placeholder="Ej: 45">'
+    +'</div>'
+
+    // Presupuesto
+    +'<div>'
+    +'<label class="nlf-label">Presupuesto aproximado (COP)</label>'
+    +'<select class="nlf-select" id="nl-presupuesto">'
+    +'<option value="">— No definido —</option>'
+    +'<option value="30000000">Menos de $30M</option>'
+    +'<option value="55000000">$30M – $80M</option>'
+    +'<option value="115000000">$80M – $150M</option>'
+    +'<option value="200000000">Más de $150M</option>'
+    +'</select>'
+    +'</div>'
+
+    // Urgencia
+    +'<div>'
+    +'<label class="nlf-label">¿Cuándo quiere iniciar?</label>'
+    +'<select class="nlf-select" id="nl-urgencia">'
+    +'<option value="">— Sin definir —</option>'
+    +'<option value="menor a un mes">En el próximo mes</option>'
+    +'<option value="1-3 meses">En 1 a 3 meses</option>'
+    +'<option value="3-6 meses">En 3 a 6 meses</option>'
+    +'<option value="mas de 6 meses">Más de 6 meses</option>'
+    +'</select>'
+    +'</div>'
+
+    // Nota inicial
+    +'<div class="nlf-full">'
+    +'<label class="nlf-label">Nota inicial (contexto del contacto)</label>'
+    +'<textarea class="nlf-input" id="nl-nota" rows="2" placeholder="Ej: Lo refirió Ana María Zárate de Tramonte. Tiene apto entregado en noviembre, quiere remodelar baño y cocina. Hablar con pareja antes de decidir." style="resize:vertical"></textarea>'
+    +'</div>'
+
+    // Asignar a (CEO y liz ven esto)
+    +(isCeo?
+    '<div><label class="nlf-label">Asignar a</label>'
+    +'<select class="nlf-select" id="nl-resp">'
+    +'<option value="auto">🔀 Asignación automática</option>'
+    +'<option value="com1">👤 Comercial 1</option>'
+    +'<option value="com2">👤 Comercial 2</option>'
+    +'</select></div>':'')
+
+    +'</div>' // end grid
+
+    +'<div id="nl-ok" class="nlf-ok">✅ Lead creado correctamente — aparece en Seguimiento y Calientes</div>'
+
+    +'<div style="display:flex;gap:8px;margin-top:14px">'
+    +'<button class="btn-p" onclick="crearLead()" style="flex:1">✅ Crear lead</button>'
+    +'<button class="btn-s" onclick="limpiarNL()">Limpiar</button>'
+    +'</div>'
+    +'</div>' // end nlf-body
+    +'</div>'; // end nuevo-lead-form
+
+  // ── LISTA DE LEADS MANUALES ─────────────────────────────────────────
+  if(manuales.length){
+    h+='<div class="card"><div class="chd"><span>Leads manuales ingresados</span>'
+      +'<small>'+manuales.length+' · más recientes primero</small></div>';
+    manuales.slice(0,50).forEach(function(l){
+      h+=rowL(l, esCaliente(l)?'oro':'');
+    });
+    if(manuales.length>50) h+='<div style="padding:10px;text-align:center;font-size:11px;color:var(--g)">Mostrando 50 de '+manuales.length+'</div>';
+    h+='</div>';
+  }
+
+  return h;
+}
+
+// Toggle formulario
+function toggleNLF(){
+  var b=document.getElementById('nlf-body');
+  if(b) b.classList.toggle('open');
+}
+
+// Seleccionar fuente con chips
+function selFuente(el){
+  document.querySelectorAll('.nlf-fuente-tag').forEach(function(t){t.classList.remove('sel');});
+  el.classList.add('sel');
+  _fuenteSel=el.dataset.fuente;
+  // Mostrar/ocultar campo de referido
+  var txt=document.getElementById('nl-fuente-txt');
+  if(txt) txt.placeholder=_fuenteSel==='Referido'?'¿Quién lo refirió?':'Detalle adicional (opcional)';
+}
+
+// Crear el lead manualmente
+function crearLead(){
+  var nombre=(document.getElementById('nl-nombre')||{}).value||'';
+  var tel=(document.getElementById('nl-tel')||{}).value||'';
+  if(!nombre.trim()){toast('⚠ El nombre del cliente es obligatorio');return;}
+  if(!tel.trim()){toast('⚠ El teléfono / WhatsApp es obligatorio');return;}
+
+  var tipo=(document.getElementById('nl-tipo')||{}).value||'';
+  var m2=(document.getElementById('nl-m2')||{}).value||'';
+  var pres=(document.getElementById('nl-presupuesto')||{}).value||'';
+  var urg=(document.getElementById('nl-urgencia')||{}).value||'';
+  var nota=(document.getElementById('nl-nota')||{}).value||'';
+  var proyecto=(document.getElementById('nl-proyecto')||{}).value||'';
+  var fuenteTxt=(document.getElementById('nl-fuente-txt')||{}).value||'';
+  var respEl=document.getElementById('nl-resp');
+  var respVal=respEl?respEl.value:'auto';
+
+  // Generar ID único para el lead manual
+  var ts=Date.now();
+  var id='manual_'+ts;
+
+  // Determinar comercial asignado
+  var fakeL={id:id,cumplePresupuesto:pres?'Sí':'No',tiempoInicio:urg,valor:Number(pres)||0};
+  var key=respVal==='auto'?asignarComercial(fakeL):(respVal==='com1'?'com1':'com2');
+
+  // Crear el lead en LEADS
+  var nuevoL={
+    id:id,
+    nombre:nombre.trim(),
+    contacto:tel.trim().replace(/[^0-9]/g,''),
+    ciudad:'',
+    proyecto:proyecto.trim(),
+    tipo:tipo,
+    espacios:'',
+    m2:m2,
+    acabado:'',
+    cumplePresupuesto:pres?'Sí':'No',
+    tiempoInicio:urg,
+    valor:Number(pres)||0,
+    fecha:hoyStr(),
+    fechaTs:new Date().toISOString(),
+    campana:'',
+    fuente:'manual',
+    fuente2:_fuenteSel+(fuenteTxt?' — '+fuenteTxt:''),
+  };
+
+  LEADS.unshift(nuevoL); // insertar al principio (más reciente)
+
+  // Crear SEG para el nuevo lead
+  var seg={
+    stage:'prospecto',
+    nota:nota.trim(),
+    proxContacto:'',
+    intentos:0,
+    presupuestoCliente:pres?'$'+(Number(pres)/1e6).toFixed(0)+'M':'',
+    valorCotizado:'',
+    valorCerrado:'',
+    m2:m2,
+    responsable:nomCom(key),
+    responsableKey:key,
+    fase1Agendada:'',
+    fechaCierre:'',
+    anticipoOK:'',
+    clasificacion:esCaliente(nuevoL)?'Caliente':'',
+    historial:[{fecha:hoyStr(),accion:'Lead creado manualmente · Fuente: '+_fuenteSel+(fuenteTxt?' ('+fuenteTxt+')':'')}],
+    vinculadaAlCierre:'',
+    fechaIngresoTs:new Date().toISOString(),
+    primerContactoTs:'',
+    tiempoRespuestaMin:null,
+  };
+  SEG[id]=seg;
+
+  // Guardar
+  _dirty=true;
+  document.getElementById('savebar').style.display='flex';
+
+  // Mostrar confirmación
+  var ok=document.getElementById('nl-ok');
+  if(ok){ok.style.display='block'; setTimeout(function(){ok.style.display='none';},4000);}
+  toast('✅ '+nombre.trim()+' creado · asignado a '+nomCom(key));
+
+  // Limpiar form
+  limpiarNL();
+  // Re-render manteniendo la vista
+  render();
+}
+
+// Limpiar formulario de nuevo lead
+function limpiarNL(){
+  var ids=['nl-nombre','nl-tel','nl-proyecto','nl-m2','nl-nota','nl-fuente-txt'];
+  ids.forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var s=document.getElementById('nl-tipo');if(s)s.value='';
+  var p=document.getElementById('nl-presupuesto');if(p)p.value='';
+  var u=document.getElementById('nl-urgencia');if(u)u.value='';
+  var r=document.getElementById('nl-resp');if(r)r.value='auto';
+  _fuenteSel='Referido';
+  document.querySelectorAll('.nlf-fuente-tag').forEach(function(t){
+    t.classList.toggle('sel', t.dataset.fuente==='Referido');
+  });
+}
+
 function rBot(){
   var filtros=['todos','Caliente','Obra Gris','Usada','Mobiliario','VENDIDO'];
   var todos=LEADS.concat(LEADS_HIST);
@@ -1228,18 +1564,292 @@ function ventasMes(mes, comKey){
       return true;
     });
 }
+
+// ═══════════════════════════════════════════════
+// INGRESO DIRECTO DE CONTRATOS — tab Comisiones
+// ═══════════════════════════════════════════════
+var _editandoContrato = null; // id del lead que se está editando
+
+function rContratoForm(miKey){
+  // Leads vendidos o calientes (candidatos a contrato)
+  var candidatos = LEADS.concat(ODOO_OPS).filter(function(l){
+    var s=SEG[l.id]||{};
+    if(SESSION&&SESSION.rol!=='ceo' && s.responsableKey!==miKey) return false;
+    return s.stage==='vendido'||s.stage==='fase1'||s.stage==='cotizado'||esCaliente(l);
+  }).sort(function(a,b){
+    // Vendidos primero, luego por fecha
+    var as=(SEG[a.id]||{}).stage==='vendido'?0:1;
+    var bs=(SEG[b.id]||{}).stage==='vendido'?0:1;
+    if(as!==bs) return as-bs;
+    var fa=fechaLeadStr(a)||'', fb=fechaLeadStr(b)||'';
+    return fb>fa?1:fb<fa?-1:0;
+  });
+
+  var h='<div class="contrato-form">'
+    +'<div class="contrato-form-hd">'
+    +'<span>💰 Ingresar / editar contrato</span>'
+    +'<small style="color:rgba(255,255,255,.7);font-size:10px">Para calcular comisión: ingresa valor cerrado + anticipo + fecha</small>'
+    +'</div>'
+    +'<div class="contrato-form-body">'
+    +'<div class="cf-grid">'
+
+    // Lead selector
+    +'<div class="cf-full">'
+    +'<label class="cf-label">Cliente / Lead</label>'
+    +'<select class="cf-select" id="cf-lead" onchange="cfCargarLead(this.value)">'
+    +'<option value="">— Selecciona un cliente —</option>';
+
+  candidatos.forEach(function(l){
+    var s=SEG[l.id]||{};
+    var etq=s.stage==='vendido'?'✅ Vendido':s.stage==='fase1'?'🤝 Negociación':'📄 Cotizado';
+    h+='<option value="'+l.id+'"'+((_editandoContrato===l.id)?' selected':'')+'>'
+      +(l.nombre||'#'+l.id.slice(-6))+' — '+(l.proyecto||'Sin proyecto')+' ('+etq+')</option>';
+  });
+
+  h+='</select></div>'
+
+    // Valor del contrato
+    +'<div>'
+    +'<label class="cf-label">Valor total del contrato (COP)</label>'
+    +'<input class="cf-input" type="number" id="cf-valor" placeholder="Ej: 85000000" oninput="cfCalcular()" value="">'
+    +'</div>'
+
+    // Anticipo recibido
+    +'<div>'
+    +'<label class="cf-label">Anticipo recibido del cliente (COP)</label>'
+    +'<input class="cf-input" type="number" id="cf-anticipo" placeholder="Ej: 59500000" oninput="cfCalcular()">'
+    +'</div>'
+
+    // Fecha del contrato
+    +'<div>'
+    +'<label class="cf-label">Fecha de firma del contrato</label>'
+    +'<input class="cf-input" type="date" id="cf-fecha" value="'+hoyStr()+'">'
+    +'</div>'
+
+    // m²
+    +'<div>'
+    +'<label class="cf-label">Área en m²</label>'
+    +'<input class="cf-input" type="number" id="cf-m2" placeholder="Ej: 45">'
+    +'</div>'
+
+    // Vinculación
+    +'<div>'
+    +'<label class="cf-label">Comercial vinculada a MOSS</label>'
+    +'<select class="cf-select" id="cf-vinc">'
+    +'<option value="SI">✅ Sí — activa</option>'
+    +'<option value="NO">❌ No — ya no vinculada</option>'
+    +'</select>'
+    +'</div>'
+
+    // Responsable (solo CEO)
+    +(SESSION&&SESSION.rol==='ceo'?
+    '<div><label class="cf-label">Asignar a comercial</label>'
+    +'<select class="cf-select" id="cf-resp">'
+    +'<option value="com1">Comercial 1</option>'
+    +'<option value="com2">Comercial 2</option>'
+    +'</select></div>':'')
+
+    +'</div>'; // end cf-grid
+
+  // Preview de comisión
+  h+='<div class="cf-total" id="cf-preview" style="display:none">'
+    +'<div><div class="cf-total-label">Comisión estimada</div><div class="cf-total-value" id="cf-com-val">$0</div></div>'
+    +'<div style="text-align:right"><div class="cf-total-label">1er pago (50%)</div><div style="font-size:14px;font-weight:700;color:var(--d)" id="cf-p1-val">$0</div></div>'
+    +'<div style="text-align:right"><div class="cf-total-label">$/m²</div><div style="font-size:13px;font-weight:600;color:var(--g)" id="cf-pm-val">—</div></div>'
+    +'</div>'
+    +'<div class="cf-warn" id="cf-warn-piso">⚠ El valor por m² queda por debajo del piso de $1.200.000/m² establecido en el Playbook.</div>'
+    +'<div class="cf-warn" id="cf-warn-ant" style="background:var(--ab);border-color:var(--am);color:var(--am)">⚠ El anticipo es menor al 30% del contrato. Verificar antes de registrar.</div>'
+
+    +'<div style="display:flex;gap:8px;margin-top:12px">'
+    +'<button class="btn-p" onclick="cfGuardar()" style="flex:1">✅ Registrar contrato</button>'
+    +'<button class="btn-s" onclick="cfLimpiar()">Limpiar</button>'
+    +'</div>'
+    +'</div>'; // end form body
+  h+='</div>'; // end contrato-form
+
+  // ── LISTA DE CONTRATOS DEL MES ────────────────────────────────────
+  var vendMes=LEADS.concat(ODOO_OPS).filter(function(l){
+    var s=SEG[l.id]||{};
+    if(SESSION&&SESSION.rol!=='ceo' && s.responsableKey!==miKey) return false;
+    return s.stage==='vendido' && Number(s.valorCerrado)>0;
+  }).sort(function(a,b){
+    var fa=(SEG[a.id]||{}).fechaCierre||'', fb=(SEG[b.id]||{}).fechaCierre||'';
+    return fb>fa?1:fb<fa?-1:0;
+  });
+
+  if(vendMes.length){
+    h+='<div class="card" style="margin-bottom:14px"><div class="chd"><span>Contratos registrados</span>'
+      +'<small>'+vendMes.length+' · click para editar</small></div>';
+    vendMes.forEach(function(l){
+      var s=SEG[l.id]||{};
+      var val=Number(s.valorCerrado)||0;
+      var pm=s.m2&&Number(s.m2)>0?Math.round(val/Number(s.m2)):0;
+      var antOK=s.anticipoOK==='SI';
+      var enMes=(s.fechaCierre||'').slice(0,7)===_mesCom;
+      h+='<div class="contrato-row" data-lid="'+l.id+'" onclick="cfEditarLead(this.dataset.lid)" title="Clic para editar">'
+        +'<div style="flex:1;min-width:0">'
+        +'<div class="cr-name">'+(l.nombre&&l.nombre.trim()?l.nombre:'#'+l.id.slice(-6))+'</div>'
+        +'<div class="cr-det">'+(l.proyecto||'')
+          +(s.fechaCierre?' · '+s.fechaCierre:'')
+          +(pm?' · '+fmtCOP(pm)+'/m²':'')
+          +(s.responsableKey?' · 👤 '+nomCom(s.responsableKey):'')
+        +'</div>'
+        +'</div>'
+        +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'
+        +'<span class="cr-val">'+fmtCOP(val)+'</span>'
+        +'<span class="cr-badge '+(antOK?'cr-ok':'cr-pend')+'">'+(antOK?'✅ Anticipo':'⏳ Sin anticipo')+'</span>'
+        +(enMes?'<span class="cr-badge" style="background:var(--vc);color:var(--ok)">Este mes</span>':'')
+        +'</div>'
+        +'<button class="cr-edit" data-lid="'+l.id+'" onclick="event.stopPropagation();cfEditarLead(this.dataset.lid)" title="Editar">✏️</button>'
+        +'</div>';
+    });
+    h+='</div>';
+  }
+
+  return h;
+}
+
+// Cargar datos del lead seleccionado en el formulario
+function cfCargarLead(id){
+  _editandoContrato = id;
+  if(!id) return;
+  var l=LEADS.concat(ODOO_OPS).find(function(x){return x.id===id;});
+  var s=SEG[id]||{};
+  if(!l) return;
+  var val=document.getElementById('cf-valor');
+  var ant=document.getElementById('cf-anticipo');
+  var fec=document.getElementById('cf-fecha');
+  var m2e=document.getElementById('cf-m2');
+  var vinc=document.getElementById('cf-vinc');
+  var resp=document.getElementById('cf-resp');
+  if(val) val.value=s.valorCerrado||s.valorCotizado||l.valor||'';
+  if(ant) ant.value=s.anticipoMonto||'';
+  if(fec) fec.value=s.fechaCierre||hoyStr();
+  if(m2e) m2e.value=s.m2||l.m2||'';
+  if(vinc) vinc.value=s.vinculadaAlCierre||'SI';
+  if(resp) resp.value=s.responsableKey||'com1';
+  cfCalcular();
+}
+
+// Editar un lead existente desde la lista
+function cfEditarLead(id){
+  _editandoContrato=id;
+  var sel=document.getElementById('cf-lead');
+  if(sel){sel.value=id; cfCargarLead(id);}
+  // Scroll up to form
+  var form=document.querySelector('.contrato-form');
+  if(form) form.scrollIntoView({behavior:'smooth'});
+}
+
+// Calcular preview de comisión en tiempo real
+function cfCalcular(){
+  var val=Number((document.getElementById('cf-valor')||{}).value)||0;
+  var ant=Number((document.getElementById('cf-anticipo')||{}).value)||0;
+  var m2v=Number((document.getElementById('cf-m2')||{}).value)||0;
+  var prev=document.getElementById('cf-preview');
+  var wPiso=document.getElementById('cf-warn-piso');
+  var wAnt=document.getElementById('cf-warn-ant');
+  if(!prev) return;
+  if(val>0){
+    prev.style.display='flex';
+    // Calcular comisión considerando total del mes + este contrato
+    var miKey=SESSION&&USERS[SESSION.usuario]&&USERS[SESSION.usuario].key||'todos';
+    var totalMes=ventasMes(_mesCom,miKey).reduce(function(a,x){return a+Number(x.s.valorCerrado);},0);
+    var totalConEste=totalMes+val;
+    var t=tasa(totalConEste);
+    var comEste=Math.round(val*t);
+    var p1=Math.round(comEste/2);
+    var pm=m2v>0?Math.round(val/m2v):0;
+    var comEl=document.getElementById('cf-com-val');
+    var p1El=document.getElementById('cf-p1-val');
+    var pmEl=document.getElementById('cf-pm-val');
+    if(comEl) comEl.textContent=fmtCOP(comEste)+' ('+(t*100)+'%)';
+    if(p1El)  p1El.textContent=fmtCOP(p1);
+    if(pmEl)  pmEl.textContent=pm?fmtCOP(pm)+'/m²':'—';
+    if(wPiso) wPiso.style.display=(pm>0&&pm<CFG.pisoM2)?'block':'none';
+    if(wAnt)  wAnt.style.display=(ant>0&&ant<val*0.3)?'block':'none';
+  } else {
+    prev.style.display='none';
+    if(wPiso) wPiso.style.display='none';
+    if(wAnt)  wAnt.style.display='none';
+  }
+}
+
+// Guardar el contrato
+function cfGuardar(){
+  var id=_editandoContrato||document.getElementById('cf-lead').value;
+  if(!id){toast('⚠ Selecciona un cliente primero');return;}
+  var val=document.getElementById('cf-valor').value;
+  var ant=document.getElementById('cf-anticipo').value;
+  var fec=document.getElementById('cf-fecha').value;
+  var m2v=document.getElementById('cf-m2').value;
+  var vinc=document.getElementById('cf-vinc').value;
+  var resp=document.getElementById('cf-resp');
+  if(!val||!fec){toast('⚠ Valor y fecha son obligatorios');return;}
+  var s=SEG[id];
+  if(!s){toast('⚠ Lead no encontrado en seguimiento');return;}
+  // Actualizar SEG
+  s.stage='vendido';
+  s.valorCerrado=val;
+  s.anticipoMonto=ant;
+  s.anticipoOK=ant&&Number(ant)>0?'SI':'';
+  s.fechaCierre=fec;
+  s.m2=m2v||s.m2||'';
+  s.vinculadaAlCierre=vinc;
+  if(resp) s.responsableKey=resp.value;
+  s.responsable=nomCom(s.responsableKey);
+  if(!s.historial)s.historial=[];
+  s.historial.push({fecha:hoyStr(),accion:'Contrato registrado: '+fmtCOP(Number(val))+' · anticipo: '+fmtCOP(Number(ant||0))});
+  // Sync Odoo si aplica
+  var lOdoo=ODOO_OPS.find(function(x){return x.id===id;});
+  if(lOdoo&&getOdooId(lOdoo)) syncEtapaOdoo(id,'vendido',val);
+  _dirty=true;
+  document.getElementById('savebar').style.display='flex';
+  _editandoContrato=null;
+  toast('✅ Contrato registrado — '+fmtCOP(Number(val)));
+  render();
+}
+
+// Limpiar formulario
+function setMesCom(el){ _mesCom=el.dataset.mes; render(); }
+function cfLimpiar(){
+  _editandoContrato=null;
+  var ids=['cf-lead','cf-valor','cf-anticipo','cf-m2'];
+  ids.forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var fec=document.getElementById('cf-fecha');if(fec)fec.value=hoyStr();
+  var prev=document.getElementById('cf-preview');if(prev)prev.style.display='none';
+}
+
 function rCom(){
   var miKey=SESSION&&USERS[SESSION.usuario]&&USERS[SESSION.usuario].key||'todos';
-  var comLabel=SESSION&&SESSION.rol==='ceo'?'Equipo Comercial':nomCom(miKey);
-  var vs=ventasMes(_mesCom, SESSION&&SESSION.rol!=='ceo'?miKey:'todos');
+  var isCeo=SESSION&&SESSION.rol==='ceo';
+  var comLabel=isCeo?'Equipo Comercial':nomCom(miKey);
+  var vs=ventasMes(_mesCom, !isCeo?miKey:'todos');
   var total=vs.reduce(function(a,x){return a+Number(x.s.valorCerrado);},0);
   var t=tasa(total), com=Math.round(total*t), p1=Math.round(com/2), p2=com-p1;
   var pct=Math.min(100,Math.round(total/CFG.metaMes*100));
   var d2=new Date(_mesCom+'-01T12:00:00'); d2.setMonth(d2.getMonth()+1);
   var lim='10 de '+d2.toLocaleDateString('es-CO',{month:'long',year:'numeric'});
   var sinVinc=vs.filter(function(x){return x.s.vinculadaAlCierre==='NO';});
-  var h='<div class="card"><div class="chd"><span>Comisiones — '+comLabel+'</span></div><div class="cp">'
-    +'<input type="month" value="'+_mesCom+'" onchange="_mesCom=this.value;render()" style="max-width:200px;margin-bottom:12px">'
+  // Navegación de meses
+  var mActual=_mesCom;
+  var dPrev=new Date(mActual+'-01T12:00:00'); dPrev.setMonth(dPrev.getMonth()-1);
+  var dNext=new Date(mActual+'-01T12:00:00'); dNext.setMonth(dNext.getMonth()+1);
+  var mPrev=dPrev.toISOString().slice(0,7);
+  var mNext=dNext.toISOString().slice(0,7);
+  var mLabel=new Date(mActual+'-01T12:00:00').toLocaleDateString('es-CO',{month:'long',year:'numeric'});
+
+  var h='';
+
+  // ── FORMULARIO INGRESO DE CONTRATOS ─────────────────────────────────
+  h+=rContratoForm(miKey);
+
+  h+='<div class="card"><div class="chd"><span>Comisiones — '+comLabel+'</span></div><div class="cp">'
+    +'<div class="mes-nav">'
+    +'<button data-mes="'+mPrev+'" onclick="setMesCom(this)">◀ '+new Date(mPrev+'-01T12:00:00').toLocaleDateString('es-CO',{month:'short'})+'</button>'
+    +'<span>'+mLabel.toUpperCase()+'</span>'
+    +'<button data-mes="'+mNext+'" onclick="setMesCom(this)">'+new Date(mNext+'-01T12:00:00').toLocaleDateString('es-CO',{month:'short'})+' ▶</button>'
+    +'</div>'
     +'<div class="kgrid">'
     +K(fmtCOP(total),'Ventas con anticipo',total<CFG.umbral?'ro':total>=CFG.metaMes?'ok':'am',pct+'% de meta $300M')
     +K((t*100)+'%','Tasa escalera',total<=CFG.umbral?'ro':'ok',total<=CFG.umbral?'No causa':'Aplica')
@@ -1256,15 +1866,20 @@ function rCom(){
   h+='<div class="nota-tip" style="margin-top:10px">Escalera 2026: ≤$150M=0% · $151–250M=1% · $250–350M=2% · $350–500M=3,5%. Se causa con contrato firmado + anticipo. 50% primeros 10 días mes siguiente. 50% restante proporcional al recaudo, <b>solo si está vinculada a MOSS al momento de la entrega.</b></div>'
     +'</div></div>';
   h+='<div class="card"><div class="chd"><span>Cierres del mes</span></div>'
-    +'<table><tr><th>Cliente</th><th>Fecha</th><th>Valor</th><th>$/m²</th><th>Vinculada</th></tr>';
+    +'<table><tr><th>Cliente</th><th>Fecha</th><th>Valor contrato</th><th>Anticipo recibido</th><th>$/m²</th><th>Vinculada</th><th></th></tr>';
   if(!vs.length) h+='<tr><td colspan="5" style="color:var(--gc);text-align:center;padding:14px">Sin cierres registrados este mes</td></tr>';
   vs.forEach(function(x){
     var pm=x.s.m2>0?Math.round(x.s.valorCerrado/x.s.m2):0;
     var vStr=x.s.vinculadaAlCierre==='SI'?'✅ Sí':x.s.vinculadaAlCierre==='NO'?'❌ No':'—';
+    var antMonto=Number(x.s.anticipoMonto)||0;
+    var antPct=antMonto>0?Math.round(antMonto/Number(x.s.valorCerrado)*100):0;
     h+='<tr><td><b>'+(x.l.nombre||x.l.id)+'</b><br><span style="font-size:10px;color:var(--g)">'+(x.l.proyecto||'')+'</span></td>'
-      +'<td>'+x.s.fechaCierre+'</td><td>'+fmtCOP(x.s.valorCerrado)+'</td>'
+      +'<td>'+x.s.fechaCierre+'</td>'
+      +'<td>'+fmtCOP(x.s.valorCerrado)+'</td>'
+      +'<td>'+(antMonto?fmtCOP(antMonto)+'<br><span style="font-size:9px;color:var(--g)">'+antPct+'% del contrato</span>':'<span style="color:var(--am)">Pendiente</span>')+'</td>'
       +'<td style="color:'+(pm&&pm<CFG.pisoM2?'var(--ro)':'inherit')+'">'+(pm?fmtCOP(pm):'—')+'</td>'
-      +'<td>'+vStr+'</td></tr>';
+      +'<td>'+vStr+'</td>'
+      +'<td><button class="cr-edit" data-lid="'+x.l.id+'" onclick="cfEditarLead(this.dataset.lid)">✏️</button></td></tr>';
   });
   if(vs.length) h+='<tr style="background:var(--vc)"><td colspan="2"><b>TOTAL</b></td><td colspan="3"><b>'+fmtCOP(total)+'</b></td></tr>';
   h+='</table></div>';
