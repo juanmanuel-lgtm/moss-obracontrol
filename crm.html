@@ -159,6 +159,43 @@ input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 2
 .pipe-month-hd span{font-size:11px;color:#fff;font-weight:600;}
 .pipe-month-hd small{font-size:9px;color:rgba(255,255,255,.6);}
 .pipe-mes-total{font-size:11px;font-weight:700;color:var(--d);padding:6px 14px;background:var(--vc);border-bottom:1px solid var(--bv);}
+/* MÓDULO DE PAGOS POR CUOTAS */
+.pagos-wrap{margin-bottom:14px;}
+.proyecto-card{background:var(--bc);border:1px solid var(--b);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.pc-hd{padding:10px 14px;background:var(--v);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.pc-hd-name{font-size:13px;font-weight:700;color:#fff;flex:1;}
+.pc-hd-total{font-size:12px;font-weight:700;color:var(--vc);}
+.pc-hd-toggle{background:rgba(255,255,255,.15);border:none;border-radius:6px;color:#fff;font-size:11px;padding:3px 8px;cursor:pointer;font-family:inherit;}
+.cuota-row{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--b);}
+.cuota-row:last-child{border-bottom:none;}
+.cuota-row.pagada{background:var(--vc);}
+.cuota-row.vencida{background:var(--rb);}
+.cuota-row.proxima{background:var(--ab);}
+.cq-pct{width:36px;font-size:11px;font-weight:700;color:var(--g);flex-shrink:0;}
+.cq-label{width:80px;font-size:11px;color:var(--g);flex-shrink:0;}
+.cq-valor{flex:1;font-size:13px;font-weight:700;color:var(--v);}
+.cq-fecha{font-size:11px;color:var(--g);width:90px;flex-shrink:0;}
+.cq-status{width:80px;flex-shrink:0;}
+.cq-badge{display:inline-flex;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600;}
+.cq-ok{background:var(--vc);color:var(--ok);}
+.cq-pend{background:var(--ba);color:var(--g);}
+.cq-venc{background:var(--rb);color:var(--ro);}
+.cq-prox{background:var(--ab);color:var(--am);}
+.cq-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--b);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .15s;}
+.cq-check.done{background:var(--ok);border-color:var(--ok);color:#fff;}
+.pagos-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+.pk{background:var(--bc);border:1px solid var(--b);border-radius:10px;padding:10px 12px;}
+.pk-v{font-size:18px;font-weight:700;color:var(--v);}
+.pk-l{font-size:9px;color:var(--g);text-transform:uppercase;letter-spacing:.6px;margin-top:2px;}
+.pk-s{font-size:10px;color:var(--g);margin-top:2px;}
+.add-cuota-btn{background:var(--ba);border:1px dashed var(--b);border-radius:8px;padding:8px 14px;font-size:11px;cursor:pointer;font-family:inherit;color:var(--g);width:100%;text-align:center;margin-top:4px;}
+.add-cuota-btn:hover{background:var(--vc);color:var(--ok);}
+.pagos-mes-nav{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.pagos-mes-nav button{background:var(--ba);border:1px solid var(--b);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;}
+.pagos-mes-nav span{font-size:14px;font-weight:700;color:var(--v);flex:1;text-align:center;}
+.nuevo-proyecto-form{background:var(--bc);border:1.5px dashed var(--b);border-radius:12px;padding:14px;margin-bottom:14px;display:none;}
+.nuevo-proyecto-form.open{display:block;}
+
 /* INGRESO MANUAL DE LEADS */
 .nuevo-lead-form{background:var(--bc);border:1.5px solid var(--bv);border-radius:12px;margin-bottom:14px;overflow:hidden;}
 .nlf-hd{padding:10px 16px;background:var(--v);display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
@@ -382,6 +419,7 @@ function buildNavbar(){
     ['nuevo','➕','Nuevo Lead'],
     isCeo?['bot','🤖','Leads Bot']:null,
     isCeo?['asig','👥','Asignación']:null,
+    ['pagos','💳','Pagos'],
     ['com','💰','Comisiones'],
     isCeo?['met','📊','Métricas']:null,
     ['pol','📜','Políticas']
@@ -733,6 +771,7 @@ function render(){
   else if(_vista==='nuevo') c.innerHTML=rNuevoLead();
   else if(_vista==='asig') c.innerHTML=rAsig();
   else if(_vista==='bot') c.innerHTML=rBot();
+  else if(_vista==='pagos') c.innerHTML=rPagos();
   else if(_vista==='com') c.innerHTML=rCom();
   else if(_vista==='met') c.innerHTML=rMet();
   else c.innerHTML=rPol();
@@ -1818,6 +1857,387 @@ function cfLimpiar(){
   ids.forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   var fec=document.getElementById('cf-fecha');if(fec)fec.value=hoyStr();
   var prev=document.getElementById('cf-preview');if(prev)prev.style.display='none';
+}
+
+
+// ═══════════════════════════════════════════════
+// MÓDULO DE PAGOS POR CUOTAS
+// Estructura: PAGOS_DATA[mes] = [{proyecto, cliente, total, m2, cuotas:[{pct,label,valor,fecha,pagada}], adicionales, notas}]
+// ═══════════════════════════════════════════════
+var PAGOS_DATA = {};
+
+// Seed inicial desde TABLAS DE PAGOS Google Sheets
+function initPagosData(){
+  var stored = null;
+  try {
+    var raw = (typeof window !== 'undefined' && window.localStorage) ? null : null;
+  } catch(e){}
+  // Cargar desde PropertiesService vía backend si está disponible,
+  // si no usar seed hardcodeado
+  if(!PAGOS_DATA['2026-03']) seedPagos();
+}
+
+function seedPagos(){
+  PAGOS_DATA['2026-03'] = [
+    {id:'p_0326_1', cliente:'Andrea Mesa', proyecto:'Rivera 2', m2:null, total:65618066,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:6561806.60, fecha:'2026-03-27', pagada:true},
+       {pct:'30%', label:'1er Pago', valor:19685419.80, fecha:'INICIA EN JUL', pagada:false},
+       {pct:'40%', label:'2do Pago', valor:26247226.40, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:13123613.20, fecha:'', pagada:false},
+     ], notas:''},
+    {id:'p_0326_2', cliente:'Oscar García', proyecto:'Mártires', m2:null, total:70888127,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:4673676.50, fecha:'', pagada:false},
+       {pct:'30%', label:'1er Pago', valor:14021029.50, fecha:'2026-04-28', pagada:true},
+       {pct:'40%', label:'2do Pago', valor:18694706.00, fecha:'2026-05-20', pagada:true},
+       {pct:'20%', label:'3er Pago', valor:9347353.00, fecha:'2026-07-08', pagada:false},
+     ], notas:'Extras incluidos $70.888.127 total'},
+    {id:'p_0326_3', cliente:'Nicol Celis', proyecto:'Altair', m2:null, total:56467440,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:5646744.00, fecha:'2026-03-01', pagada:true},
+       {pct:'30%', label:'1er Pago', valor:16940232.00, fecha:'INICIA EN OCT', pagada:false},
+       {pct:'40%', label:'2do Pago', valor:22586976.00, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:11293488.00, fecha:'', pagada:false},
+     ], notas:''},
+    {id:'p_0326_4', cliente:'Andrea y Leonardo', proyecto:'Tramonte', m2:null, total:70000000,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:7000000.00, fecha:'', pagada:false},
+       {pct:'30%', label:'1er Pago', valor:21000000.00, fecha:'2026-05-03', pagada:true},
+       {pct:'40%', label:'2do Pago', valor:28000000.00, fecha:'2026-05-26', pagada:true},
+       {pct:'20%', label:'3er Pago', valor:14000000.00, fecha:'2026-07-13', pagada:false},
+     ], notas:'Extras: lavaplatos $397.600'},
+    {id:'p_0326_5', cliente:'Jairo', proyecto:'', m2:null, total:54013202,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:5401320.20, fecha:'', pagada:false},
+       {pct:'30%', label:'1er Pago', valor:16203960.60, fecha:'2026-05-06', pagada:true},
+       {pct:'40%', label:'2do Pago', valor:21605280.80, fecha:'2026-05-27', pagada:true},
+       {pct:'20%', label:'3er Pago', valor:10802640.40, fecha:'2026-06-18', pagada:true},
+     ], notas:''},
+    {id:'p_0326_6', cliente:'Nicol Celis', proyecto:'Magnolio', m2:null, total:34532560,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:3453256.00, fecha:'2026-03-01', pagada:true},
+       {pct:'30%', label:'1er Pago', valor:10359768.00, fecha:'INICIA EN JUNIO', pagada:false},
+       {pct:'40%', label:'2do Pago', valor:13813024.00, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:6906512.00, fecha:'', pagada:false},
+     ], notas:''},
+  ];
+  PAGOS_DATA['2026-04'] = [
+    {id:'p_0426_1', cliente:'David', proyecto:'Urbana 30', m2:27.3, total:43306092,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:4330609.20, fecha:'2026-04-25', pagada:true},
+       {pct:'30%', label:'1er Pago', valor:12991827.60, fecha:'', pagada:false},
+       {pct:'40%', label:'2do Pago', valor:17322436.80, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:8661218.40, fecha:'', pagada:false},
+     ], notas:'Extras: $2.002.182'},
+  ];
+  PAGOS_DATA['2026-05'] = [
+    {id:'p_0526_1', cliente:'Nicolás', proyecto:'Alsacia', m2:32, total:39778771,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:3977877.10, fecha:'2026-05-18', pagada:true},
+       {pct:'30%', label:'1er Pago', valor:11933631.30, fecha:'2026-05-18', pagada:true},
+       {pct:'40%', label:'2do Pago', valor:15911508.40, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:7955754.20, fecha:'', pagada:false},
+     ], notas:''},
+    {id:'p_0526_2', cliente:'Felipe', proyecto:'Alsacia', m2:32, total:39778771,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:3977877.10, fecha:'2026-05-18', pagada:true},
+       {pct:'30%', label:'1er Pago', valor:11933631.30, fecha:'2026-05-18', pagada:true},
+       {pct:'40%', label:'2do Pago', valor:15911508.40, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:7955754.20, fecha:'', pagada:false},
+     ], notas:''},
+    {id:'p_0526_3', cliente:'David Arévalo', proyecto:'Edificio Antique', m2:14, total:27772118,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:2777211.80, fecha:'2026-04-25', pagada:true},
+       {pct:'30%', label:'1er Pago', valor:8331635.40, fecha:'2026-06-11', pagada:true},
+       {pct:'40%', label:'2do Pago', valor:11108847.20, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:5554423.60, fecha:'', pagada:false},
+     ], notas:'11 de junio consignó $8.300.000'},
+    {id:'p_0526_4', cliente:'Juliana Reyes', proyecto:'', m2:40, total:49227917,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:4922791.70, fecha:'2026-05-30', pagada:true},
+       {pct:'30%', label:'1er Pago', valor:14768375.10, fecha:'', pagada:false},
+       {pct:'40%', label:'2do Pago', valor:19691166.80, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:9845583.40, fecha:'', pagada:false},
+     ], notas:''},
+    {id:'p_0526_5', cliente:'Alexander Hoyos', proyecto:'Héroes 80', m2:37, total:35000000,
+     cuotas:[
+       {pct:'5%', label:'1er Pago', valor:1750000, fecha:'2026-05-07', pagada:true},
+       {pct:'5%', label:'1er Pago', valor:1750000, fecha:'', pagada:false},
+       {pct:'30%', label:'2do Pago', valor:10500000, fecha:'', pagada:false},
+       {pct:'40%', label:'3er Pago', valor:14000000, fecha:'', pagada:false},
+       {pct:'15%', label:'4to Pago', valor:5250000, fecha:'', pagada:false},
+       {pct:'5%', label:'Final', valor:1750000, fecha:'', pagada:false},
+     ], notas:'Extras por definir'},
+    {id:'p_0526_6', cliente:'Julián Agudelo', proyecto:'Cuatro Vientos', m2:20, total:31438234,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:3143823.40, fecha:'2026-04-28', pagada:true},
+       {pct:'20%', label:'2do Pago', valor:6287646.80, fecha:'', pagada:false},
+       {pct:'40%', label:'3er Pago', valor:12575293.60, fecha:'', pagada:false},
+       {pct:'25%', label:'4to Pago', valor:7859558.50, fecha:'', pagada:false},
+       {pct:'5%', label:'Final', valor:1571911.70, fecha:'', pagada:false},
+     ], notas:'Extras: $927.360'},
+  ];
+  PAGOS_DATA['2026-06'] = [
+    {id:'p_0626_1', cliente:'Germán Escobar', proyecto:'Reserva del Lago II', m2:48, total:72035300,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:7203530.00, fecha:'', pagada:false},
+       {pct:'30%', label:'1er Pago', valor:21610590.00, fecha:'', pagada:false},
+       {pct:'40%', label:'2do Pago', valor:28814120.00, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:14407060.00, fecha:'', pagada:false},
+     ], notas:'Vende apto para iniciar obra. Entrega apto dic 2026'},
+    {id:'p_0626_2', cliente:'Diego Rincón', proyecto:'Pietra Santa (usado)', m2:35, total:52038539,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:5203853.90, fecha:'', pagada:false},
+       {pct:'30%', label:'1er Pago', valor:15611561.70, fecha:'', pagada:false},
+       {pct:'40%', label:'2do Pago', valor:20815415.60, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:10407707.80, fecha:'', pagada:false},
+     ], notas:'Inicia obra julio. Usado'},
+    {id:'p_0626_3', cliente:'Natalia Badel', proyecto:'Vilanova', m2:39, total:43021474,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:4302147.40, fecha:'', pagada:false},
+       {pct:'30%', label:'1er Pago', valor:12906442.20, fecha:'', pagada:false},
+       {pct:'40%', label:'2do Pago', valor:17208589.60, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:8604294.80, fecha:'', pagada:false},
+     ], notas:'Ya tiene apto'},
+    {id:'p_0626_4', cliente:'Martha Jannet Moreno', proyecto:'Auriga', m2:36, total:43200000,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:4320000.00, fecha:'', pagada:false},
+       {pct:'30%', label:'1er Pago', valor:12960000.00, fecha:'', pagada:false},
+       {pct:'40%', label:'2do Pago', valor:17280000.00, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:8640000.00, fecha:'', pagada:false},
+     ], notas:'Inicia obra julio'},
+    {id:'p_0626_5', cliente:'Andrés Bello', proyecto:'Tramonte', m2:37.3, total:38399418,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:3839941.80, fecha:'', pagada:false},
+       {pct:'30%', label:'1er Pago', valor:11519825.40, fecha:'', pagada:false},
+       {pct:'40%', label:'2do Pago', valor:15359767.20, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:7679883.60, fecha:'', pagada:false},
+     ], notas:'Vendimos apto para iniciar cuanto antes. Acompañar entrega'},
+    {id:'p_0626_6', cliente:'Cristian Gómez', proyecto:'Fusio', m2:10, total:17606340,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:1760634.00, fecha:'', pagada:false},
+       {pct:'30%', label:'1er Pago', valor:5281902.00, fecha:'', pagada:false},
+       {pct:'40%', label:'2do Pago', valor:7042536.00, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:3521268.00, fecha:'', pagada:false},
+     ], notas:''},
+  ];
+  PAGOS_DATA['2026-07'] = [
+    {id:'p_0726_1', cliente:'Darío Castro', proyecto:'Buenavista', m2:36, total:40965720,
+     cuotas:[
+       {pct:'10%', label:'1er Pago', valor:4096572.00, fecha:'', pagada:false},
+       {pct:'30%', label:'1er Pago', valor:12289716.00, fecha:'', pagada:false},
+       {pct:'40%', label:'2do Pago', valor:16386288.00, fecha:'', pagada:false},
+       {pct:'20%', label:'3er Pago', valor:8193144.00, fecha:'', pagada:false},
+     ], notas:''},
+  ];
+}
+
+// Guardar estado de pagos en SEG storage (reutilizamos el mismo mecanismo)
+var _pagos_dirty = false;
+
+function guardarPagoCheck(proyId, cuotaIdx, pagada){
+  var mes = _mesPagos;
+  if(!PAGOS_DATA[mes]) return;
+  var proy = PAGOS_DATA[mes].find(function(p){return p.id===proyId;});
+  if(!proy||!proy.cuotas[cuotaIdx]) return;
+  proy.cuotas[cuotaIdx].pagada = pagada;
+  _pagos_dirty = true;
+  toast((pagada?'✅':'◻') + ' ' + proy.cliente + ' · ' + proy.cuotas[cuotaIdx].label + ' ' + proy.cuotas[cuotaIdx].pct);
+  render();
+}
+
+function actualizarFechaPago(proyId, cuotaIdx, fecha){
+  var mes = _mesPagos;
+  if(!PAGOS_DATA[mes]) return;
+  var proy = PAGOS_DATA[mes].find(function(p){return p.id===proyId;});
+  if(!proy||!proy.cuotas[cuotaIdx]) return;
+  proy.cuotas[cuotaIdx].fecha = fecha;
+  _pagos_dirty = true;
+  _dirty = true;
+  document.getElementById('savebar').style.display='flex';
+}
+
+function toggleProyCard(id){
+  var el=document.getElementById('pc-body-'+id);
+  if(el) el.style.display=el.style.display==='none'?'block':'none';
+}
+
+function agregarProyecto(){
+  var form=document.getElementById('nuevo-proy-form');
+  if(form) form.classList.toggle('open');
+}
+
+function guardarNuevoProy(){
+  var cli=(document.getElementById('np-cliente')||{}).value||'';
+  var proy=(document.getElementById('np-proyecto')||{}).value||'';
+  var total=Number((document.getElementById('np-total')||{}).value)||0;
+  var m2v=(document.getElementById('np-m2')||{}).value||'';
+  var notas=(document.getElementById('np-notas')||{}).value||'';
+  if(!cli||!total){toast('⚠ Cliente y valor total son obligatorios');return;}
+  var mes=_mesPagos;
+  if(!PAGOS_DATA[mes]) PAGOS_DATA[mes]=[];
+  var id='p_'+mes.replace('-','')+'_'+Date.now();
+  var cuotas=[
+    {pct:'10%',label:'1er Pago',valor:Math.round(total*0.10),fecha:'',pagada:false},
+    {pct:'30%',label:'1er Pago',valor:Math.round(total*0.30),fecha:'',pagada:false},
+    {pct:'40%',label:'2do Pago',valor:Math.round(total*0.40),fecha:'',pagada:false},
+    {pct:'20%',label:'3er Pago',valor:Math.round(total*0.20),fecha:'',pagada:false},
+  ];
+  PAGOS_DATA[mes].push({id:id,cliente:cli,proyecto:proy,m2:m2v?Number(m2v):null,total:total,cuotas:cuotas,notas:notas});
+  _pagos_dirty=true;_dirty=true;
+  document.getElementById('savebar').style.display='flex';
+  // Limpiar form
+  ['np-cliente','np-proyecto','np-total','np-m2','np-notas'].forEach(function(x){var e=document.getElementById(x);if(e)e.value='';});
+  document.getElementById('nuevo-proy-form').classList.remove('open');
+  toast('✅ Proyecto añadido: '+cli+(proy?' — '+proy:''));
+  render();
+}
+
+var _mesPagos = '2026-06'; // mes activo en el módulo de pagos
+
+function rPagos(){
+  initPagosData();
+  var hoy=hoyStr();
+  var proyMes=PAGOS_DATA[_mesPagos]||[];
+
+  // Navegación de meses
+  var dP=new Date(_mesPagos+'-01T12:00:00'); dP.setMonth(dP.getMonth()-1);
+  var dN=new Date(_mesPagos+'-01T12:00:00'); dN.setMonth(dN.getMonth()+1);
+  var mP=dP.toISOString().slice(0,7), mN=dN.toISOString().slice(0,7);
+  var mLabel=new Date(_mesPagos+'-01T12:00:00').toLocaleDateString('es-CO',{month:'long',year:'numeric'});
+
+  // KPIs globales del mes
+  var totalMes=proyMes.reduce(function(a,p){return a+p.total;},0);
+  var recaudado=proyMes.reduce(function(a,p){
+    return a+p.cuotas.filter(function(c){return c.pagada;}).reduce(function(b,c){return b+c.valor;},0);
+  },0);
+  var porRecaudar=totalMes-recaudado;
+  var cuotasVenc=[];
+  proyMes.forEach(function(p){
+    p.cuotas.forEach(function(c){
+      if(!c.pagada&&c.fecha&&c.fecha.match(/\d{4}-\d{2}-\d{2}/)&&c.fecha<hoy)
+        cuotasVenc.push({p:p,c:c});
+    });
+  });
+
+  var h='<div class="pagos-mes-nav">'
+    +'<button data-mes="'+mP+'" onclick="setMesPagos(this)">◀ '+new Date(mP+'-01T12:00:00').toLocaleDateString('es-CO',{month:'short'})+'</button>'
+    +'<span>PAGOS — '+mLabel.toUpperCase()+'</span>'
+    +'<button data-mes="'+mN+'" onclick="setMesPagos(this)">'+new Date(mN+'-01T12:00:00').toLocaleDateString('es-CO',{month:'short'})+' ▶</button>'
+    +'</div>';
+
+  // Selector rápido de meses
+  h+='<div class="filter-bar">';
+  ['2026-03','2026-04','2026-05','2026-06','2026-07'].forEach(function(m){
+    var nm=new Date(m+'-01T12:00:00').toLocaleDateString('es-CO',{month:'short',year:'2-digit'});
+    h+='<button class="fchip'+(_mesPagos===m?' on':'')+'" data-mes="'+m+'" onclick="setMesPagos(this)">'+nm+'</button>';
+  });
+  h+='</div>';
+
+  // KPIs
+  var pctRec=totalMes?Math.round(recaudado/totalMes*100):0;
+  h+='<div class="pagos-kpis">'
+    +'<div class="pk"><div class="pk-v">'+fmtCOP(totalMes)+'</div><div class="pk-l">Total contratos</div><div class="pk-s">'+proyMes.length+' proyectos</div></div>'
+    +'<div class="pk"><div class="pk-v" style="color:var(--ok)">'+fmtCOP(recaudado)+'</div><div class="pk-l">Recaudado</div><div class="pk-s">'+pctRec+'% del total</div></div>'
+    +'<div class="pk"><div class="pk-v" style="color:'+(porRecaudar>0?'var(--am)':'var(--ok)')+'">'+fmtCOP(porRecaudar)+'</div><div class="pk-l">Por recaudar</div><div class="pk-s">'+(100-pctRec)+'% pendiente</div></div>'
+    +'<div class="pk"><div class="pk-v" style="color:'+(cuotasVenc.length?'var(--ro)':'var(--ok)')+'">'+cuotasVenc.length+'</div><div class="pk-l">Cuotas vencidas</div><div class="pk-s">'+(cuotasVenc.length?'⚠ Gestionar':'Al día')+'</div></div>'
+    +'</div>';
+
+  // Alerta cuotas vencidas
+  if(cuotasVenc.length){
+    h+='<div class="alerta-3m"><h4>⚠ '+cuotasVenc.length+' cuota(s) vencida(s) sin marcar como pagada</h4>'
+      +'<p>'+cuotasVenc.map(function(x){return x.p.cliente+(x.p.proyecto?' / '+x.p.proyecto:'')+' · '+x.c.label+' '+x.c.pct+' · '+fmtCOP(x.c.valor)+' · fecha: '+x.c.fecha;}).join('<br>')+'</p></div>';
+  }
+
+  // Botón agregar proyecto
+  h+='<button class="add-cuota-btn" onclick="agregarProyecto()">➕ Agregar proyecto del mes</button>';
+
+  // Formulario nuevo proyecto
+  h+='<div class="nuevo-proyecto-form" id="nuevo-proy-form">'
+    +'<div style="font-size:12px;font-weight:700;color:var(--v);margin-bottom:10px">Nuevo proyecto — '+mLabel+'</div>'
+    +'<div class="nlf-grid">'
+    +'<div><label class="nlf-label">Cliente *</label><input class="nlf-input" id="np-cliente" placeholder="Nombre del cliente"></div>'
+    +'<div><label class="nlf-label">Proyecto / Conjunto</label><input class="nlf-input" id="np-proyecto" placeholder="Ej: Tramonte Torre 3"></div>'
+    +'<div><label class="nlf-label">Valor total del contrato *</label><input class="nlf-input" id="np-total" type="number" placeholder="Ej: 65000000" oninput="npPreview()"></div>'
+    +'<div><label class="nlf-label">m²</label><input class="nlf-input" id="np-m2" type="number" placeholder="Ej: 48"></div>'
+    +'<div class="nlf-full"><label class="nlf-label">Notas</label><input class="nlf-input" id="np-notas" placeholder="Ej: Inicia obra julio, entrega apto dic 2026..."></div>'
+    +'</div>'
+    +'<div id="np-preview" style="font-size:11px;color:var(--g);margin:8px 0;display:none">Cuotas estimadas: 10%=<b id="np-c1"></b> · 30%=<b id="np-c2"></b> · 40%=<b id="np-c3"></b> · 20%=<b id="np-c4"></b></div>'
+    +'<div style="display:flex;gap:8px;margin-top:10px">'
+    +'<button class="btn-p" onclick="guardarNuevoProy()" style="flex:1">✅ Guardar proyecto</button>'
+    +'<button class="btn-s" onclick="cerrarNuevoProy()">Cancelar</button>'
+    +'</div></div>';
+
+  // Proyectos del mes
+  if(!proyMes.length){
+    h+='<div class="card"><div class="cp"><div class="empty">Sin proyectos registrados para este mes</div></div></div>';
+  }
+  proyMes.forEach(function(p){
+    var totalProy=p.total;
+    var recProy=p.cuotas.filter(function(c){return c.pagada;}).reduce(function(a,c){return a+c.valor;},0);
+    var pctP=totalProy?Math.round(recProy/totalProy*100):0;
+    var pm=p.m2?Math.round(totalProy/p.m2):null;
+    h+='<div class="proyecto-card">'
+      +'<div class="pc-hd">'
+      +'<div style="flex:1;min-width:0">'
+      +'<div class="pc-hd-name">'+p.cliente+(p.proyecto?' <span style="font-weight:400;opacity:.8">— '+p.proyecto+'</span>':'')+'</div>'
+      +'<div style="font-size:10px;color:rgba(255,255,255,.65);margin-top:2px">'
+        +(pm?fmtCOP(pm)+'/m² · ':'')
+        +'Total: '+fmtCOP(totalProy)+' · Recaudado: '+fmtCOP(recProy)+' ('+pctP+'%)'
+        +(p.notas?' · '+p.notas:'')
+      +'</div></div>'
+      +'<button class="pc-hd-toggle" data-pid="'+p.id+'" onclick="toggleProyCard(this.dataset.pid)">◀▶</button>'
+      +'</div>'
+      +'<div id="pc-body-'+p.id+'">';
+
+    // Barra de progreso
+    h+='<div style="height:4px;background:var(--b)"><div style="height:4px;background:var(--ok);width:'+pctP+'%;transition:width .5s"></div></div>';
+
+    // Cuotas
+    p.cuotas.forEach(function(c,idx){
+      var esPagada=c.pagada;
+      var esFecha=c.fecha&&c.fecha.match(/\d{4}-\d{2}-\d{2}/);
+      var esVenc=!esPagada&&esFecha&&c.fecha<hoy;
+      var esProx=!esPagada&&esFecha&&c.fecha>=hoy&&c.fecha<=new Date(Date.now()+7*86400000).toISOString().slice(0,10);
+      var rowCls=esPagada?'pagada':esVenc?'vencida':esProx?'proxima':'';
+      h+='<div class="cuota-row '+rowCls+'">'
+        // Check de pago
+        +'<div class="cq-check'+(esPagada?' done':'')+'" data-pid="'+p.id+'" data-idx="'+idx+'" onclick="guardarPagoCheck(this.dataset.pid,Number(this.dataset.idx),!'+esPagada+')">'
+        +(esPagada?'✓':'')+'</div>'
+        +'<span class="cq-pct">'+c.pct+'</span>'
+        +'<span class="cq-label">'+c.label+'</span>'
+        +'<span class="cq-valor">'+fmtCOP(c.valor)+'</span>'
+        // Fecha editable
+        +'<span class="cq-fecha">'
+        +(esFecha?'<input type="date" value="'+c.fecha+'" data-pid="'+p.id+'" data-idx="'+idx+'" onchange="actualizarFechaPago(this.dataset.pid,Number(this.dataset.idx),this.value)" style="border:none;background:transparent;font-size:11px;color:inherit;cursor:pointer;width:100px">':'<span style="font-size:10px;color:var(--g)">'+(c.fecha||'Sin fecha')+'</span>')
+        +'</span>'
+        // Status
+        +'<span class="cq-status">'
+        +(esPagada?'<span class="cq-badge cq-ok">✅ Pagado</span>':esVenc?'<span class="cq-badge cq-venc">⚠ Vencida</span>':esProx?'<span class="cq-badge cq-prox">📅 Esta semana</span>':'<span class="cq-badge cq-pend">Pendiente</span>')
+        +'</span>'
+        +'</div>';
+    });
+    h+='</div></div>'; // end pc-body + proyecto-card
+  });
+
+  return h;
+}
+
+function cerrarNuevoProy(){var f=document.getElementById('nuevo-proy-form');if(f)f.classList.remove('open');}
+function setMesPagos(el){ _mesPagos=el.dataset.mes; render(); }
+
+function npPreview(){
+  var v=Number((document.getElementById('np-total')||{}).value)||0;
+  var pv=document.getElementById('np-preview');
+  if(!pv) return;
+  if(v>0){
+    pv.style.display='block';
+    document.getElementById('np-c1').textContent=fmtCOP(Math.round(v*.10));
+    document.getElementById('np-c2').textContent=fmtCOP(Math.round(v*.30));
+    document.getElementById('np-c3').textContent=fmtCOP(Math.round(v*.40));
+    document.getElementById('np-c4').textContent=fmtCOP(Math.round(v*.20));
+  } else { pv.style.display='none'; }
 }
 
 function rCom(){
