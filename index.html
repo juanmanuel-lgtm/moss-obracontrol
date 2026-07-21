@@ -3568,12 +3568,40 @@ function editFechaMat(obraId,capN,matId,campo){
   render();
 }
 
+// v2026.07.16: borrado explicito de un item de pedido en el servidor.
+// Ya no basta con "guardar" para borrar: desde que cron.guardar fusiona
+// pedidos por item (matId) para no perder materiales de otras personas,
+// un guardado normal podria "revivir" un item borrado si otro navegador
+// guarda con su copia vieja (que todavia lo tiene). Por eso el borrado
+// real de un item usa esta accion explicita en vez del guardado generico.
+function eliminarPedidoRemoto(obraId,capN,matId,cb){
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"pedido.eliminar",
+      _email:S.user?S.user.email:"",
+      _nombre:S.user?S.user.nombre:"",
+      payload:{obraId:obraId,capN:capN,matId:matId}
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    console.log("[MOSS] pedido.eliminar respuesta:",d);
+    if(cb)cb(d&&d.ok!==false);
+  })
+  .catch(function(err){
+    console.error("[MOSS] Error al eliminar pedido en servidor:",err);
+    if(cb)cb(false);
+  });
+}
+
 function elimPedidoObra(obraId,capN,matId){
   if(!puedeCerrarObra()){alert("No tienes permisos para eliminar pedidos. Contacta a Coordinacion.");return;}
   if(!confirm("Eliminar este material del plan de esta obra?\n\nEl material seguira en el catalogo general."))return;
   if(CRON.pedidos[obraId]&&CRON.pedidos[obraId][capN]){
     CRON.pedidos[obraId][capN]=CRON.pedidos[obraId][capN].filter(function(p){return p.matId!==matId;});
   }
+  eliminarPedidoRemoto(obraId,capN,matId);
   guardarCronogramaRemoto();
   render();
 }
@@ -3586,6 +3614,7 @@ function elimPedidoObraDirecto(obraId,capN,matId){
   // Limpiar selección del modal si estaba marcado
   var k=capN+"_"+matId;
   if(SDP.seleccion)delete SDP.seleccion[k];
+  eliminarPedidoRemoto(obraId,capN,matId);
   guardarCronogramaRemoto();
   render();
 }
@@ -5030,7 +5059,14 @@ fetch(SCRIPT_URL+"?hoja=cron&_t="+Date.now()+_emailParam,{
         if(rem.estados)CRON.estados=rem.estados;
         if(rem.drives)CRON.drives=rem.drives;
         if(rem.materiales!==undefined)CRON.materiales=rem.materiales;
-        if(rem.pedidos)CRON.pedidos=rem.pedidos;
+        // v52 FIX: proteger pedidos de materiales sin confirmar en servidor
+        // contra sobreescritura por un GET que llega justo despues de agregar
+        // un item (ej: residente agrega "cinta led" y un refresco automatico
+        // de otro usuario borra el item porque CRON.pedidos se reemplazaba
+        // por completo sin revisar si habia cambios locales pendientes).
+        var hayPendientesPed=Object.keys(S.pending||{}).length>0||_guardandoPendiente||(_localModTs>_ultimoGuardadoTs);
+        if(rem.pedidos&&!hayPendientesPed)CRON.pedidos=rem.pedidos;
+        else if(rem.pedidos)console.log("[MOSS] Saltando actualizacion de pedidos - hay cambios locales sin confirmar");
         if(rem.ordenes)CRON.ordenes=rem.ordenes;
         if(rem.maestros)CRON.maestros=rem.maestros;
         if(rem.comunicados){
@@ -5775,6 +5811,13 @@ function maestroElimCorte(obraId,corteId){
   render();
 }
 
+// v2026.07.16 FIX: antes esta función guardaba el PDF/foto COMPLETO en
+// base64 dentro de CRON.maestros (que viaja dentro del blob compartido de
+// TODO el equipo). Un solo archivo de unos cientos de KB ya rompe la cuota
+// de almacenamiento de Apps Script para el equipo entero, no solo para
+// quien lo sube — eso era el "problema de capacidad de almacenamiento".
+// Ahora el archivo se sube directo a Google Drive; en el blob solo se
+// guarda un link (unos 100 bytes en vez de cientos de miles).
 function maestroSubirPdf(obraId,corteId){
   var inp=document.createElement("input");
   inp.type="file";inp.accept="application/pdf,image/*";
@@ -5786,15 +5829,39 @@ function maestroSubirPdf(obraId,corteId){
     var reader=new FileReader();
     reader.onload=function(ev){
       var b64=ev.target.result.split(",")[1];
-      var d=_maestroData(obraId);
-      for(var i=0;i<d.cortes.length;i++){
-        if(d.cortes[i].id===corteId){
-          d.cortes[i].pdf={nombre:file.name,tipo:file.type,b64:b64,ts:Date.now()};
-          break;
+      var btn=document.querySelector("[onclick=\"maestroSubirPdf("+obraId+","+corteId+")\"]");
+      if(btn){btn.textContent="⏳ Subiendo...";btn.disabled=true;}
+      fetch(SCRIPT_URL,{
+        method:"POST",
+        body:JSON.stringify({
+          action:"maestro.subir_pdf",
+          _email:S.user?S.user.email:"",
+          _nombre:S.user?S.user.nombre:"",
+          payload:{obraId:obraId,corteId:corteId,b64:b64,nombre:file.name,tipo:file.type}
+        })
+      })
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(!d||d.ok===false){
+          alert("No se pudo subir el archivo: "+(d&&d.error?d.error:"error desconocido")+"\n\nSi el mensaje menciona 'permiso' o 'rol', avisa a sistemas.");
+          if(btn){btn.textContent="📎 PDF firmado";btn.disabled=false;}
+          return;
         }
-      }
-      guardarCronogramaRemoto();
-      render();
+        var dta=_maestroData(obraId);
+        for(var i=0;i<dta.cortes.length;i++){
+          if(dta.cortes[i].id===corteId){
+            dta.cortes[i].pdf=d.data.pdf; // solo {nombre,tipo,url,fileId,ts} — liviano
+            break;
+          }
+        }
+        guardarCronogramaRemoto();
+        render();
+      })
+      .catch(function(err){
+        console.error("[MOSS] Error subiendo PDF de corte:",err);
+        alert("No se pudo subir el archivo (sin conexión con el servidor). Intenta de nuevo.");
+        if(btn){btn.textContent="📎 PDF firmado";btn.disabled=false;}
+      });
     };
     reader.readAsDataURL(file);
   };
@@ -5938,7 +6005,7 @@ function rMaestro(o){
                 (puedeVerPrecios()&&!pg?h("button",{"onclick":"maestroMarcarPagado("+o.id+","+c.id+")","style":"font-size:10px;background:var(--v);color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-weight:600"},"✓ Marcar pagado"):"")+
                 (puedeVerPrecios()&&pg?h("button",{"onclick":"maestroMarcarPagado("+o.id+","+c.id+")","style":"font-size:10px;background:var(--vc);color:var(--g);border:1px solid var(--b);border-radius:6px;padding:4px 10px;cursor:pointer"},"Desmarcar"):"")+
                 h("button",{"onclick":"maestroSubirPdf("+o.id+","+c.id+")","style":"font-size:10px;background:#F0F4FF;color:#3A5BA0;border:1px solid #C5D0E8;border-radius:6px;padding:4px 10px;cursor:pointer;font-weight:600"},(c.pdf?"📎 Cambiar PDF":"📎 PDF firmado"))+
-                (c.pdf?h("a",{"href":"data:"+c.pdf.tipo+";base64,"+c.pdf.b64,"download":c.pdf.nombre,"style":"font-size:10px;background:#E8F5E9;color:#2D6A3F;border:1px solid #B2DFCC;border-radius:6px;padding:4px 10px;cursor:pointer;text-decoration:none;font-weight:600"},"⬇ Descargar"):"")+
+                (c.pdf?h("a",{"href":c.pdf.url?c.pdf.url:("data:"+c.pdf.tipo+";base64,"+c.pdf.b64),"target":"_blank","download":c.pdf.url?"":c.pdf.nombre,"style":"font-size:10px;background:#E8F5E9;color:#2D6A3F;border:1px solid #B2DFCC;border-radius:6px;padding:4px 10px;cursor:pointer;text-decoration:none;font-weight:600"},"⬇ Ver / Descargar"):"")+
                 (puedeVerPrecios()?h("button",{"onclick":"maestroElimCorte("+o.id+","+c.id+")","style":"font-size:10px;background:#FAE5E2;color:#B5362A;border:1px solid #E0C0C0;border-radius:6px;padding:4px 10px;cursor:pointer"},"Eliminar"):"")
               )
             )
