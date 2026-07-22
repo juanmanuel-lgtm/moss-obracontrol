@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>MOSS CRM Comercial v47</title>
+<title>MOSS CRM Comercial v48</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--v:#2D4A35;--vc:#E8F0EB;--bv:#C2D1C5;--d:#A67C52;--cr:#F2EBE0;--bc:#FAF7F3;--ba:#EEEAE3;--g:#6B6560;--gc:#B5AFA8;--b:#DDD5C8;--ok:#3A6B45;--am:#C17B2A;--ab:#FDF0E0;--ro:#B5362A;--rb:#FAEBE9;}
@@ -373,7 +373,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 2
 <div class="app" id="app">
 <div class="topbar">
   <div class="tlogo">M</div>
-  <div><div class="ttitle">CRM Comercial MOSS</div><div class="tsub">V47 · Mobile Fix</div></div>
+  <div><div class="ttitle">CRM Comercial MOSS</div><div class="tsub">V48 · AutoGuardado</div></div>
   <div class="topright">
     <span class="user-chip" id="user-chip">—</span>
     <div class="dbadge dno" id="badge" onclick="sync()">
@@ -425,6 +425,12 @@ function doLogin(){
   document.getElementById('user-chip').textContent=user.nombre;
   buildNavbar();
   cargar();
+  // ── AutoGuardado cada 30 segundos si hay cambios pendientes ──────────────
+  setInterval(function(){
+    if(_dirty){
+      sync(true); // silencioso — sin toast
+    }
+  }, 30000);
 }
 document.getElementById('pwd').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
 
@@ -1523,8 +1529,10 @@ function guardarDet(id){
   if(!s.historial)s.historial=[];
   s.historial.push({fecha:hoyStr(),stage:s.stage,nota:s.nota.slice(0,60),accion:'Guardado'});
   // El contrato ya fue guardado en SEG[id].contratoNombre por cargarContrato()
-  _dirty=true; cModal(); toast('Guardado — recuerda sincronizar ☁'); render();
+  _dirty=true; cModal(); toast('💾 Guardando…'); render();
   document.getElementById('savebar').style.display='flex';
+  // Auto-sincronizar inmediatamente — no requiere clic manual en la barra
+  setTimeout(function(){ sync(true); }, 300);
 
   // ── PUSH A ODOO — todos los leads, no solo los de Odoo ───────────────────
   // Cotización enviada: notifica a Odoo con valor y detalle
@@ -1900,8 +1908,9 @@ function cfGuardar(){
   _dirty=true;
   document.getElementById('savebar').style.display='flex';
   _editandoContrato=null;
-  toast('✅ Contrato registrado — '+fmtCOP(Number(val)));
+  toast('💾 Guardando contrato…');
   render();
+  setTimeout(function(){ sync(true); }, 300);
   // ── PUSH A ODOO — contrato/venta para todos los leads ────────────────────
   var detContrato = 'Contrato firmado: ' + fmtCOP(Number(val))
     + ' · Anticipo: ' + fmtCOP(Number(ant||0))
@@ -2754,18 +2763,33 @@ function calcMesesSinMeta(){
   }
   return meses;
 }
-function sync(){
-  if(!_dirty){toast('Sin cambios pendientes');return;}
+function sync(silencioso){
+  if(!_dirty){if(!silencioso)toast('Sin cambios pendientes');return;}
   setBadge(false,'Guardando…');
   var cbName='mosssave_'+Date.now();
   var sc=document.createElement('script');
-  var tm=setTimeout(function(){delete window[cbName];try{document.body.removeChild(sc);}catch(e){}toast('⚠ Timeout');},15000);
+  var tm=setTimeout(function(){
+    delete window[cbName];try{document.body.removeChild(sc);}catch(e){}
+    toast('⚠ Timeout al guardar — intenta de nuevo');
+    setBadge(false,'Error al guardar');
+  },15000);
   window[cbName]=function(d){
     clearTimeout(tm);delete window[cbName];try{document.body.removeChild(sc);}catch(e){}
-    if(d&&d.ok){_dirty=false;document.getElementById('savebar').style.display='none';setBadge(true,'Guardado ✓');toast('✅ Guardado · '+d.guardados+' leads');}
-    else toast('⚠ Error al guardar');
+    if(d&&d.ok){
+      _dirty=false;
+      document.getElementById('savebar').style.display='none';
+      setBadge(true,'Guardado ✓');
+      toast('✅ Cambios guardados correctamente');
+    } else {
+      setBadge(false,'Error — reintenta');
+      toast('⚠ Error al guardar: '+(d&&d.error?d.error:'intenta de nuevo'));
+    }
   };
-  sc.onerror=function(){clearTimeout(tm);toast('⚠ Sin conexión');};
+  sc.onerror=function(){
+    clearTimeout(tm);
+    setBadge(false,'Sin conexión');
+    toast('⚠ Sin conexión al servidor');
+  };
   var pl=encodeURIComponent(JSON.stringify(SEG));
   sc.src=CFG.scriptUrl+'?action=crm.guardar&callback='+cbName+'&payload='+pl;
   document.body.appendChild(sc);
