@@ -1531,35 +1531,12 @@ function guardarDet(id){
   // El contrato ya fue guardado en SEG[id].contratoNombre por cargarContrato()
   _dirty=true; cModal(); toast('💾 Guardando…'); render();
   document.getElementById('savebar').style.display='flex';
-  // Auto-sincronizar inmediatamente — no requiere clic manual en la barra
+  // Auto-sincronizar inmediatamente
   setTimeout(function(){ sync(true); }, 300);
 
-  // ── PUSH A ODOO — todos los leads, no solo los de Odoo ───────────────────
-  // Cotización enviada: notifica a Odoo con valor y detalle
-  if (s.stage === 'cotizado') {
-    var detCot = 'Cotización enviada: ' + (s.valorCotizado ? fmtCOP(Number(s.valorCotizado)) : 'valor por definir')
-      + (s.m2 ? ' · ' + s.m2 + ' m²' : '')
-      + (s.nota ? ' · ' + s.nota.slice(0, 80) : '');
-    pushToOdoo(id, 'cotizacion', detCot);
-  }
-  // Fase 0 (visita) o fase 1 (negociación): registrar actividad
-  else if (s.stage === 'fase0' || s.stage === 'fase1') {
-    var detFase = (s.stage === 'fase0' ? 'Visita agendada' : 'Negociación activa')
-      + (s.fase1Agendada ? ' · ' + s.fase1Agendada : '')
-      + (s.nota ? ' · ' + s.nota.slice(0, 80) : '');
-    pushToOdoo(id, s.stage === 'fase0' ? 'contacto' : 'seguimiento', detFase);
-  }
-  // Vendido: sync especial con valor cerrado
-  else if (s.stage === 'vendido') {
-    syncEtapaOdoo(id, 'vendido', s.valorCotizado || s.valorCerrado || '');
-  }
-  // Para leads de Odoo: sync de etapa adicional en cualquier cambio
-  else {
-    var _lOdoo = ODOO_OPS.find(function(x){ return x.id === id; });
-    if (_lOdoo && getOdooId(_lOdoo)) {
-      syncEtapaOdoo(id, s.stage, s.valorCotizado || s.valorCerrado || '');
-    }
-  }
+  // NOTA: pushToOdoo deshabilitado temporalmente hasta re-autorizar el Apps Script
+  // Para re-activar: Implementar → Administrar implementaciones → Nueva versión → Implementar
+  // if (s.stage === 'cotizado') { pushToOdoo(id, 'cotizacion', '...'); }
 }
 function enviarTpl(id,i){
   var l=LEADS.find(function(x){return x.id===id;}); var s=SEG[id];
@@ -1574,10 +1551,8 @@ function enviarTpl(id,i){
   _dirty=true; document.getElementById('savebar').style.display='flex';
   window.open('https://wa.me/57'+tel+'?text='+encodeURIComponent(txt),'_blank');
   toast('WhatsApp abierto · '+TPL[i][0]);
-  // ── PUSH A ODOO ──────────────────────────────────────────────────────────
-  // Se envía siempre: leads Odoo, del bot y manuales
-  var detalleEvento = TPL[i][0] + ' — ' + (SESSION ? SESSION.nombre : '') + ' · WA: ' + tel;
-  pushToOdoo(id, 'contacto', detalleEvento);
+  // pushToOdoo deshabilitado hasta re-autorizar el Apps Script
+  // pushToOdoo(id, 'contacto', TPL[i][0] + ' — WA: ' + tel);
 }
 
 // ═══════════════════════════════════════════════
@@ -1911,15 +1886,8 @@ function cfGuardar(){
   toast('💾 Guardando contrato…');
   render();
   setTimeout(function(){ sync(true); }, 300);
-  // ── PUSH A ODOO — contrato/venta para todos los leads ────────────────────
-  var detContrato = 'Contrato firmado: ' + fmtCOP(Number(val))
-    + ' · Anticipo: ' + fmtCOP(Number(ant||0))
-    + ' · Fecha: ' + fec
-    + (m2v ? ' · ' + m2v + ' m²' : '');
-  pushToOdoo(id, 'cotizacion', detContrato);
-  // Para leads de Odoo: también sync de etapa 'vendido'
-  var lOdoo=ODOO_OPS.find(function(x){return x.id===id;});
-  if(lOdoo&&getOdooId(lOdoo)) syncEtapaOdoo(id,'vendido',val);
+  // pushToOdoo y syncEtapaOdoo deshabilitados hasta re-autorizar Apps Script
+}
 }
 
 // Limpiar formulario
@@ -3337,10 +3305,8 @@ function registrarContactoAlerta(id){
   }
   descartarAlerta(id);
   toast('✅ Contacto registrado — '+nomCom((SEG[id]||{}).responsableKey||''));
-  // ── PUSH A ODOO ─────────────────────────────────────────────────────────
-  var l = LEADS.concat(ODOO_OPS).find(function(x){ return x.id === id; });
-  var nom = l ? (l.nombre || '').split(' ')[0] : id;
-  pushToOdoo(id, 'contacto', 'Primer contacto automático WA — lead caliente · ' + nom);
+  // pushToOdoo deshabilitado hasta re-autorizar el Apps Script
+  // pushToOdoo(id, 'contacto', 'Primer contacto automático WA');
 }
 
 // Revisar alertas cada 2 minutos
