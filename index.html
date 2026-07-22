@@ -3433,6 +3433,9 @@ function crearMaterialNuevo(){
     }
     if(dupId)break;
   }
+
+  var obraIdGuardar=ADDM.obraId,capGuardar,matIdGuardar;
+
   if(dupId){
     if(!confirm("Ya existe un material llamado \""+dupId.nom+"\" en el Cap. "+dupId.cap+".\n\nQuieres usarlo en lugar de crear duplicado?")){
       return;
@@ -3454,30 +3457,50 @@ function crearMaterialNuevo(){
         actor:S.user.nombre,notas:""
       });
     }
-    guardarCronogramaRemoto();
-    cerrarAgregarMaterial();
-    return;
-  }
-  // Crear nuevo: generar id unico
-  var maxId=0;
-  for(var k2 in CRON.materiales){
-    for(var j=0;j<CRON.materiales[k2].length;j++){
-      if(CRON.materiales[k2][j].id>maxId)maxId=CRON.materiales[k2][j].id;
+    capGuardar=dupId.cap;matIdGuardar=dupId.id;
+  }else{
+    // Crear nuevo: generar id unico
+    var maxId=0;
+    for(var k2 in CRON.materiales){
+      for(var j=0;j<CRON.materiales[k2].length;j++){
+        if(CRON.materiales[k2][j].id>maxId)maxId=CRON.materiales[k2][j].id;
+      }
     }
+    var newMat={id:maxId+1,nom:nom,uni:uni,cant_m2:0,origen:"compra",lead:0,critico:false,notas:""};
+    CRON.materiales[ADDM.capN].push(newMat);
+    // Crear pedido en la obra
+    if(!CRON.pedidos[ADDM.obraId])CRON.pedidos[ADDM.obraId]={};
+    if(!CRON.pedidos[ADDM.obraId][ADDM.capN])CRON.pedidos[ADDM.obraId][ADDM.capN]=[];
+    CRON.pedidos[ADDM.obraId][ADDM.capN].push({
+      matId:newMat.id,cantidad:cant,estado:"pendiente",
+      fechaSolicitud:new Date().toISOString().slice(0,10),
+      fechaUpd:new Date().toISOString().slice(0,10),
+      actor:S.user.nombre,notas:""
+    });
+    capGuardar=ADDM.capN;matIdGuardar=newMat.id;
   }
-  var newMat={id:maxId+1,nom:nom,uni:uni,cant_m2:0,origen:"compra",lead:0,critico:false,notas:""};
-  CRON.materiales[ADDM.capN].push(newMat);
-  // Crear pedido en la obra
-  if(!CRON.pedidos[ADDM.obraId])CRON.pedidos[ADDM.obraId]={};
-  if(!CRON.pedidos[ADDM.obraId][ADDM.capN])CRON.pedidos[ADDM.obraId][ADDM.capN]=[];
-  CRON.pedidos[ADDM.obraId][ADDM.capN].push({
-    matId:newMat.id,cantidad:cant,estado:"pendiente",
-    fechaSolicitud:new Date().toISOString().slice(0,10),
-    fechaUpd:new Date().toISOString().slice(0,10),
-    actor:S.user.nombre,notas:""
+
+  // v2026.07.21 FIX: antes se cerraba el formulario de inmediato sin saber
+  // si el guardado en verdad llego al servidor (mismo problema que ya se
+  // corrigio para "crear obra nueva" - ver crearNuevo()). Ahora se marca
+  // como pendiente (protegido de un refresco concurrente) y solo se cierra
+  // el formulario cuando el servidor confirma; si falla, se avisa claro y
+  // el formulario queda abierto para reintentar.
+  var pendKey=obraIdGuardar+"_"+capGuardar+"_"+matIdGuardar;
+  S.pending[pendKey]=true;
+  guardarCronogramaRemoto(function(saved,motivo){
+    delete S.pending[pendKey];
+    if(saved){
+      cerrarAgregarMaterial();
+      render();
+    }else{
+      var razon=motivo==="sin_sincronizar"
+        ?"la app todavia esta sincronizando con el servidor"
+        :"no hay conexion con el servidor en este momento";
+      alert("⚠️ \""+nom+"\" se guardo SOLO en este dispositivo porque "+razon+". No cierres esta pestana. Espera a que arriba diga \"Sync OK\" y vuelve a intentar.");
+      render();
+    }
   });
-  guardarCronogramaRemoto();
-  cerrarAgregarMaterial();
 }
 
 // Agregar desde catalogo existente (selector)
@@ -3504,12 +3527,27 @@ function addDesdeCatalogo(capDeMatN,matId){
       actor:S.user.nombre,notas:""
     });
   }
-  guardarCronogramaRemoto();
-  // Limpiar el campo pero NO cerrar (para poder agregar mas)
-  if(cantInput)cantInput.value="";
-  // Mostrar feedback
+  // v2026.07.21 FIX: proteger este pedido mientras se guarda, y solo decir
+  // "Agregado!" cuando el servidor confirma de verdad (antes se mostraba
+  // el mensaje de exito a los 1.5s sin importar si en realidad se guardo).
+  var pendKey=ADDM.obraId+"_"+capDeMatN+"_"+matId;
+  S.pending[pendKey]=true;
   var btn=document.getElementById("btnaddcat-"+capDeMatN+"-"+matId);
-  if(btn){btn.textContent="Agregado!";setTimeout(function(){if(btn)btn.textContent="+ Agregar";},1500);}
+  if(btn)btn.textContent="Guardando...";
+  guardarCronogramaRemoto(function(saved,motivo){
+    delete S.pending[pendKey];
+    if(saved){
+      if(cantInput)cantInput.value="";
+      if(btn){btn.textContent="Agregado!";setTimeout(function(){if(btn)btn.textContent="+ Agregar";},1500);}
+    }else{
+      var razon=motivo==="sin_sincronizar"
+        ?"la app todavia esta sincronizando con el servidor"
+        :"no hay conexion con el servidor en este momento";
+      alert("⚠️ No se guardo en el servidor ("+razon+"). No cierres esta pestana y vuelve a intentar en unos segundos.");
+      if(btn)btn.textContent="+ Agregar";
+      render();
+    }
+  });
 }
 
 // Eliminar pedido de la obra (no del catalogo)
@@ -5068,7 +5106,14 @@ fetch(SCRIPT_URL+"?hoja=cron&_t="+Date.now()+_emailParam,{
         if(rem.pedidos&&!hayPendientesPed)CRON.pedidos=rem.pedidos;
         else if(rem.pedidos)console.log("[MOSS] Saltando actualizacion de pedidos - hay cambios locales sin confirmar");
         if(rem.ordenes)CRON.ordenes=rem.ordenes;
-        if(rem.maestros)CRON.maestros=rem.maestros;
+        // v2026.07.22 FIX: proteger cortes de maestro sin confirmar en el
+        // servidor contra sobreescritura por un GET que llega justo despues
+        // de registrar un corte (mismo problema que ya se corrigio para
+        // pedidos — aqui se maneja dinero, era el peor lugar para que
+        // pasara en silencio).
+        var hayPendientesMae=Object.keys(S.pending||{}).length>0||_guardandoPendiente||(_localModTs>_ultimoGuardadoTs);
+        if(rem.maestros&&!hayPendientesMae)CRON.maestros=rem.maestros;
+        else if(rem.maestros)console.log("[MOSS] Saltando actualizacion de maestros - hay cambios locales sin confirmar");
         if(rem.comunicados){
           CRON.comunicados=rem.comunicados;
           try{localStorage.setItem("moss_comunicados",JSON.stringify(rem.comunicados));}catch(e){}
@@ -5761,9 +5806,20 @@ function maestroCfgGuardar(obraId){
   d.cfg.valorPactado = parseFloat((vp ? vp.value : draft.valorPactado)||0)||0;
   d.cfg.notas   = (nt   ? nt.value.trim()            : draft.notas||"");
   S._mDraft=null; S._mDraftId=null; // limpiar draft tras guardar
-  guardarCronogramaRemoto();
-  S.saveMsg="Maestro actualizado";setTimeout(function(){S.saveMsg="";render();},2000);
-  render();
+  // v2026.07.22 FIX: antes se avisaba "Maestro actualizado" a los 2s sin
+  // saber si en verdad llego al servidor. Ahora se espera confirmacion real.
+  S.saveMsg="Guardando...";render();
+  guardarCronogramaRemoto(function(saved,motivo){
+    if(saved){
+      S.saveMsg="✓ Maestro actualizado";
+      setTimeout(function(){S.saveMsg="";render();},2000);
+    }else{
+      S.saveMsg="";
+      var razon=motivo==="sin_sincronizar"?"la app todavia esta sincronizando con el servidor":"no hay conexion con el servidor";
+      alert("⚠️ No se guardo en el servidor ("+razon+"). No cierres esta pestana y vuelve a intentar en unos segundos.");
+    }
+    render();
+  });
 }
 
 function maestroAddCorte(obraId){
@@ -5780,35 +5836,81 @@ function maestroAddCorte(obraId){
   if(valor<=0){alert("El valor debe ser mayor a 0.");return;}
   var id=Date.now();
   d.cortes.push({id:id,fecha:fecha,concepto:concepto||"Corte",valor:valor,metodo:metodo,pagado:false,auth:"",authTs:0});
-  guardarCronogramaRemoto();
-  S._maestroTab="historial";
-  render();
+  // v2026.07.22 FIX: esperar confirmacion real antes de dar por hecho que
+  // el corte quedo guardado (aqui se maneja dinero, no puede fallar en
+  // silencio).
+  var pendKey="maestrocorte_"+obraId+"_"+id;
+  S.pending[pendKey]=true;
+  guardarCronogramaRemoto(function(saved,motivo){
+    delete S.pending[pendKey];
+    if(saved){
+      S._maestroTab="historial";
+    }else{
+      var razon=motivo==="sin_sincronizar"?"la app todavia esta sincronizando con el servidor":"no hay conexion con el servidor";
+      alert("⚠️ El corte se guardo SOLO en este dispositivo ("+razon+"). No cierres esta pestana. Espera a que arriba diga \"Sync OK\" y vuelve a intentar.");
+    }
+    render();
+  });
 }
 
 function maestroMarcarPagado(obraId,corteId){
   var d=_maestroData(obraId);
+  var corte=null;
   for(var i=0;i<d.cortes.length;i++){
-    if(d.cortes[i].id===corteId){
-      d.cortes[i].pagado=!d.cortes[i].pagado;
-      if(d.cortes[i].pagado){
-        d.cortes[i].auth=S.user?S.user.nombre:"";
-        d.cortes[i].authTs=Date.now();
-      }else{
-        d.cortes[i].auth="";d.cortes[i].authTs=0;
-      }
-      break;
-    }
+    if(d.cortes[i].id===corteId){corte=d.cortes[i];break;}
   }
-  guardarCronogramaRemoto();
+  if(!corte)return;
+  var estadoAnterior=corte.pagado;
+  corte.pagado=!corte.pagado;
+  if(corte.pagado){
+    corte.auth=S.user?S.user.nombre:"";
+    corte.authTs=Date.now();
+  }else{
+    corte.auth="";corte.authTs=0;
+  }
   render();
+  // v2026.07.22 FIX: si el guardado falla, revertir el cambio local en vez
+  // de dejar la pantalla mostrando "pagado" cuando en realidad no se guardo.
+  guardarCronogramaRemoto(function(saved,motivo){
+    if(!saved){
+      corte.pagado=estadoAnterior;
+      if(!estadoAnterior){corte.auth="";corte.authTs=0;}
+      var razon=motivo==="sin_sincronizar"?"la app todavia esta sincronizando con el servidor":"no hay conexion con el servidor";
+      alert("⚠️ No se pudo guardar el cambio ("+razon+"). Vuelve a intentar en unos segundos.");
+    }
+    render();
+  });
 }
 
 function maestroElimCorte(obraId,corteId){
   if(!confirm("¿Eliminar este corte de pago?"))return;
   var d=_maestroData(obraId);
   d.cortes=d.cortes.filter(function(c){return c.id!==corteId;});
-  guardarCronogramaRemoto();
   render();
+  // v2026.07.22 FIX: usar la accion explicita de borrado en vez de solo
+  // "guardar" — con la fusion por id, un guardado normal ya no garantiza
+  // que el corte borrado no "reviva" si otro navegador guarda con su
+  // copia vieja (mismo motivo que pedido.eliminar).
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"maestro.eliminar_corte",
+      _email:S.user?S.user.email:"",
+      _nombre:S.user?S.user.nombre:"",
+      payload:{obraId:obraId,corteId:corteId}
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(d2){
+    if(!d2||d2.ok===false){
+      alert("⚠️ No se pudo eliminar el corte en el servidor: "+(d2&&d2.error?d2.error:"error desconocido"));
+    }
+  })
+  .catch(function(err){
+    console.error("[MOSS] Error eliminando corte de maestro:",err);
+    alert("⚠️ No hay conexion con el servidor. El corte se borro solo en este dispositivo, vuelve a intentar.");
+  });
+  guardarCronogramaRemoto();
 }
 
 // v2026.07.16 FIX: antes esta función guardaba el PDF/foto COMPLETO en
