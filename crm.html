@@ -508,6 +508,48 @@ function asignarComercial(lead){
 }
 
 // Nombre visible de un comercial key
+// ── Perfil de cliente MOSS (Guía de Perfilamiento) ────────────────────────────
+var PERFIL_CFG = {
+  'Decidido': {
+    color:'#E8F4FD', border:'#1A7CB8', emoji:'⚡',
+    reconoce: 'Habla rápido, interrumpe, va directo a precio y plazo. Poca paciencia.',
+    decir:    'Resultado, plazo exacto, próximo paso claro. "Con esto empezamos el [fecha]".',
+    nohacer:  'No lo satures de historia de marca ni detalles técnicos sin pedirlos.'
+  },
+  'Analitico': {
+    color:'#F3E8FD', border:'#7B2FBE', emoji:'📊',
+    reconoce: 'Pregunta especificaciones, pide comparar, quiere todo por escrito.',
+    decir:    'Datos concretos: garantías, tiempos por etapa, materiales, referencias verificables.',
+    nohacer:  'No improvises cifras. Si no sabes algo, confírmalo y vuelve con el dato exacto.'
+  },
+  'Emocional': {
+    color:'#FDE8F0', border:'#B8245A', emoji:'❤️',
+    reconoce: 'Habla de cómo se va a "sentir" el espacio. Muestra fotos de referencia (Pinterest).',
+    decir:    'Imágenes de proyectos similares, testimonios, la historia de transformación del espacio.',
+    nohacer:  'No lo abrumes con specs técnicas de entrada — eso viene después, ya enganchado.'
+  },
+  'Cauteloso': {
+    color:'#FFF3E0', border:'#E65100', emoji:'🛡️',
+    reconoce: 'Pide tiempo para pensar, consulta con pareja/familia, teme comprometerse.',
+    decir:    'Garantías, casos de éxito, referencias de clientes reales, proceso paso a paso.',
+    nohacer:  'No presiones a cerrar en la primera reunión — genera desconfianza y lo aleja.'
+  }
+};
+function mostrarTipPerfil(val) {
+  var el=document.getElementById('tip-perfil'); if(!el)return;
+  if(!val||!PERFIL_CFG[val]){el.style.display='none';return;}
+  var c=PERFIL_CFG[val];
+  el.style.display='block'; el.style.background=c.color; el.style.border='1.5px solid '+c.border;
+  el.innerHTML='<div style="font-weight:700;font-size:12px;color:'+c.border+';margin-bottom:6px">'+c.emoji+' Cliente '+val+'</div>'
+    +'<div style="margin-bottom:4px"><b style="color:#555">🔍 Cómo lo reconoces:</b> '+c.reconoce+'</div>'
+    +'<div style="margin-bottom:4px"><b style="color:'+c.border+'">✅ Qué decirle:</b> '+c.decir+'</div>'
+    +'<div><b style="color:#c0392b">🚫 Qué NO hacer:</b> '+c.nohacer+'</div>';
+}
+function nomPerfil(p){
+  var m={'Decidido':'⚡ Decidido','Analitico':'📊 Analítico','Emocional':'❤️ Emocional','Cauteloso':'🛡️ Cauteloso'};
+  return m[p]||'';
+}
+
 function nomCom(key){
   var u=Object.values(USERS).find(function(u){return u.key===key;});
   return u?u.nombre:(key||'—');
@@ -916,7 +958,9 @@ function rowL(l,cls){
   var etq=ETAPAS.find(function(e){return e[0]===(s.stage||'prospecto');})||ETAPAS[0];
   return '<div class="lrow '+cls+'" onclick="abrirLead(\''+l.id+'\')">'
     +'<div style="flex:1;min-width:0"><div class="lnm">'+(l.nombre&&l.nombre.trim()?l.nombre:"#"+String(l.id).slice(-6))
-    +(esOdoo?' <span class="bdg" style="background:#714B6722;color:#714B67">🟣 Odoo</span>':'')+'</div>'
+    +(esOdoo?' <span class="bdg" style="background:#714B6722;color:#714B67">🟣 Odoo</span>':'')
+    +(s.perfilCliente?' <span class="bdg" style="background:#f0f0f0;color:#444;font-size:9px">'+nomPerfil(s.perfilCliente)+'</span>':'')
+    +'</div>'
     +'<div class="ldt">'+(l.proyecto||'')+(l.m2?' · '+l.m2+' m²':'')+(l.acabado?' · '+l.acabado:'')
     +(l.valor?' · '+fmtCOP(l.valor):'')
     +(function(){var f=fechaLeadStr(l);return f?(' · ingresó: '+new Date(f+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'})):'';})()
@@ -1455,6 +1499,17 @@ function abrirLead(id){
     +'<option value="com2"'+(s.responsableKey==='com2'?' selected':'')+'>Comercial 2</option>'
     +'</select></div>'
     +'</div>'
+    +'<div class="sec-tit">🧠 Perfil del cliente (Guía MOSS)</div>'
+    +'<div style="margin-bottom:8px">'
+    +'<select id="f-perfil" style="width:100%;padding:10px 12px;border:1.5px solid var(--b);border-radius:9px;font-size:16px;font-family:inherit;background:var(--bc);-webkit-appearance:none" onchange="mostrarTipPerfil(this.value)">'
+    +'<option value="">— Seleccionar perfil —</option>'
+    +'<option value="Decidido"'+(s.perfilCliente==='Decidido'?' selected':'')+'>⚡ Decidido</option>'
+    +'<option value="Analitico"'+(s.perfilCliente==='Analitico'?' selected':'')+'>📊 Analítico</option>'
+    +'<option value="Emocional"'+(s.perfilCliente==='Emocional'?' selected':'')+'>❤️ Emocional</option>'
+    +'<option value="Cauteloso"'+(s.perfilCliente==='Cauteloso'?' selected':'')+'>🛡️ Cauteloso</option>'
+    +'</select>'
+    +'</div>'
+    +'<div id="tip-perfil" style="display:none;border-radius:9px;padding:10px 13px;font-size:11px;margin-bottom:10px;line-height:1.5"></div>'
     +'<div class="sec-tit">💰 Datos comerciales</div>'
     +'<div class="grid2">'
     +'<div><label class="flabel">Presupuesto cliente (Fase 0 — OBLIGATORIO)</label><input id="f-pre" type="number" value="'+(s.presupuestoCliente||'')+'"></div>'
@@ -1513,6 +1568,7 @@ function guardarDet(id){
   var s=SEG[id];
   s.stage=document.getElementById('f-stage').value;
   s.clasificacion=document.getElementById('f-cla').value;
+  s.perfilCliente=document.getElementById('f-perfil')?document.getElementById('f-perfil').value:s.perfilCliente||'';
   var respEl=document.getElementById('f-resp');
   if(respEl){ s.responsableKey=respEl.value; s.responsable=nomCom(respEl.value); }
   s.presupuestoCliente=document.getElementById('f-pre').value;
