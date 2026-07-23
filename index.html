@@ -5598,6 +5598,191 @@ function eliminarObra(id){
 window.eliminarObra=eliminarObra;
 
 // NUEVO PROYECTO - FIX: formulario persistente sin re-render
+/* ===================================================================
+ * MODULO CIERRE DEL PROYECTO (revenue y rentabilidad final)
+ * v2026.07.22 — pestana "Cierre" en la vista de obra.
+ * Calcula el resultado financiero real de la obra con los datos ya
+ * registrados (pres, gastos por rubro, cortes de maestro, fechas,
+ * calidad, NPS), lo compara contra el presupuesto, y guarda un
+ * snapshot en o.cierre que alimenta el historico de conocimiento
+ * (margenes reales por obra) para mejorar estimaciones futuras.
+ * =================================================================== */
+function _cierreCalcular(o){
+  var pres=+o.pres||0;
+  var r=rb(pres); // distribucion presupuestada por rubro
+  var gastos={gC:+o.gC||0,gM:+o.gM||0,gO:+o.gO||0,gA:+o.gA||0};
+  var costoTotal=gT(o);
+  // Pagos reales al maestro (desde el modulo Maestro)
+  var mae=(CRON.maestros&&CRON.maestros[o.id])||{cfg:{},cortes:[]};
+  var pagosMaestro=0,pagosMaestroPend=0;
+  (mae.cortes||[]).forEach(function(c){
+    if(c.pagado)pagosMaestro+=(+c.valor||0);
+    else pagosMaestroPend+=(+c.valor||0);
+  });
+  var utilidad=pres-costoTotal;
+  var margen=pres>0?Math.round(utilidad/pres*1000)/10:0;
+  // Tiempo: dias planeados vs transcurridos
+  var diasPlan=+o.dias||0;
+  var diasReales=null;
+  if(o.fI){
+    var ini=new Date(o.fI);ini.setHours(12);
+    var fin=o.cierre&&o.cierre.fechaCierre?new Date(o.cierre.fechaCierre):new Date(HOY);
+    fin.setHours(12);
+    diasReales=0;var d=new Date(ini);
+    // ojo: esNL() devuelve true para dias HABILES (asi lo usa dL())
+    while(d<fin){d.setDate(d.getDate()+1);if(esNL(d))diasReales++;}
+  }
+  var desvDias=(diasReales!==null&&diasPlan>0)?diasReales-diasPlan:null;
+  // Desviaciones por rubro (presupuestado vs real)
+  var rubros=[
+    {k:"gC",nom:"Carpinteria",presu:r.carp,real:gastos.gC},
+    {k:"gM",nom:"Materiales + MO",presu:r.mat,real:gastos.gM},
+    {k:"gO",nom:"Obra blanca",presu:r.ob,real:gastos.gO},
+    {k:"gA",nom:"Acabados",presu:r.acab,real:gastos.gA}
+  ].map(function(x){
+    x.desv=x.real-x.presu;
+    x.desvPct=x.presu>0?Math.round(x.desv/x.presu*100):null;
+    return x;
+  });
+  return {pres:pres,costoTotal:costoTotal,utilidad:utilidad,margen:margen,
+    gastos:gastos,rubros:rubros,pagosMaestro:pagosMaestro,pagosMaestroPend:pagosMaestroPend,
+    valorPactadoMaestro:+(mae.cfg&&mae.cfg.valorPactado)||0,
+    diasPlan:diasPlan,diasReales:diasReales,desvDias:desvDias,
+    calidad:calProm(o.calFases),nps:+o.nps||0,avance:+o.av||0};
+}
+
+function cierreGuardar(obraId){
+  var o=null;
+  for(var i=0;i<S.obras.length;i++){if(S.obras[i].id===obraId){o=S.obras[i];break;}}
+  if(!o)return;
+  var lecEl=document.getElementById("cierre-lecciones");
+  var c=_cierreCalcular(o);
+  var esActualizacion=!!o.cierre;
+  o.cierre={
+    ts:Date.now(),
+    fechaCierre:(o.cierre&&o.cierre.fechaCierre)||new Date().toISOString().slice(0,10),
+    autor:S.user?S.user.nombre:"",
+    lecciones:lecEl?lecEl.value.trim():((o.cierre&&o.cierre.lecciones)||""),
+    snap:{pres:c.pres,costoTotal:c.costoTotal,utilidad:c.utilidad,margen:c.margen,
+      gastos:c.gastos,pagosMaestro:c.pagosMaestro,diasPlan:c.diasPlan,
+      diasReales:c.diasReales,desvDias:c.desvDias,calidad:c.calidad,nps:c.nps}
+  };
+  if(CRON.obras&&CRON.obras[o.id])CRON.obras[o.id]=o;
+  var pendKey="cierre_"+o.id;
+  S.pending[pendKey]=true;
+  S.saveMsg="Guardando cierre...";render();
+  guardarCronogramaRemoto(function(saved,motivo){
+    delete S.pending[pendKey];
+    if(saved){
+      S.saveMsg="✓ Cierre "+(esActualizacion?"actualizado":"guardado");
+      setTimeout(function(){S.saveMsg="";render();},2500);
+    }else{
+      S.saveMsg="";
+      var razon=motivo==="sin_sincronizar"?"la app todavia esta sincronizando":"no hay conexion con el servidor";
+      alert("⚠️ El cierre se guardo SOLO en este dispositivo ("+razon+"). Espera a que diga Sync OK y vuelve a intentar.");
+    }
+    render();
+  });
+}
+window.cierreGuardar=cierreGuardar;
+
+function rCierre(o){
+  var c=_cierreCalcular(o);
+  var entregada=String(o.etapa||"").toLowerCase()==="entregado"||String(o.etapa||"").toLowerCase()==="garantia";
+  var avisoEstado="";
+  if(!entregada){
+    avisoEstado=h("div",{"style":"background:#FFF6E5;border:1px solid #E8C88A;border-radius:9px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#8A6A2E"},
+      "⚠️ Esta obra aun figura como \""+(o.etapa||"ejecucion")+"\" — este es un cierre PRELIMINAR con los datos registrados hasta hoy. Marca la obra como \"entregado\" (Editar) para el cierre definitivo.");
+  }
+  var colMargen=c.margen>=30?"#3A6B45":c.margen>=20?"#C17B2A":"#B5362A";
+  var kpis=h("div",{"style":"display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:14px"},
+    [["Ingreso (contrato)",cop(c.pres),"var(--v)"],
+     ["Costo total real",cop(c.costoTotal),"#6B6560"],
+     ["Utilidad",cop(c.utilidad),colMargen],
+     ["Margen real",c.margen+"%",colMargen]
+    ].map(function(k){
+      return h("div",{"style":"background:var(--cr);border:1px solid var(--b);border-radius:9px;padding:11px;text-align:center"},
+        h("div",{"style":"font-size:10px;color:var(--gc);margin-bottom:4px"},k[0])+
+        h("div",{"style":"font-size:16px;font-weight:800;color:"+k[2]},k[1]));
+    }).join(""));
+  var metaMsg=c.margen>=30
+    ?h("div",{"style":"font-size:11px;color:#3A6B45;margin-bottom:14px"},"✓ Cumple la meta de margen minimo del 30%")
+    :h("div",{"style":"font-size:11px;color:#B5362A;margin-bottom:14px"},"✗ Por debajo de la meta del 30% ("+(30-c.margen>0?("faltan "+(Math.round((30-c.margen)*10)/10)+" pts"):"")+") — revisa las desviaciones por rubro abajo");
+  // Desviaciones por rubro
+  var rubrosHTML=c.rubros.map(function(rx){
+    var over=rx.desv>0;
+    var col=over?"#B5362A":"#3A6B45";
+    var txt=rx.desvPct===null?"—":((over?"+":"")+cop(rx.desv)+" ("+(over?"+":"")+rx.desvPct+"%)");
+    return h("div",{"style":"display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--b);font-size:12px"},
+      h("span",{},rx.nom)+
+      h("span",{"style":"color:var(--gc)"},cop(rx.real)+" / "+cop(rx.presu))+
+      h("span",{"style":"font-weight:700;color:"+col},txt));
+  }).join("");
+  // Maestro
+  var maestroHTML=h("div",{"style":"font-size:12px;color:var(--g);margin-top:10px"},
+    "Pagado al maestro: <b>"+cop(c.pagosMaestro)+"</b>"+
+    (c.pagosMaestroPend>0?" · Pendiente: <b style='color:#C17B2A'>"+cop(c.pagosMaestroPend)+"</b>":"")+
+    (c.valorPactadoMaestro>0?" · Pactado: "+cop(c.valorPactadoMaestro):""));
+  // Tiempo
+  var tiempoTxt=c.diasReales===null?"Sin fecha de inicio registrada":
+    (c.diasReales+" dias habiles reales vs "+c.diasPlan+" planeados"+
+     (c.desvDias!==null?(" — "+(c.desvDias>0?("<b style='color:#B5362A'>+"+c.desvDias+" dias de retraso</b>"):c.desvDias<0?("<b style='color:#3A6B45'>"+Math.abs(c.desvDias)+" dias antes</b>"):"<b style='color:#3A6B45'>en tiempo exacto</b>")):""));
+  var operHTML=h("div",{"style":"font-size:12px;color:var(--g);line-height:1.8"},
+    "⏱ "+tiempoTxt+"<br>"+
+    "📊 Avance registrado: "+c.avance+"%"+
+    (c.calidad>0?" · Calidad promedio: "+c.calidad+"/5":"")+
+    (c.nps>0?" · NPS cliente: "+c.nps:""));
+  // Lecciones aprendidas
+  var lecPrevia=(o.cierre&&o.cierre.lecciones)||"";
+  var lecHTML=div("fr",
+    h("label",{},"Lecciones aprendidas (que salio bien, que mejorar, recomendaciones para proximas obras)")+
+    h("textarea",{"id":"cierre-lecciones","rows":"4","style":"width:100%;font-family:inherit;font-size:12px;padding:8px;border:1px solid var(--b);border-radius:8px;background:var(--cr)","placeholder":"Ej: El capitulo electrico se sobrecosteo por compras de ultima hora; cotizar cinta led y adaptadores desde el arranque..."},lecPrevia));
+  var cierrePrevio=o.cierre
+    ?h("div",{"style":"font-size:10px;color:var(--gc);margin-top:6px"},"Ultimo cierre guardado: "+new Date(o.cierre.ts).toLocaleString("es-CO",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})+" por "+(o.cierre.autor||"—"))
+    :"";
+  var btnGuardar=h("button",{"class":"bp","style":"width:100%;padding:12px;margin-top:10px","onclick":"cierreGuardar("+o.id+")"},(o.cierre?"Actualizar":"Generar")+" cierre del proyecto");
+  // Historico de conocimiento: otras obras con cierre guardado
+  var historico=[];
+  S.obras.forEach(function(ob){
+    if(ob.id!==o.id&&ob.cierre&&ob.cierre.snap)historico.push(ob);
+  });
+  var histHTML="";
+  if(historico.length>0){
+    var margenes=historico.map(function(ob){return ob.cierre.snap.margen;});
+    var promMargen=Math.round(margenes.reduce(function(a,b){return a+b;},0)/margenes.length*10)/10;
+    var filas=historico.slice(0,8).map(function(ob){
+      var m=ob.cierre.snap.margen;
+      var cm=m>=30?"#3A6B45":m>=20?"#C17B2A":"#B5362A";
+      return h("div",{"style":"display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b);font-size:11px"},
+        h("span",{},ob.nom)+
+        h("span",{"style":"color:var(--gc)"},cop(ob.cierre.snap.pres))+
+        h("span",{"style":"font-weight:700;color:"+cm},m+"%")+
+        h("span",{"style":"color:var(--gc)"},(ob.cierre.snap.desvDias!==null&&ob.cierre.snap.desvDias!==undefined)?((ob.cierre.snap.desvDias>0?"+":"")+ob.cierre.snap.desvDias+"d"):"—"));
+    }).join("");
+    histHTML=div("card","<div class='cp'>"+
+      h("div",{"style":"font-weight:700;font-size:13px;margin-bottom:4px"},"📚 Base de conocimiento — obras cerradas")+
+      h("div",{"style":"font-size:11px;color:var(--gc);margin-bottom:10px"},historico.length+" obra(s) con cierre · Margen promedio historico: <b style='color:"+(promMargen>=30?"#3A6B45":"#C17B2A")+"'>"+promMargen+"%</b>"+(c.margen&&promMargen?(" · Esta obra: <b>"+c.margen+"%</b> "+(c.margen>=promMargen?"(mejor que el promedio)":"(por debajo del promedio)")):""))+
+      filas+"</div>");
+  }else{
+    histHTML=div("card","<div class='cp'>"+
+      h("div",{"style":"font-weight:700;font-size:13px;margin-bottom:4px"},"📚 Base de conocimiento")+
+      h("div",{"style":"font-size:11px;color:var(--gc)"},"Aun no hay otras obras con cierre guardado. Cada cierre que generes alimenta este historico para comparar margenes y tiempos reales entre obras.")+"</div>");
+  }
+  return avisoEstado+
+    div("card","<div class='cp'>"+
+      h("div",{"style":"font-weight:700;font-size:13px;margin-bottom:10px"},"💰 Resultado financiero")+
+      kpis+metaMsg+
+      h("div",{"style":"font-weight:700;font-size:12px;margin:6px 0"},"Desviaciones por rubro (real / presupuestado)")+
+      rubrosHTML+maestroHTML+"</div>")+
+    div("card","<div class='cp'>"+
+      h("div",{"style":"font-weight:700;font-size:13px;margin-bottom:8px"},"⏱ Resultado operativo")+
+      operHTML+"</div>")+
+    div("card","<div class='cp'>"+
+      h("div",{"style":"font-weight:700;font-size:13px;margin-bottom:8px"},"🧠 Lecciones aprendidas")+
+      lecHTML+btnGuardar+cierrePrevio+"</div>")+
+    histHTML;
+}
+
 function rNuevo(){
   return h("div",{"style":"max-width:560px"},
     h("div",{"style":"font-size:18px;font-weight:700;color:var(--v);margin-bottom:4px"},"Nuevo Proyecto MOSS")+
@@ -6173,6 +6358,8 @@ function rDetalle(){
     div("ic",h("div",{"class":"il"},"Dias restantes")+h("div",{"class":"iv","style":"color:"+(dl!==null&&dl<=5?"#B5362A":dl!==null&&dl<=10?"#C17B2A":"")},dl!==null?dl+"d":"-")));
   var tabItems=[["cron","Cronograma"],["maestro","Maestro"],["mat","Materiales"],["videos","Videos"],["cal","Calidad"],["notas","Notas"],["archivos","Drive"]];
   if(!esRes())tabItems.splice(4,0,["pres","Presupuesto"]);
+  // v2026.07.22: modulo de Cierre del Proyecto (revenue y rentabilidad final)
+  if(puedeVerPrecios())tabItems.push(["cierre","Cierre"]);
   var tabs_=h("div",{"class":"tabs"},tabItems.map(function(t){return h("button",{"class":"tab"+(S.otab===t[0]?" on":""),"onclick":"S.otab='"+t[0]+"';render()"},t[1]);}).join(""));
   var body="";
 
@@ -6267,6 +6454,8 @@ function rDetalle(){
     }
     body=div("card","<div class='cp'>"+div("fr",h("label",{},"Valor total del contrato (COP)")+h("input",{"type":"number","value":o.pres||"","placeholder":"0","onchange":"updGasto("+o.id+",'pres',this.value)"},""))+rubHTML+"</div>");
 
+  }else if(S.otab==="cierre"&&puedeVerPrecios()){
+    body=rCierre(o);
   }else if(S.otab==="notas"){
     // v44 FIX: draft en S._notasDraft — el polling render() no borra lo que se está escribiendo
     if(S._notasDraftId!==o.id){S._notasDraft=o.notas||"";S._notasDraftId=o.id;} // reset al cambiar de obra
