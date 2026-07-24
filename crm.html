@@ -226,7 +226,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--verde2);box-shadow:0 
     <div class="mark">M</div>
     <div>
       <div class="tnom">Centro Comercial</div>
-      <div class="tsub">MOSS Remodelaciones · v1.9</div>
+      <div class="tsub">MOSS Remodelaciones · v2.0</div>
     </div>
     <div class="tder">
       <span class="chip" id="quien">—</span>
@@ -1224,49 +1224,89 @@ function vEquipo(){
 
 /* ── Comisiones ── */
 function vComisiones(){
-  var esc_ = S.cfg.comisionEscala || [{hasta:249999999,pct:1},{hasta:349999999,pct:2},{hasta:null,pct:3.5}];
+  var escala   = S.cfg.comisionEscala || [{hasta:249999999,pct:1},{hasta:349999999,pct:2},{hasta:null,pct:3.5}];
   var metaProy = Number(S.cfg.metaProyectosMes||10);
+  var mesVer   = S.mesComision || hoy().slice(0,7);
+
   var ases = S.user.rol==='director' ? (S.cfg.asesores||[])
     : (S.cfg.asesores||[]).filter(function(a){ return a.key===S.user.key; });
 
-  var h = '<div class="tit">Comisiones del periodo</div>';
+  // Selector de mes: los últimos 12
+  var h = '<div class="filtros">'
+    + '<label style="font-size:12px;color:var(--gris);font-weight:600">Periodo</label>'
+    + '<select id="mes-com">';
+  var d0 = new Date();
+  for(var k=0;k<12;k++){
+    var d = new Date(d0.getFullYear(), d0.getMonth()-k, 1);
+    var v = d.toISOString().slice(0,7);
+    h += '<option value="'+v+'"'+(v===mesVer?' selected':'')+'>'
+       + nombreMes(v).charAt(0).toUpperCase()+nombreMes(v).slice(1)+' '+v.slice(0,4)+'</option>';
+  }
+  h += '</select></div>';
+
+  // Firmados sin fecha: no pueden asignarse a ningún periodo
+  var sinFecha = S.leads.filter(function(l){
+    return l.etapa==='firmado' && !String(l.fechaCierre||'').trim();
+  });
+  if(sinFecha.length){
+    h += '<div class="aviso"><b>'+sinFecha.length+' contrato'+(sinFecha.length>1?'s':'')+' sin fecha de firma</b>'
+      +  'Sin esa fecha no entran en la liquidación de ningún mes. '
+      +  '<a href="#" data-kpi="firmadoSinFecha" style="color:var(--verde2);font-weight:650">Ponerles fecha</a></div>';
+  }
 
   ases.forEach(function(a){
-    var cerr = S.leads.filter(function(l){ return l.responsable===a.key && l.etapa==='firmado'; });
-    var ventas = cerr.reduce(function(s,l){ return s+(Number(l.valor)||0); },0);
-    var pct = 1;
-    for(var i=0;i<esc_.length;i++){
-      if(esc_[i].hasta===null || ventas<=esc_[i].hasta){ pct=esc_[i].pct; break; }
+    var cerr = S.leads.filter(function(l){
+      return String(l.responsable)===String(a.key)
+          && l.etapa==='firmado'
+          && String(l.fechaCierre||'').slice(0,7) === mesVer;
+    });
+    var ventas = cerr.reduce(function(t,l){ return t+(Number(l.valor)||0); },0);
+
+    var pct = escala.length ? escala[0].pct : 1;
+    for(var i=0;i<escala.length;i++){
+      if(escala[i].hasta===null || ventas<=escala[i].hasta){ pct=escala[i].pct; break; }
     }
-    var bruta = ventas*pct/100;
+    var bruta      = ventas*pct/100;
     var cumpleMeta = cerr.length >= metaProy;
-    var pagoAhora = cumpleMeta ? bruta*0.5 : bruta;
-    var pendiente = cumpleMeta ? bruta*0.5 : 0;
+    var pagoAhora  = cumpleMeta ? bruta*0.5 : bruta;
+    var pendiente  = cumpleMeta ? bruta*0.5 : 0;
 
     h += '<div class="tarj" style="padding:16px;margin-bottom:13px">'
       + '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:11px">'
       + '<span style="font-weight:700;font-size:15px">'+esc(a.nombre)+'</span>'
-      + '<span class="eti '+(cumpleMeta?'v':'a')+'">'+cerr.length+' de '+metaProy+' proyectos</span></div>'
-      + '<table class="tabla"><tbody>'
-      + '<tr><td>Ventas cerradas</td><td class="num"><b>'+cop(ventas)+'</b></td></tr>'
-      + '<tr><td>Porcentaje aplicado</td><td class="num">'+pct+'%</td></tr>'
-      + '<tr><td>Comisión bruta</td><td class="num"><b>'+cop(bruta)+'</b></td></tr>'
-      + (cumpleMeta
+      + '<span class="eti '+(cumpleMeta?'v':'a')+'">'+cerr.length+' de '+metaProy+' proyectos</span></div>';
+
+    if(!cerr.length){
+      h += '<p style="color:var(--gris);font-size:13px">Sin contratos firmados en este periodo.</p></div>';
+      return;
+    }
+
+    h += '<table class="tabla"><tbody>';
+    cerr.forEach(function(l){
+      h += '<tr><td>'+esc(l.nombre||'Sin nombre')
+        +  '<div style="font-size:11px;color:var(--gris)">'+esc(l.fechaCierre)
+        +  (l.proyecto?' · '+esc(l.proyecto):'')+'</div></td>'
+        +  '<td class="num">'+cop(l.valor)+'</td></tr>';
+    });
+    h += '<tr><td><b>Ventas del periodo</b></td><td class="num"><b>'+cop(ventas)+'</b></td></tr>'
+      +  '<tr><td>Porcentaje aplicado</td><td class="num">'+pct+'%</td></tr>'
+      +  '<tr><td>Comisión bruta</td><td class="num"><b>'+cop(bruta)+'</b></td></tr>'
+      +  (cumpleMeta
         ? '<tr><td>Pago ahora (50%)</td><td class="num" style="color:var(--ok)"><b>'+cop(pagoAhora)+'</b></td></tr>'
         + '<tr><td>Al entregar obra (50%)</td><td class="num" style="color:var(--alerta)"><b>'+cop(pendiente)+'</b></td></tr>'
         : '<tr><td>A pagar según recaudo</td><td class="num"><b>'+cop(pagoAhora)+'</b></td></tr>')
-      + '</tbody></table>'
-      + '<p style="font-size:11.5px;color:var(--gris);margin-top:9px">'
-      + (cumpleMeta
+      +  '</tbody></table>'
+      +  '<p style="font-size:11.5px;color:var(--gris);margin-top:9px">'
+      +  (cumpleMeta
         ? 'Cumple la meta de '+metaProy+' proyectos: aplica el esquema 50/50.'
         : 'Sin la meta de '+metaProy+' proyectos, la comisión se paga conforme a los pagos del cliente.')
-      + '</p></div>';
+      +  '</p></div>';
   });
 
   h += '<div class="tit">Escala vigente</div><div class="tarj" style="overflow-x:auto">'
     + '<table class="tabla"><thead><tr><th>Ventas del periodo</th><th class="num">Comisión</th></tr></thead><tbody>';
   var prev = 0;
-  esc_.forEach(function(e){
+  escala.forEach(function(e){
     var rango = e.hasta===null ? 'Más de '+cop(prev) : cop(prev)+' a '+cop(e.hasta);
     h += '<tr><td>'+rango+'</td><td class="num">'+e.pct+'%</td></tr>';
     prev = (e.hasta||0)+1;
@@ -1274,6 +1314,12 @@ function vComisiones(){
   h += '</tbody></table></div>';
 
   $('main').innerHTML = h;
+
+  var sel = $('mes-com');
+  if(sel) sel.addEventListener('change', function(){
+    S.mesComision = sel.value;
+    vComisiones();
+  });
 }
 
 /* ── Ajustes ── */
