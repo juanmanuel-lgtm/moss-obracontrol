@@ -226,7 +226,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--verde2);box-shadow:0 
     <div class="mark">M</div>
     <div>
       <div class="tnom">Centro Comercial</div>
-      <div class="tsub">MOSS Remodelaciones · v1.7</div>
+      <div class="tsub">MOSS Remodelaciones · v1.8</div>
     </div>
     <div class="tder">
       <span class="chip" id="quien">—</span>
@@ -353,7 +353,10 @@ function guardarLead(id, campos, cb){
   api('lead.guardar', p, function(d){
     if(d && d.ok){
       var L = buscarLead(id);
-      if(L) Object.assign(L, campos);
+      if(L){
+        Object.assign(L, campos);
+        if(d.fechas) Object.assign(L, d.fechas);   // fechas selladas por el servidor
+      }
       estado('ok','Guardado');
       toast('Cambios guardados');
       if(cb) cb(true);
