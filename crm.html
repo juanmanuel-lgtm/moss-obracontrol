@@ -226,7 +226,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--verde2);box-shadow:0 
     <div class="mark">M</div>
     <div>
       <div class="tnom">Centro Comercial</div>
-      <div class="tsub">MOSS Remodelaciones · v1.8</div>
+      <div class="tsub">MOSS Remodelaciones · v1.9</div>
     </div>
     <div class="tder">
       <span class="chip" id="quien">—</span>
@@ -1005,6 +1005,14 @@ function abrirLead(id){
       + '</select>');
   }
 
+  if(l.etapa === 'firmado'){
+    h += campo('Fecha de firma del contrato',
+        '<input id="c-cierre" type="date" value="'+esc(l.fechaCierre)+'">'
+      + (l.fechaCierre ? '' :
+         '<p style="font-size:11.5px;color:var(--mal);margin-top:5px">'
+       + 'Sin fecha no cuenta en el cierre de ningún mes.</p>'));
+  }
+
   h += campo('Perfil del cliente',
       '<select id="c-perfil" onchange="verGuia(this.value)"><option value="">Sin definir</option>'
     + Object.keys(PERFILES).map(function(k){
@@ -1086,7 +1094,8 @@ function guardarPanel(id){
     proxContacto: g('c-prox'), valor: g('c-valor'), m2: g('c-m2'),
     perfil: g('c-perfil'), nota: g('c-nota')
   };
-  if($('c-resp')) campos.responsable = g('c-resp');
+  if($('c-resp'))   campos.responsable = g('c-resp');
+  if($('c-cierre')) campos.fechaCierre  = g('c-cierre');
 
   guardarLead(id, campos, function(ok){
     if(ok){ cerrarPanel(); pintar(); }
