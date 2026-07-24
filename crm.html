@@ -118,6 +118,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--verde2);box-shadow:0 
 .eti.a{background:#FBF3E2;color:var(--alerta);border-color:#EAD9AE}
 .eti.r{background:#F9E9E5;color:var(--mal);border-color:#EFC9C0}
 .eti.cal{background:var(--mal);color:#fff;border-color:var(--mal)}
+.eti.frio{background:#EDEFEE;color:#8A938C;border-color:#DDE1DE}
+.fila.frio{opacity:.62}
 
 .vacio{padding:40px 20px;text-align:center;color:var(--gris);font-size:13px}
 .vacio b{display:block;color:var(--tinta);font-size:14px;margin-bottom:5px}
@@ -213,7 +215,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--verde2);box-shadow:0 
     <div class="mark">M</div>
     <div>
       <div class="tnom">Centro Comercial</div>
-      <div class="tsub">MOSS Remodelaciones · v1.2</div>
+      <div class="tsub">MOSS Remodelaciones · v1.3</div>
     </div>
     <div class="tder">
       <span class="chip" id="quien">—</span>
@@ -463,8 +465,14 @@ function avanzar(id, ev){
   var sig = siguienteEtapa(l.etapa);
   if(!sig){ toast('Ya está en la última etapa'); return; }
   guardarLead(id, { etapa:sig }, function(ok){
-    if(ok){ toast(l.nombre.split(' ')[0] + ' → ' + ETAPA_N[sig]); pintar(); }
+    if(ok){ toast(primerNombre(l) + ' → ' + ETAPA_N[sig]); pintar(); }
   });
+}
+
+/** El nombre puede llegar como número desde la hoja: siempre a texto. */
+function primerNombre(l){
+  var n = String((l && l.nombre) || '').trim();
+  return n ? n.split(' ')[0] : 'Lead';
 }
 
 function metricas(base){
@@ -597,24 +605,42 @@ function embudo(m){
   return h + '</div>';
 }
 
+/* ── Prioridad: manda la frescura ──────────────────────────────────────────
+   Un lead recién llegado vale mucho más que uno de hace meses. Pasados
+   ~100 días la probabilidad de cierre es marginal, así que el puntaje
+   por frescura se agota ahí y esos leads caen al fondo de la lista. */
+var VENTANA_UTIL = 100;   // días de vida útil de un lead
+
+function frescura(l){
+  var d = dias(l.fechaIngreso);
+  if(d === null) return 0;
+  if(d < 0) d = 0;
+  return Math.max(0, VENTANA_UTIL - d);   // hoy = 100, a los 100 días = 0
+}
+
 function puntaje(l){
-  var p = 0;
-  if(esCaliente(l)) p += 120;
-  if(!Number(l.intentos) && l.etapa!=='firmado') p += 90;
-  if(l.proxContacto && l.proxContacto < hoy()) p += 100;
+  var p = frescura(l) * 2;                     // hasta 200 puntos por recencia
+  if(esCaliente(l)) p += 70;
+  if(!Number(l.intentos) && l.etapa!=='firmado') p += 40;
+  if(l.proxContacto && l.proxContacto < hoy()) p += 90;   // compromiso incumplido
   if(l.proxContacto === hoy()) p += 60;
-  if(l.etapa==='negociacion') p += 45;
-  if(l.etapa==='cotizado') p += 30;
-  var d = dias(l.ultimoContacto || l.fechaContacto);
-  if(d !== null && d > 7) p += Math.min(d, 30);
-  p += Math.min((Number(l.valor)||0)/1e7, 25);
+  if(l.etapa==='negociacion') p += 50;
+  if(l.etapa==='cotizado') p += 35;
+  if(l.etapa==='visita') p += 25;
+  p += Math.min((Number(l.valor)||0)/1e7, 20);
   return p;
+}
+
+function esFrio(l){
+  var d = dias(l.fechaIngreso);
+  return d !== null && d > VENTANA_UTIL && !Number(l.intentos);
 }
 
 function filaLead(l){
   var cls='', etis='';
 
   if(esCaliente(l)) etis += '<span class="eti cal">Caliente</span>';
+  if(esFrio(l)) etis += '<span class="eti frio">Fuera de ventana</span>';
   etis += semaforo(l);
 
   if(l.proxContacto && l.proxContacto < hoy() && l.etapa!=='firmado'){
@@ -624,7 +650,11 @@ function filaLead(l){
   }
   if(l.perfil && PERFILES[l.perfil]) etis += '<span class="eti">'+PERFILES[l.perfil].ico+'</span>';
 
+  if(esFrio(l)) cls += ' frio';
+
   var det = [];
+  var diasVida = dias(l.fechaIngreso);
+  if(diasVida !== null) det.push(diasVida + ' d en el sistema');
   if(l.proyecto) det.push(esc(l.proyecto));
   if(l.m2) det.push(l.m2+' m²');
   if(l.ciudad) det.push(esc(l.ciudad));
@@ -659,7 +689,7 @@ function abrirSeguimiento(id, ev){
   var d = dias(l.ultimoContacto || l.fechaContacto || l.fechaIngreso);
 
   var h = '<div class="phead"><button class="pcerrar" onclick="cerrarPanel()">×</button>'
-    + '<h2>Contactar a '+esc(String(l.nombre||'').split(' ')[0])+'</h2>'
+    + '<h2>Contactar a '+esc(primerNombre(l))+'</h2>'
     + '<p>'+(l.intentos>0
         ? l.intentos+' contacto'+(l.intentos>1?'s':'')+' · último hace '+(d===null?'—':d+' d')
         : 'Sin contacto previo')+'</p></div><div class="pbody">';
@@ -691,7 +721,7 @@ function abrirSeguimiento(id, ev){
 
 function textoPlantilla(l, i){
   return PLANTILLAS[i][1]
-    .replace(/\{n\}/g, String(l.nombre||'').split(' ')[0])
+    .replace(/\{n\}/g, primerNombre(l))
     .replace(/\{x\}/g, String(S.user.nombre||'').split(' ')[0]);
 }
 
@@ -767,6 +797,7 @@ function vLeads(){
   if(f.vencidos) L = L.filter(function(l){ return l.proxContacto && l.proxContacto<hoy() && l.etapa!=='firmado'; });
   if(f.calientes) L = L.filter(esCaliente);
   if(f.sinContacto) L = L.filter(function(l){ return !Number(l.intentos) && l.etapa!=='firmado'; });
+  if(f.enVentana) L = L.filter(function(l){ return !esFrio(l); });
   if(f.resp)     L = L.filter(function(l){ return l.responsable===f.resp; });
   if(f.q){
     var q=f.q.toLowerCase();
@@ -787,7 +818,8 @@ function vLeads(){
           return '<option value="'+a.key+'"'+(f.resp===a.key?' selected':'')+'>'+esc(a.nombre)+'</option>'; }).join('')
       + '</select>';
   }
-  h += '<button class="'+(f.calientes?'bp':'bs')+' bmini" onclick="S.filtros.calientes=!S.filtros.calientes;vLeads()">Calientes</button>'
+  h += '<button class="'+(f.enVentana?'bp':'bs')+' bmini" onclick="S.filtros.enVentana=!S.filtros.enVentana;vLeads()">Dentro de 100 días</button>'
+    + '<button class="'+(f.calientes?'bp':'bs')+' bmini" onclick="S.filtros.calientes=!S.filtros.calientes;vLeads()">Calientes</button>'
     + '<button class="'+(f.sinContacto?'bp':'bs')+' bmini" onclick="S.filtros.sinContacto=!S.filtros.sinContacto;vLeads()">Sin contactar</button>'
     + '<button class="bs bmini" onclick="S.filtros={};vLeads()">Limpiar</button>'
     + '<button class="bp bmini" onclick="nuevoLead()">Nuevo lead</button>'
@@ -924,7 +956,7 @@ function registrarContacto(id, via){
   if(!l) return;
   var tel = String(l.telefono||'').replace(/[^0-9]/g,'');
   if(via==='whatsapp' && tel){
-    var txt = 'Hola '+String(l.nombre||'').split(' ')[0]+', te saluda '+S.user.nombre+' de MOSS Remodelaciones.';
+    var txt = 'Hola '+primerNombre(l)+', te saluda '+S.user.nombre+' de MOSS Remodelaciones.';
     window.open('https://wa.me/57'+tel+'?text='+encodeURIComponent(txt),'_blank');
   } else if(tel){
     window.location.href = 'tel:+57'+tel;
