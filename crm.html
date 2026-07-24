@@ -215,7 +215,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--verde2);box-shadow:0 
     <div class="mark">M</div>
     <div>
       <div class="tnom">Centro Comercial</div>
-      <div class="tsub">MOSS Remodelaciones · v1.4</div>
+      <div class="tsub">MOSS Remodelaciones · v1.5</div>
     </div>
     <div class="tder">
       <span class="chip" id="quien">—</span>
@@ -288,6 +288,13 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function prom(a){ return a.length ? Math.round(a.reduce(function(s,v){return s+v;},0)/a.length) : null; }
 
+/* Los ids llegan como número desde la hoja y como texto desde el HTML.
+   Se comparan siempre convertidos, o la búsqueda nunca encuentra nada. */
+function buscarLead(id){
+  var buscado = String(id);
+  return S.leads.find(function(x){ return String(x.id) === buscado; });
+}
+
 function toast(msg, mal){
   var t=$('toast'); t.textContent=msg; t.className = mal?'on mal':'on';
   clearTimeout(t._t); t._t=setTimeout(function(){ t.className=''; },2800);
@@ -334,7 +341,7 @@ function guardarLead(id, campos, cb){
   estado('carga','Guardando');
   api('lead.guardar', p, function(d){
     if(d && d.ok){
-      var L = S.leads.find(function(x){ return x.id===id; });
+      var L = buscarLead(id);
       if(L) Object.assign(L, campos);
       estado('ok','Guardado');
       toast('Cambios guardados');
@@ -460,7 +467,7 @@ function siguienteEtapa(k){
 
 function avanzar(id, ev){
   if(ev) ev.stopPropagation();
-  var l = S.leads.find(function(x){ return x.id===id; });
+  var l = buscarLead(id);
   if(!l) return;
   var sig = siguienteEtapa(l.etapa);
   if(!sig){ toast('Ya está en la última etapa'); return; }
@@ -702,7 +709,7 @@ document.addEventListener('click', function(ev){
 /* ── Panel de seguimiento: plantillas por día ── */
 function abrirSeguimiento(id, ev){
   if(ev) ev.stopPropagation();
-  var l = S.leads.find(function(x){ return x.id===id; });
+  var l = buscarLead(id);
   if(!l) return;
   var tel = String(l.telefono||'').replace(/[^0-9]/g,'');
   var d = dias(l.ultimoContacto || l.fechaContacto || l.fechaIngreso);
@@ -760,7 +767,7 @@ function textoPlantilla(l, i){
 }
 
 function enviarPlantilla(id, i){
-  var l = S.leads.find(function(x){ return x.id===id; });
+  var l = buscarLead(id);
   if(!l) return;
   var tel = String(l.telefono||'').replace(/[^0-9]/g,'');
   if(!tel){ toast('Este lead no tiene teléfono', true); return; }
@@ -770,7 +777,7 @@ function enviarPlantilla(id, i){
 }
 
 function contactoLibre(id){
-  var l = S.leads.find(function(x){ return x.id===id; });
+  var l = buscarLead(id);
   var tel = String((l||{}).telefono||'').replace(/[^0-9]/g,'');
   if(!tel){ toast('Este lead no tiene teléfono', true); return; }
   window.open('https://wa.me/57'+tel,'_blank');
@@ -780,7 +787,7 @@ function contactoLibre(id){
 function marcarLlamada(id){ registrarToque(id, 'Llamada telefónica'); }
 
 function registrarToque(id, detalle){
-  var l = S.leads.find(function(x){ return x.id===id; });
+  var l = buscarLead(id);
   api('evento.crear', { id:id, tipo:'contacto', detalle:detalle, usuario:S.user.nombre },
     function(d){
       if(d && d.ok){
@@ -870,7 +877,7 @@ function vLeads(){
 
 /* ── Panel del lead ── */
 function abrirLead(id){
-  var l = S.leads.find(function(x){ return x.id===id; });
+  var l = buscarLead(id);
   if(!l) return;
   S.leadAbierto = id;
 
@@ -995,7 +1002,7 @@ function guardarPanel(id){
 }
 
 function registrarContacto(id, via){
-  var l = S.leads.find(function(x){ return x.id===id; });
+  var l = buscarLead(id);
   if(!l) return;
   var tel = String(l.telefono||'').replace(/[^0-9]/g,'');
   if(via==='whatsapp' && tel){
