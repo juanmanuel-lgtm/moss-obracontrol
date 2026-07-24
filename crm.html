@@ -215,7 +215,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--verde2);box-shadow:0 
     <div class="mark">M</div>
     <div>
       <div class="tnom">Centro Comercial</div>
-      <div class="tsub">MOSS Remodelaciones · v1.3</div>
+      <div class="tsub">MOSS Remodelaciones · v1.4</div>
     </div>
     <div class="tder">
       <span class="chip" id="quien">—</span>
@@ -665,20 +665,39 @@ function filaLead(l){
   var acciones = '';
   var tel = String(l.telefono||'').replace(/[^0-9]/g,'');
   if(tel && l.etapa!=='firmado'){
-    acciones += '<button class="bs bmini" onclick="abrirSeguimiento(\''+l.id+'\',event)">Contactar</button>';
+    acciones += '<button class="bs bmini" data-act="contactar">Contactar</button>';
   }
   var sig = siguienteEtapa(l.etapa);
   if(sig){
-    acciones += '<button class="bp bmini" onclick="avanzar(\''+l.id+'\',event)">→ '+ETAPA_N[sig]+'</button>';
+    acciones += '<button class="bp bmini" data-act="avanzar">→ '+ETAPA_N[sig]+'</button>';
   }
 
-  return '<div class="fila '+cls+'" onclick="abrirLead(\''+l.id+'\')">'
+  return '<div class="fila '+cls+'" data-id="'+esc(l.id)+'">'
     + '<div style="flex:1;min-width:0">'
     + '<div class="fnom">'+esc(l.nombre||'Sin nombre')+'</div>'
     + '<div class="fdet">'+det.join(' · ')+'</div></div>'
     + '<div class="fder">'+etis+'<span class="eti">'+(ETAPA_N[l.etapa]||l.etapa)+'</span>'
     + acciones+'</div></div>';
 }
+
+/* Un solo escuchador para todas las filas: el id viaja como atributo,
+   no incrustado en código. Así ningún carácter raro rompe el clic. */
+document.addEventListener('click', function(ev){
+  var fila = ev.target.closest ? ev.target.closest('.fila') : null;
+  if(!fila) return;
+  var id = fila.getAttribute('data-id');
+  if(!id) return;
+
+  var btn = ev.target.closest('[data-act]');
+  if(btn){
+    ev.stopPropagation();
+    var act = btn.getAttribute('data-act');
+    if(act === 'contactar') abrirSeguimiento(id);
+    else if(act === 'avanzar') avanzar(id);
+    return;
+  }
+  abrirLead(id);
+});
 
 /* ── Panel de seguimiento: plantillas por día ── */
 function abrirSeguimiento(id, ev){
@@ -699,7 +718,7 @@ function abrirSeguimiento(id, ev){
 
   PLANTILLAS.forEach(function(p,i){
     h += '<button class="bs" style="width:100%;text-align:left;margin-bottom:8px;padding:12px 14px"'
-      + ' onclick="enviarPlantilla(\''+id+'\','+i+')">'
+      + ' data-plantilla="'+i+'">'
       + '<b style="display:block;font-size:13px">'+p[0]+'</b>'
       + '<span style="font-size:11.5px;color:var(--gris);display:block;margin-top:3px">'
       + esc(p[1].slice(0,85))+'…</span></button>';
@@ -707,16 +726,31 @@ function abrirSeguimiento(id, ev){
 
   h += '<div class="tit">Otras acciones</div>'
     + '<div style="display:flex;gap:8px">'
-    + '<button class="bs" style="flex:1" onclick="contactoLibre(\''+id+'\')">WhatsApp en blanco</button>'
-    + '<button class="bs" style="flex:1" onclick="marcarLlamada(\''+id+'\')">Registrar llamada</button></div>';
+    + '<button class="bs" style="flex:1" data-acc="libre">WhatsApp en blanco</button>'
+    + '<button class="bs" style="flex:1" data-acc="llamada">Registrar llamada</button></div>';
 
   h += '</div><div class="ppie">'
-    + '<button class="bs" style="flex:1" onclick="abrirLead(\''+id+'\')">Ver ficha completa</button>'
+    + '<button class="bs" style="flex:1" data-acc="ficha">Ver ficha completa</button>'
     + '<button class="bs" onclick="cerrarPanel()">Cerrar</button></div>';
 
   $('panel').innerHTML = h;
   $('panel').classList.add('on');
   $('velo').classList.add('on');
+  S.leadAbierto = id;
+
+  $('panel').querySelectorAll('[data-plantilla]').forEach(function(b){
+    b.addEventListener('click', function(){
+      enviarPlantilla(id, Number(b.getAttribute('data-plantilla')));
+    });
+  });
+  $('panel').querySelectorAll('[data-acc]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var a = b.getAttribute('data-acc');
+      if(a === 'libre')   contactoLibre(id);
+      if(a === 'llamada') marcarLlamada(id);
+      if(a === 'ficha')   abrirLead(id);
+    });
+  });
 }
 
 function textoPlantilla(l, i){
@@ -883,8 +917,8 @@ function abrirLead(id){
   if(l.telefono){
     var tel = String(l.telefono).replace(/[^0-9]/g,'');
     h += '<div style="display:flex;gap:8px;margin:14px 0">'
-      + '<button class="bs" style="flex:1" onclick="registrarContacto(\''+l.id+'\',\'whatsapp\')">WhatsApp</button>'
-      + '<button class="bs" style="flex:1" onclick="registrarContacto(\''+l.id+'\',\'llamada\')">Llamada</button></div>';
+      + '<button class="bs" style="flex:1" data-acc="ficha-wa">WhatsApp</button>'
+      + '<button class="bs" style="flex:1" data-acc="ficha-tel">Llamada</button></div>';
   }
 
   h += '<div class="tit">Recorrido</div>';
@@ -911,12 +945,21 @@ function abrirLead(id){
   }
 
   h += '</div>';
-  h += '<div class="ppie"><button class="bp" style="flex:1" onclick="guardarPanel(\''+l.id+'\')">Guardar cambios</button>'
+  h += '<div class="ppie"><button class="bp" style="flex:1" data-guardar="1">Guardar cambios</button>'
     + '<button class="bs" onclick="cerrarPanel()">Cerrar</button></div>';
 
   $('panel').innerHTML = h;
   $('panel').classList.add('on');
   $('velo').classList.add('on');
+  var bg = $('panel').querySelector('[data-guardar]');
+  if(bg) bg.addEventListener('click', function(){ guardarPanel(id); });
+  $('panel').querySelectorAll('[data-acc]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var a = b.getAttribute('data-acc');
+      if(a === 'ficha-wa')  registrarContacto(id, 'whatsapp');
+      if(a === 'ficha-tel') registrarContacto(id, 'llamada');
+    });
+  });
   if(l.perfil) verGuia(l.perfil);
 }
 
