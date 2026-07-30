@@ -1636,9 +1636,138 @@ function elimMaterialCat(capN,matId){
       CRON.pedidos[obraId][capN]=CRON.pedidos[obraId][capN].filter(function(p){return p.matId!==matId;});
     }
   }
+  // v2026.07.22 FIX: usar la accion explicita del servidor — con la fusion
+  // por item, un guardado normal ya no garantiza que el material borrado
+  // no "reviva" si otro navegador guarda con su copia vieja.
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"material.eliminar",
+      _email:S.user?S.user.email:"",
+      _nombre:S.user?S.user.nombre:"",
+      payload:{capN:capN,matId:matId}
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(!d||d.ok===false){
+      alert("⚠️ No se pudo eliminar en el servidor: "+(d&&d.error?d.error:"error desconocido"));
+    }
+  })
+  .catch(function(err){
+    console.error("[MOSS] Error eliminando material:",err);
+    alert("⚠️ Sin conexion con el servidor. El material se borro solo en este dispositivo.");
+  });
   guardarCronogramaRemoto();
   render();
 }
+
+// v2026.07.22: editar nombre/unidad de un material del catalogo (para
+// corregir errores de digitacion o unificar duplicados con nombre distinto)
+function editarMaterialCat(capN,matId){
+  if(!puedeCerrarObra()){alert("Sin permisos");return;}
+  initCatalogoMateriales();
+  var mat=null;
+  if(CRON.materiales[capN]){
+    for(var i=0;i<CRON.materiales[capN].length;i++){
+      if(CRON.materiales[capN][i].id===matId){mat=CRON.materiales[capN][i];break;}
+    }
+  }
+  if(!mat){alert("Material no encontrado en el catalogo.");return;}
+  var nuevoNom=prompt("Nombre del material:",mat.nom);
+  if(nuevoNom===null)return; // cancelo
+  nuevoNom=nuevoNom.trim();
+  if(!nuevoNom){alert("El nombre no puede quedar vacio.");return;}
+  var nuevaUni=prompt("Unidad (ej: unidad, MTS, m2, rollo):",mat.uni||"unidad");
+  if(nuevaUni===null)return;
+  mat.nom=nuevoNom;
+  mat.uni=nuevaUni.trim()||"unidad";
+  guardarCronogramaRemoto(function(saved,motivo){
+    if(!saved){
+      var razon=motivo==="sin_sincronizar"?"la app todavia esta sincronizando":"no hay conexion con el servidor";
+      alert("⚠️ El cambio se guardo SOLO en este dispositivo ("+razon+"). Vuelve a intentar en unos segundos.");
+    }
+    render();
+  });
+  render();
+}
+window.editarMaterialCat=editarMaterialCat;
+
+// v2026.07.22: depurador de duplicados — busca materiales con el mismo
+// nombre (ignorando mayusculas/espacios) dentro del mismo capitulo, une
+// sus pedidos en el mas antiguo (sumando cantidades donde haga falta) y
+// elimina los sobrantes del catalogo y del servidor.
+function depurarDuplicadosMateriales(){
+  if(!puedeCerrarObra()){alert("Sin permisos");return;}
+  initCatalogoMateriales();
+  var grupos={}; // capN|nombre_normalizado -> [materiales]
+  for(var capN in CRON.materiales){
+    (CRON.materiales[capN]||[]).forEach(function(m){
+      var k=capN+"|"+String(m.nom||"").toLowerCase().replace(/\s+/g," ").trim();
+      if(!grupos[k])grupos[k]=[];
+      grupos[k].push({cap:capN,mat:m});
+    });
+  }
+  var dups=[];
+  for(var k in grupos){
+    if(grupos[k].length>1)dups.push(grupos[k]);
+  }
+  if(dups.length===0){alert("No se encontraron materiales duplicados (mismo nombre en el mismo capitulo).");return;}
+  var resumen=dups.map(function(g){return "• \""+g[0].mat.nom+"\" (Cap. "+g[0].cap+"): "+g.length+" copias";}).join("\n");
+  if(!confirm("Se encontraron "+dups.length+" material(es) duplicado(s):\n\n"+resumen+"\n\nSe conservara la copia mas antigua de cada uno, se uniran sus pedidos (sumando cantidades) y se eliminaran las copias sobrantes de todas las obras.\n\n¿Continuar?"))return;
+  var eliminados=0;
+  dups.forEach(function(g){
+    // conservar el de id menor (mas antiguo)
+    g.sort(function(a,b){return a.mat.id-b.mat.id;});
+    var keeper=g[0];
+    for(var di=1;di<g.length;di++){
+      var dup=g[di];
+      // 1. re-apuntar/unir pedidos de todas las obras hacia el keeper
+      for(var obraId in CRON.pedidos){
+        var lista=CRON.pedidos[obraId][dup.cap];
+        if(!Array.isArray(lista))continue;
+        var pedidoDup=null,pedidoKeeper=null;
+        lista.forEach(function(p){
+          if(p.matId===dup.mat.id)pedidoDup=p;
+          if(p.matId===keeper.mat.id)pedidoKeeper=p;
+        });
+        if(pedidoDup){
+          if(pedidoKeeper){
+            pedidoKeeper.cantidad=(+pedidoKeeper.cantidad||0)+(+pedidoDup.cantidad||0);
+            CRON.pedidos[obraId][dup.cap]=lista.filter(function(p){return p.matId!==dup.mat.id;});
+          }else{
+            pedidoDup.matId=keeper.mat.id; // re-apuntar al keeper
+          }
+        }
+      }
+      // 2. quitar el duplicado del catalogo local
+      CRON.materiales[dup.cap]=CRON.materiales[dup.cap].filter(function(m){return m.id!==dup.mat.id;});
+      // 3. borrado explicito en el servidor (catalogo + pedidos residuales)
+      //    NOTA: los pedidos ya re-apuntados/unidos se suben con el guardado
+      //    de abajo ANTES de que este borrado toque el servidor en la
+      //    practica, porque el guardado se dispara primero; y aunque
+      //    llegaran en otro orden, el borrado solo elimina entradas con el
+      //    matId del duplicado, no las del keeper.
+      fetch(SCRIPT_URL,{
+        method:"POST",
+        body:JSON.stringify({
+          action:"material.eliminar",
+          _email:S.user?S.user.email:"",
+          _nombre:S.user?S.user.nombre:"",
+          payload:{capN:dup.cap,matId:dup.mat.id}
+        })
+      }).catch(function(e){console.error("[MOSS] Error borrando duplicado:",e);});
+      eliminados++;
+    }
+  });
+  guardarCronogramaRemoto(function(saved){
+    if(saved)alert("✓ Depuracion completa: "+eliminados+" duplicado(s) eliminado(s). Los pedidos se unieron en la copia conservada.");
+    else alert("⚠️ Los duplicados se limpiaron en este dispositivo pero el guardado al servidor fallo. Espera a que diga Sync OK y guarda cualquier cambio para reintentarlo.");
+    render();
+  });
+  render();
+}
+window.depurarDuplicadosMateriales=depurarDuplicadosMateriales;
 
 // Calcular cantidad sugerida de un material para una obra
 function calcularCantidadMaterial(obraId,capN,matId){
@@ -3201,6 +3330,7 @@ function rInventarioCaps(o,puedeEdit){
   );
   var btnExpandAll=h("div",{"style":"display:flex;gap:6px;margin-bottom:8px"},
     h("button",{"style":"font-size:10px;padding:5px 10px;background:var(--vc);color:var(--v);border:1px solid var(--bv);border-radius:6px;cursor:pointer;font-family:inherit","onclick":"(function(){if(!S._matCapsOpen)S._matCapsOpen={};if(!S._matCapsOpen["+o.id+"])S._matCapsOpen["+o.id+"]={};for(var i=1;i<=11;i++)S._matCapsOpen["+o.id+"][i]=true;render();})()"},"▼ Expandir todo")+
+    (puedeCerrarObra()?h("button",{"style":"font-size:10px;padding:5px 10px;background:#FFF6E5;color:#8A6A2E;border:1px solid #E8C88A;border-radius:6px;cursor:pointer;font-family:inherit","onclick":"depurarDuplicadosMateriales()","title":"Busca materiales con el mismo nombre en el mismo capitulo, une sus pedidos y elimina las copias sobrantes"},"🧹 Depurar duplicados"):"")+
     h("button",{"style":"font-size:10px;padding:5px 10px;background:var(--ba);color:var(--g);border:1px solid var(--b);border-radius:6px;cursor:pointer;font-family:inherit","onclick":"(function(){if(!S._matCapsOpen)S._matCapsOpen={};S._matCapsOpen["+o.id+"]={};render();})()"},"▶ Colapsar todo")
   );
 
@@ -3260,7 +3390,7 @@ function rInventarioCaps(o,puedeEdit){
         if(pedido){
           metaPedido=(pedido.fechaSolicitud?h("div",{"style":"font-size:9px;color:var(--g);margin-top:3px"},"📋 "+pedido.fechaSolicitud+(pedido.actor?" · "+pedido.actor:"")):"")+(pedido.fechaEntregaObra?h("div",{"style":"font-size:9px;color:#3A6B45;font-weight:600;margin-top:2px"},"✅ En obra: "+pedido.fechaEntregaObra):"");
         }
-        var btnElim=puedeEdit?h("button",{"style":"background:transparent;border:none;color:#B5362A;cursor:pointer;font-size:16px;padding:2px 4px;line-height:1","onclick":"elimPedidoObra("+o.id+","+capM.n+","+mat.id+")","title":"Quitar"},"×"):"";
+        var btnElim=puedeEdit?(h("button",{"style":"background:transparent;border:none;color:var(--g);cursor:pointer;font-size:12px;padding:2px 4px;line-height:1","onclick":"editarMaterialCat("+capM.n+","+mat.id+")","title":"Editar nombre/unidad"},"✏️")+h("button",{"style":"background:transparent;border:none;color:#B5362A;cursor:pointer;font-size:16px;padding:2px 4px;line-height:1","onclick":"elimPedidoObra("+o.id+","+capM.n+","+mat.id+")","title":"Quitar"},"×")):"";
         // v50: selector de tienda/proveedor por material (alimenta planilla de despacho)
         var origenActual=(pedido&&pedido.origenMat)||mat.proveedor||"";
         var TIENDAS_RAP=["M SIERRA","CORONA","ADL DRYWALL","LA ROCA","COBELEC","ULTRAPINTURAS","FERRETERIA","HOMECENTER","BODEGA","OTRO"];
@@ -3459,14 +3589,14 @@ function crearMaterialNuevo(){
     }
     capGuardar=dupId.cap;matIdGuardar=dupId.id;
   }else{
-    // Crear nuevo: generar id unico
-    var maxId=0;
-    for(var k2 in CRON.materiales){
-      for(var j=0;j<CRON.materiales[k2].length;j++){
-        if(CRON.materiales[k2][j].id>maxId)maxId=CRON.materiales[k2][j].id;
-      }
-    }
-    var newMat={id:maxId+1,nom:nom,uni:uni,cant_m2:0,origen:"compra",lead:0,critico:false,notas:""};
+    // v2026.07.22 FIX: el id se generaba contando los materiales existentes
+    // (maxId+1) — si dos personas creaban materiales casi al mismo tiempo
+    // (o una con datos desactualizados), ambas generaban EL MISMO id. Al
+    // fusionar en el servidor, un material pisaba al otro (pedido "perdido")
+    // o quedaban dos nombres peleando por el mismo id (duplicados/nombres
+    // cruzados). Ahora el id es el timestamp (unico por milisegundo), igual
+    // que ya hacen los cortes de maestro.
+    var newMat={id:Date.now(),nom:nom,uni:uni,cant_m2:0,origen:"compra",lead:0,critico:false,notas:""};
     CRON.materiales[ADDM.capN].push(newMat);
     // Crear pedido en la obra
     if(!CRON.pedidos[ADDM.obraId])CRON.pedidos[ADDM.obraId]={};
