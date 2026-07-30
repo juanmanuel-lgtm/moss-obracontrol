@@ -134,6 +134,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--verde2);box-shadow:0 
 .bs{background:var(--papel);color:var(--tinta);border:1px solid var(--linea);
   border-radius:8px;padding:11px 15px;font-weight:600;font-size:14px;min-height:44px}
 .bs:hover{background:var(--crema)}
+.bs.bmal{color:var(--mal);border-color:#EFC9C0}
+.bs.bmal:hover{background:#F9E9E5}
+.perdido-box{background:#F9E9E5;border:1px solid #EFC9C0;border-radius:9px;padding:12px 14px;margin-bottom:13px}
 .bmini{padding:5px 10px;font-size:11.5px;min-height:0;border-radius:6px;font-weight:650}
 
 /* Panel lateral */
@@ -226,7 +229,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--verde2);box-shadow:0 
     <div class="mark">M</div>
     <div>
       <div class="tnom">Centro Comercial</div>
-      <div class="tsub">MOSS Remodelaciones · v2.0</div>
+      <div class="tsub">MOSS Remodelaciones · v2.2</div>
     </div>
     <div class="tder">
       <span class="chip" id="quien">—</span>
@@ -262,6 +265,15 @@ var ETAPAS = [
   { k:'firmado',     n:'Firmado'     }
 ];
 var ETAPA_N = {}; ETAPAS.forEach(function(e){ ETAPA_N[e.k]=e.n; });
+ETAPA_N.perdido = 'Perdido';
+ETAPA_N.sinrespuesta = 'Sin responder';
+
+var MOTIVOS_PERDIDA = [
+  'Precio / presupuesto',
+  'No volvió a contestar',
+  'Se fue con la competencia',
+  'Otro (indicado por el cliente)'
+];
 
 var PERFILES = {
   decidido:{ n:'Decidido', ico:'⚡', bg:'#E9F1F8', bd:'#2B6CA3',
@@ -407,8 +419,8 @@ function cargar(){
 function pintarNav(){
   var tabs = S.user.rol==='director'
     ? [['tablero','Tablero'],['pipeline','Pipeline'],['leads','Leads'],
-       ['equipo','Equipo'],['comisiones','Comisiones'],['ajustes','Ajustes']]
-    : [['tablero','Mi día'],['pipeline','Pipeline'],['leads','Mis leads'],['comisiones','Mi comisión']];
+       ['sinresp','Sin responder'],['perdidos','Perdidos'],['equipo','Equipo'],['comisiones','Comisiones'],['ajustes','Ajustes']]
+    : [['tablero','Mi día'],['pipeline','Pipeline'],['leads','Mis leads'],['sinresp','Sin responder'],['perdidos','Perdidos'],['comisiones','Mi comisión']];
   $('nav').innerHTML = tabs.map(function(t){
     return '<button class="'+(S.vista===t[0]?'on':'')+'" onclick="ir(\''+t[0]+'\')">'+t[1]+'</button>';
   }).join('');
@@ -547,6 +559,8 @@ function pintar(){
   else if(v==='leads')     vLeads();
   else if(v==='equipo')    vEquipo();
   else if(v==='comisiones')vComisiones();
+  else if(v==='perdidos')  vPerdidos();
+  else if(v==='sinresp')   vSinRespuesta();
   else if(v==='ajustes')   vAjustes();
 }
 
@@ -1013,6 +1027,15 @@ function abrirLead(id){
        + 'Sin fecha no cuenta en el cierre de ningún mes.</p>'));
   }
 
+  if(l.etapa === 'perdido'){
+    h += '<div class="perdido-box">'
+      + '<div style="font-weight:700;color:var(--mal);margin-bottom:5px">Cliente perdido</div>'
+      + '<div style="font-size:12.5px;color:var(--gris)">Motivo: '
+      + esc(l.motivoPerdida || 'sin especificar') + '</div>'
+      + '<button class="bs bmini" style="margin-top:9px" data-acc="reabrir">Reabrir lead</button>'
+      + '</div>';
+  }
+
   h += campo('Perfil del cliente',
       '<select id="c-perfil" onchange="verGuia(this.value)"><option value="">Sin definir</option>'
     + Object.keys(PERFILES).map(function(k){
@@ -1053,6 +1076,9 @@ function abrirLead(id){
 
   h += '</div>';
   h += '<div class="ppie"><button class="bp" style="flex:1" data-guardar="1">Guardar cambios</button>'
+    + (l.etapa!=='firmado' && l.etapa!=='perdido'
+        ? '<button class="bs bmal" data-acc="perder">Marcar perdido</button>'
+        : '')
     + '<button class="bs" onclick="cerrarPanel()">Cerrar</button></div>';
 
   $('panel').innerHTML = h;
@@ -1065,6 +1091,8 @@ function abrirLead(id){
       var a = b.getAttribute('data-acc');
       if(a === 'ficha-wa')  registrarContacto(id, 'whatsapp');
       if(a === 'ficha-tel') registrarContacto(id, 'llamada');
+      if(a === 'perder')    pedirMotivoPerdida(id);
+      if(a === 'reabrir')   reabrirLead(id);
     });
   });
   if(l.perfil) verGuia(l.perfil);
@@ -1087,6 +1115,60 @@ function verGuia(k){
     + '<div class="r"><b style="display:inline;color:var(--mal)">Evita:</b> '+p.no+'</div>';
 }
 
+function pedirMotivoPerdida(id){
+  var l = buscarLead(id);
+  if(!l) return;
+  var h = '<div class="phead"><button class="pcerrar" onclick="cerrarPanel()">\u00d7</button>'
+    + '<h2>Marcar como perdido</h2><p>'+esc(primerNombre(l))+' \u00b7 \u00bfpor qu\u00e9 se perdi\u00f3?</p></div>'
+    + '<div class="pbody">'
+    + '<div class="campo"><label>Motivo</label>'
+    + '<select id="mot-sel" onchange="verOtroMotivo()">'
+    + '<option value="">\u2014 Seleccionar \u2014</option>'
+    + MOTIVOS_PERDIDA.map(function(m){ return '<option>'+m+'</option>'; }).join('')
+    + '</select></div>'
+    + '<div class="campo" id="mot-otro-box" style="display:none">'
+    + '<label>\u00bfQu\u00e9 dijo el cliente?</label>'
+    + '<textarea id="mot-otro" rows="3" placeholder="Escribe el motivo que dio el cliente\u2026"></textarea></div>'
+    + '</div>'
+    + '<div class="ppie">'
+    + '<button class="bs bmal" style="flex:1" data-confirmar="1">Confirmar p\u00e9rdida</button>'
+    + '<button class="bs" data-cancelar="1">Cancelar</button></div>';
+  $('panel').innerHTML = h;
+  var b = $('panel').querySelector('[data-confirmar]');
+  if(b) b.addEventListener('click', function(){ confirmarPerdida(id); });
+  var c = $('panel').querySelector('[data-cancelar]');
+  if(c) c.addEventListener('click', function(){ abrirLead(id); });
+}
+
+function verOtroMotivo(){
+  var sel = $('mot-sel'); var box = $('mot-otro-box');
+  if(!sel || !box) return;
+  box.style.display = sel.value.indexOf('Otro') === 0 ? 'block' : 'none';
+}
+
+function confirmarPerdida(id){
+  var sel = $('mot-sel');
+  if(!sel || !sel.value){ toast('Elige un motivo', true); return; }
+  var motivo = sel.value;
+  if(motivo.indexOf('Otro') === 0){
+    var t = ($('mot-otro')||{}).value || '';
+    if(!t.trim()){ toast('Escribe qu\u00e9 dijo el cliente', true); return; }
+    motivo = 'Cliente: ' + t.trim();
+  }
+  guardarLead(id, { etapa:'perdido', motivoPerdida:motivo }, function(ok){
+    if(ok){
+      api('evento.crear', { id:id, tipo:'perdido', detalle:'Perdido \u2014 '+motivo, usuario:S.user.nombre }, function(){});
+      toast('Lead marcado como perdido'); cerrarPanel(); pintar();
+    }
+  });
+}
+
+function reabrirLead(id){
+  guardarLead(id, { etapa:'contactado', motivoPerdida:'' }, function(ok){
+    if(ok){ toast('Lead reabierto en Contactado'); cerrarPanel(); pintar(); }
+  });
+}
+
 function guardarPanel(id){
   var g = function(x){ var e=$(x); return e ? e.value : undefined; };
   var campos = {
@@ -1096,6 +1178,7 @@ function guardarPanel(id){
   };
   if($('c-resp'))   campos.responsable = g('c-resp');
   if($('c-cierre')) campos.fechaCierre  = g('c-cierre');
+  if($('c-motivo')) campos.motivoPerdida = g('c-motivo');
 
   guardarLead(id, campos, function(ok){
     if(ok){ cerrarPanel(); pintar(); }
@@ -1222,7 +1305,118 @@ function vEquipo(){
   $('main').innerHTML = h;
 }
 
-/* ── Comisiones ── */
+/* \u2500\u2500 Clientes sin responder \u2500\u2500 */
+function vSinRespuesta(){
+  var L = mios().filter(function(l){ return l.etapa==='sinrespuesta'; });
+
+  var h = '<div class="aviso" style="border-left-color:var(--verde2)">'
+    + '<b>Clientes que escribieron pero no dieron informaci\u00f3n</b>'
+    + 'Aqu\u00ed la meta es distinta: sacarles los datos en la llamada. '
+    + 'No sabemos su proyecto ni presupuesto, as\u00ed que hay que preguntar todo.</div>';
+
+  if(!L.length){
+    h += '<div class="tarj"><div class="vacio"><b>Nadie por ahora</b>'
+      + 'Cuando entren clientes sin informaci\u00f3n del bot, aparecer\u00e1n aqu\u00ed.</div></div>';
+    $('main').innerHTML = h;
+    return;
+  }
+
+  // Un contacto los saca de esta lista hacia Contactado
+  L.sort(function(a,b){ return String(b.fechaIngreso||'').localeCompare(String(a.fechaIngreso||'')); });
+
+  h += '<div class="tit">'+L.length+' cliente'+(L.length>1?'s':'')+' por recuperar</div>';
+  h += '<div class="tarj">'
+    + L.slice(0,300).map(function(l){
+      var tel = String(l.telefono||'').replace(/[^0-9]/g,'');
+      var acc = tel
+        ? '<button class="bs bmini" data-sr-wa="'+esc(l.id)+'">WhatsApp</button>'
+        : '';
+      var d = dias(l.fechaIngreso);
+      return '<div class="fila" data-id="'+esc(l.id)+'">'
+        + '<div style="flex:1;min-width:0">'
+        + '<div class="fnom">'+esc(l.nombre||'Sin nombre')+'</div>'
+        + '<div class="fdet">'+esc(l.telefono)
+        + (d!==null?' \u00b7 hace '+d+' d':'')
+        + (l.responsable?' \u00b7 '+esc(nombreAsesor(l.responsable)):'')+'</div></div>'
+        + '<div class="fder">'+acc+'</div></div>';
+    }).join('')
+    + '</div>';
+
+  $('main').innerHTML = h;
+
+  // WhatsApp directo: saluda, registra contacto y lo pasa a Contactado
+  $('main').querySelectorAll('[data-sr-wa]').forEach(function(b){
+    b.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var id = b.getAttribute('data-sr-wa');
+      var l = buscarLead(id);
+      if(!l) return;
+      var tel = String(l.telefono||'').replace(/[^0-9]/g,'');
+      var txt = 'Hola'+(l.nombre&&l.nombre!=='Sin nombre'?' '+primerNombre(l):'')
+        + ', te saluda '+S.user.nombre+' de MOSS Remodelaciones. '
+        + 'Vi que nos escribiste y quiero ayudarte con tu proyecto. '
+        + '\u00bfMe cuentas qu\u00e9 espacio quieres remodelar?';
+      window.open('https://wa.me/57'+tel+'?text='+encodeURIComponent(txt),'_blank');
+      api('evento.crear', { id:id, tipo:'contacto',
+        detalle:'Primer contacto (sin info previa)', usuario:S.user.nombre }, function(){});
+      guardarLead(id, { etapa:'contactado' }, function(ok){
+        if(ok){ toast('Contactado. Pas\u00f3 a seguimiento normal.'); pintar(); }
+      });
+    });
+  });
+}
+
+/* \u2500\u2500 Perdidos \u2500\u2500 */
+function vPerdidos(){
+  var L = mios().filter(function(l){ return l.etapa==='perdido'; });
+
+  // Agrupar por motivo (los "Cliente:" libres se cuentan juntos como Otro)
+  var grupos = {};
+  L.forEach(function(l){
+    var m = String(l.motivoPerdida||'Sin especificar');
+    if(m.indexOf('Cliente:')===0) m = 'Otro (motivo del cliente)';
+    grupos[m] = (grupos[m]||0) + 1;
+  });
+
+  var h = '<div class="tit">Motivos de p\u00e9rdida</div>';
+  if(!L.length){
+    h += '<div class="tarj"><div class="vacio"><b>Sin leads perdidos</b>'
+      +  'Cuando marques un lead como perdido aparecer\u00e1 aqu\u00ed con su motivo.</div></div>';
+    $('main').innerHTML = h;
+    return;
+  }
+
+  var total = L.length;
+  var orden = Object.keys(grupos).sort(function(a,b){ return grupos[b]-grupos[a]; });
+  h += '<div class="tarj" style="padding:15px">';
+  orden.forEach(function(m){
+    var n = grupos[m];
+    var pct = Math.round(n/total*100);
+    h += '<div style="margin-bottom:11px">'
+      + '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">'
+      + '<span>'+esc(m)+'</span><span style="color:var(--gris)"><b>'+n+'</b> \u00b7 '+pct+'%</span></div>'
+      + '<div class="barra"><i style="width:'+Math.max(pct,3)+'%"></i></div></div>';
+  });
+  h += '</div>';
+
+  h += '<div class="tit">'+total+' lead'+(total>1?'s':'')+' perdido'+(total>1?'s':'')+'</div>';
+  h += '<div class="tarj">'
+    + L.sort(function(a,b){ return String(b.actualizado||'').localeCompare(String(a.actualizado||'')); })
+        .map(function(l){
+      var m = String(l.motivoPerdida||'Sin especificar');
+      return '<div class="fila" data-id="'+esc(l.id)+'">'
+        + '<div style="flex:1;min-width:0">'
+        + '<div class="fnom">'+esc(l.nombre||'Sin nombre')+'</div>'
+        + '<div class="fdet">'+esc(m)
+        + (l.responsable?' \u00b7 '+esc(nombreAsesor(l.responsable)):'')+'</div></div>'
+        + '<div class="fder"><span class="eti r">Perdido</span></div></div>';
+    }).join('')
+    + '</div>';
+
+  $('main').innerHTML = h;
+}
+
+/* \u2500\u2500 Comisiones \u2500\u2500 */
 function vComisiones(){
   var escala   = S.cfg.comisionEscala || [{hasta:249999999,pct:1},{hasta:349999999,pct:2},{hasta:null,pct:3.5}];
   var metaProy = Number(S.cfg.metaProyectosMes||10);
