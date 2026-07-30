@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>MOSS — Seguimiento de tu obra</title>
+<meta name="description" content="Sigue el avance de tu proyecto de remodelación con MOSS">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --v:#2D4A35;--vc:#EFF5F1;--bv:#C8DDD0;
+  --b:#E8E2D9;--bc:#FAF8F5;--g:#6B6560;
+  --cr:#FFFFFF;--ok:#3A6B45;--warn:#C17B2A;--err:#B5362A;
+  --camel:#A67C52;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F0EA;color:#1C1A18;min-height:100vh;}
+.header{background:var(--v);padding:18px 20px;display:flex;align-items:center;gap:14px;}
+.header-logo{width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;letter-spacing:-.5px;}
+.header-title{color:#fff;}
+.header-title h1{font-size:16px;font-weight:700;letter-spacing:-.3px;}
+.header-title p{font-size:11px;opacity:.7;margin-top:1px;}
+.container{max-width:640px;margin:0 auto;padding:20px 16px 40px;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--b);margin-bottom:14px;overflow:hidden;}
+.card-header{padding:14px 18px;background:var(--v);color:#fff;}
+.card-header h2{font-size:14px;font-weight:700;}
+.card-header .sub{font-size:11px;opacity:.75;margin-top:2px;}
+.card-body{padding:16px 18px;}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0;}
+.kpi{background:var(--bc);border:1px solid var(--b);border-radius:10px;padding:12px;text-align:center;}
+.kpi-val{font-size:22px;font-weight:800;color:var(--v);}
+.kpi-lbl{font-size:10px;color:var(--g);margin-top:3px;text-transform:uppercase;letter-spacing:.4px;}
+.progress-bar-wrap{background:#EDE8E1;border-radius:99px;height:10px;margin:8px 0 4px;}
+.progress-bar-fill{height:10px;border-radius:99px;background:var(--v);transition:width .6s ease;}
+.cap-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--b);}
+.cap-row:last-child{border-bottom:none;}
+.cap-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.cap-nom{font-size:13px;flex:1;}
+.cap-estado{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;}
+.estado-completo{background:#DDEEE0;color:#2D6A3F;}
+.estado-activo{background:#FFF3E0;color:#A06010;}
+.estado-pendiente{background:#F0EEEB;color:#9A9490;}
+.video-link{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bc);border:1px solid var(--b);border-radius:10px;text-decoration:none;color:inherit;margin-bottom:8px;}
+.video-link:last-child{margin-bottom:0;}
+.video-icon{width:36px;height:36px;background:var(--v);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0;}
+.video-info h4{font-size:12px;font-weight:600;}
+.video-info p{font-size:11px;color:var(--g);margin-top:2px;}
+.nota-box{background:#FFFBF4;border:1px solid #F0DDB4;border-radius:10px;padding:14px;font-size:13px;line-height:1.6;color:#5A4A30;}
+.nota-autor{font-size:11px;color:var(--g);margin-top:8px;}
+.loading{text-align:center;padding:60px 20px;}
+.loading-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--v);margin:0 3px;animation:ld .9s infinite alternate;}
+.loading-dot:nth-child(2){animation-delay:.3s;}
+.loading-dot:nth-child(3){animation-delay:.6s;}
+@keyframes ld{to{opacity:.2;transform:translateY(-4px);}}
+.error-box{text-align:center;padding:60px 20px;}
+.error-box .icon{font-size:40px;margin-bottom:12px;}
+.error-box h2{font-size:18px;margin-bottom:8px;}
+.error-box p{font-size:13px;color:var(--g);}
+.badge-etapa{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:#DDEEE0;color:#2D6A3F;}
+.footer{text-align:center;font-size:11px;color:var(--g);margin-top:24px;padding-bottom:20px;}
+.footer span{color:var(--camel);font-weight:600;}
+.semana-sel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.semana-btn{font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--b);background:#fff;cursor:pointer;font-family:inherit;color:var(--g);}
+.semana-btn.activo{background:var(--v);color:#fff;border-color:var(--v);}
+.msg-burbuja{padding:10px 13px;border-radius:12px;margin-bottom:8px;font-size:13px;line-height:1.5;max-width:90%;}
+.msg-cliente{background:#EFF5F1;border:1px solid #C8DDD0;border-radius:12px 12px 12px 4px;align-self:flex-start;}
+.msg-moss{background:var(--v);color:#fff;border-radius:12px 12px 4px 12px;align-self:flex-end;margin-left:auto;}
+.msg-meta{font-size:10px;opacity:.65;margin-top:3px;}
+.msg-wrap{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:320px;overflow-y:auto;padding:2px;}
+.msg-input{width:100%;font-family:inherit;font-size:13px;padding:10px 12px;border:1px solid var(--b);border-radius:10px;background:var(--bc);resize:none;line-height:1.5;}
+.msg-input:focus{outline:none;border-color:var(--v);}
+.msg-send-btn{width:100%;padding:11px;border:none;border-radius:10px;background:var(--v);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;}
+.msg-send-btn:disabled{opacity:.5;cursor:not-allowed;}
+.msg-empty{text-align:center;padding:20px;font-size:12px;color:var(--g);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">M</div>
+  <div class="header-title">
+    <h1>MOSS Remodelaciones</h1>
+    <p>Portal de seguimiento · Tu obra en tiempo real</p>
+  </div>
+</div>
+
+<div class="container">
+  <div id="root"><div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div><p style="margin-top:16px;font-size:13px;color:var(--g);">Cargando información de tu proyecto...</p></div></div>
+</div>
+
+<script>
+var SCRIPT_URL="https://script.google.com/macros/s/AKfycbyV1vK-Aw0kyAekawzvoB--JSBhl5ksbaNqSxuNorNQtyf00de5z43lSGvhFc0H-6cUKw/exec";
+
+var CAPS=[
+  {n:1,nom:"Diseño"},
+  {n:2,nom:"Redes eléctricas e hidrosanitarias"},
+  {n:3,nom:"Obra blanca"},
+  {n:4,nom:"Pisos y enchapes"},
+  {n:5,nom:"Carpintería y mobiliario"},
+  {n:6,nom:"Pintura y estuco"},
+  {n:7,nom:"Sanitarios y griferías"},
+  {n:8,nom:"Electrodomésticos"},
+  {n:9,nom:"Aseo general"},
+  {n:10,nom:"Pre-entrega"},
+  {n:11,nom:"Entrega final"}
+];
+
+function getParam(k){return new URLSearchParams(window.location.search).get(k)||"";}
+function ff(f){if(!f)return"Por definir";try{return new Date(f).toLocaleDateString("es-CO",{day:"numeric",month:"long",year:"numeric"});}catch(e){return f;}}
+
+function capEstado(n,cron,av){
+  if(!cron||!cron[n])return"pendiente";
+  var fase=cron[n];
+  var checks=fase.checks||{};
+  var vals=Object.values(checks);
+  var done=vals.filter(Boolean).length;
+  if(vals.length===0)return"pendiente";
+  if(done===vals.length)return"completo";
+  if(done>0||fase.fIni)return"activo";
+  return"pendiente";
+}
+
+function render(data){
+  var o=data.obra;
+  var cron=data.cron;
+  var videos=data.videos||[];
+  var av=+o.av||0;
+  var html="";
+
+  // Tarjeta principal
+  html+='<div class="card">';
+  html+='<div class="card-header">';
+  html+='<h2>'+o.nom+'</h2>';
+  html+='<div class="sub">'+o.cli+' · '+o.cod+'</div>';
+  html+='</div>';
+  html+='<div class="card-body">';
+  html+='<div style="margin-bottom:14px;"><span class="badge-etapa">'+formatEtapa(o.etapa)+'</span></div>';
+  html+='<div class="kpi-grid">';
+  html+='<div class="kpi"><div class="kpi-val">'+av+'%</div><div class="kpi-lbl">Avance general</div></div>';
+  html+='<div class="kpi"><div class="kpi-val" style="color:var(--camel)">'+ff(o.fE)+'</div><div class="kpi-lbl" style="font-size:9px">Entrega estimada</div></div>';
+  html+='</div>';
+  html+='<div style="margin-top:12px;">';
+  html+='<div style="font-size:11px;color:var(--g);margin-bottom:4px;">Progreso de obra</div>';
+  html+='<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:'+av+'%"></div></div>';
+  html+='<div style="font-size:10px;color:var(--g);text-align:right;">'+av+'% completado</div>';
+  html+='</div>';
+  if(o.fI){html+='<div style="font-size:11px;color:var(--g);margin-top:10px;">📅 Inicio: '+ff(o.fI)+'</div>';}
+  html+='</div></div>';
+
+  // Cronograma por capítulo
+  html+='<div class="card">';
+  html+='<div class="card-header"><h2>📋 Etapas de tu proyecto</h2></div>';
+  html+='<div class="card-body">';
+  CAPS.forEach(function(cap){
+    var est=capEstado(cap.n,cron,av);
+    var dotColor=est==="completo"?"var(--ok)":est==="activo"?"var(--warn)":"var(--b)";
+    var badge=est==="completo"?'<span class="cap-estado estado-completo">✓ Completado</span>':
+              est==="activo"?'<span class="cap-estado estado-activo">⚡ En progreso</span>':
+              '<span class="cap-estado estado-pendiente">Pendiente</span>';
+    html+='<div class="cap-row">';
+    html+='<div class="cap-dot" style="background:'+dotColor+'"></div>';
+    html+='<span class="cap-nom">'+cap.nom+'</span>';
+    html+=badge;
+    html+='</div>';
+  });
+  html+='</div></div>';
+
+  // Nota semanal del equipo
+  if(o.notaCliente){
+    html+='<div class="card">';
+    html+='<div class="card-header"><h2>💬 Mensaje de tu equipo MOSS</h2></div>';
+    html+='<div class="card-body">';
+    html+='<div class="nota-box">'+o.notaCliente.replace(/\n/g,"<br>")+'</div>';
+    if(o.notaClienteTs){html+='<div class="nota-autor">Actualizado: '+new Date(o.notaClienteTs).toLocaleDateString("es-CO",{day:"numeric",month:"long"})+'</div>';}
+    html+='</div></div>';
+  }
+
+  // Videos / fotos de avance
+  if(videos.length>0){
+    html+='<div class="card">';
+    html+='<div class="card-header"><h2>📸 Registro de visitas y avance</h2><div class="sub">Videos y fotos semanales de tu proyecto</div></div>';
+    html+='<div class="card-body">';
+    videos.slice(0,8).forEach(function(v){
+      html+='<a class="video-link" href="'+v.link+'" target="_blank" rel="noopener">';
+      html+='<div class="video-icon">📹</div>';
+      html+='<div class="video-info"><h4>'+v.semana+'</h4>';
+      if(v.coment)html+='<p>'+v.coment.slice(0,100)+(v.coment.length>100?"...":"")+'</p>';
+      else html+='<p style="color:var(--camel)">Ver video de avance →</p>';
+      html+='</div></a>';
+    });
+    html+='</div></div>';
+  }
+
+  // Documentacion comercial del cliente (contrato, diseño, planos)
+  if(data.docs&&data.docs.length>0){
+    html+='<div class="card">';
+    html+='<div class="card-header"><h2>📂 Tu documentación</h2><div class="sub">Contrato, diseños, planos y documentos aprobados</div></div>';
+    html+='<div class="card-body">';
+    data.docs.forEach(function(doc){
+      var emoji=doc.ic.indexOf("COM")!==-1?"📋":doc.ic.indexOf("DIS")!==-1?"🎨":doc.ic.indexOf("DOC")!==-1?"📄":doc.ic.indexOf("FOT")!==-1?"📸":"📁";
+      html+='<a class="video-link" href="'+doc.url+'" target="_blank" rel="noopener">';
+      html+='<div class="video-icon" style="font-size:20px;background:var(--camel)">'+emoji+'</div>';
+      html+='<div class="video-info">';
+      html+='<h4>'+doc.nom+'</h4>';
+      html+='<p>Toca para abrir en Google Drive →</p>';
+      html+='</div></a>';
+    });
+    html+='</div></div>';
+  }
+
+  // Canal de comunicacion con MOSS
+  html+='<div class="card">';
+  html+='<div class="card-header"><h2>💬 Comunicación con MOSS</h2><div class="sub">Deja solicitudes, cambios o anotaciones importantes de tu proyecto</div></div>';
+  html+='<div class="card-body">';
+  // Mostrar mensajes existentes
+  var msgs=data.msgs||[];
+  if(msgs.length===0){
+    html+='<div class="msg-empty">Aún no hay mensajes. Usa este espacio para dejar anotaciones, solicitudes de cambio o consultas sobre tu proyecto.</div>';
+  }else{
+    html+='<div class="msg-wrap" id="msg-wrap">';
+    msgs.forEach(function(m){
+      var esMoss=m.tipo==="moss";
+      html+='<div class="msg-burbuja '+(esMoss?"msg-moss":"msg-cliente")+'">';
+      html+=m.texto.replace(/\n//g,"<br>");
+      html+='<div class="msg-meta">'+(esMoss?"MOSS · ":"Tú · ")+new Date(m.ts).toLocaleDateString("es-CO",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})+'</div>';
+      html+='</div>';
+    });
+    html+='</div>';
+  }
+  // Input para nuevo mensaje
+  html+='<textarea class="msg-input" id="msg-input" rows="3" placeholder="Ej: El cliente eligió el color de pintura: blanco hueso para sala y gris paloma para habitaciones. Confirmar con Sandra antes del martes."></textarea>';
+  html+='<button class="msg-send-btn" id="msg-send-btn" onclick="enviarMensaje()">Enviar anotación</button>';
+  html+='<div style="font-size:10px;color:var(--g);margin-top:6px;text-align:center;">Tu equipo MOSS verá este mensaje en el dashboard del proyecto</div>';
+  html+='</div></div>';
+
+  // Contacto
+  html+='<div class="card">';
+  html+='<div class="card-header"><h2>📞 ¿Tienes alguna pregunta?</h2></div>';
+  html+='<div class="card-body" style="font-size:13px;color:var(--g);line-height:1.7;">';
+  html+='Tu equipo MOSS está disponible para resolver cualquier inquietud sobre tu proyecto.<br><br>';
+  html+='<a href="mailto:care@mosscolombia.com.co" style="color:var(--v);font-weight:600;">✉️ care@mosscolombia.com.co</a><br>';
+  html+='<a href="https://wa.me/57" style="color:var(--v);font-weight:600;">💬 Escríbenos por WhatsApp</a>';
+  html+='</div></div>';
+
+  html+='<div class="footer">Seguimiento de obra · <span>MOSS Remodelaciones</span><br>Esta información es confidencial y exclusiva para el titular del proyecto.</div>';
+
+  document.getElementById("root").innerHTML=html;
+}
+
+function formatEtapa(e){
+  var m={"diseno":"En diseño","preobra":"Pre-obra","ejecucion":"En ejecución","garantia":"Garantía","entregado":"✓ Entregado"};
+  return m[String(e||"").toLowerCase()]||e||"En ejecución";
+}
+
+function mostrarError(msg,sub){
+  document.getElementById("root").innerHTML='<div class="error-box"><div class="icon">🏗️</div><h2>'+msg+'</h2><p>'+(sub||"")+'</p></div>';
+}
+
+function enviarMensaje(){
+  var input=document.getElementById("msg-input");
+  var btn=document.getElementById("msg-send-btn");
+  if(!input)return;
+  var texto=input.value.trim();
+  if(!texto){input.focus();return;}
+  btn.disabled=true;btn.textContent="Enviando...";
+  // Guardar via doPost con accion clienteMsg
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"cliente.mensaje",
+      _clienteToken:getParam("token"),
+      payload:{obraId:getParam("obra"),texto:texto,ts:Date.now()}
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d&&d.ok!==false){
+      input.value="";
+      btn.textContent="Enviar anotación";btn.disabled=false;
+      // Recargar mensajes
+      cargarDatos();
+    }else{
+      alert("No se pudo enviar el mensaje. Intenta de nuevo en unos segundos.");
+      btn.textContent="Enviar anotación";btn.disabled=false;
+    }
+  })
+  .catch(function(){
+    alert("Sin conexión. Verifica tu internet e intenta de nuevo.");
+    btn.textContent="Enviar anotación";btn.disabled=false;
+  });
+}
+
+// Cargar datos
+var obraId=getParam("obra");
+var token=getParam("token");
+
+if(!obraId||!token){
+  mostrarError("Enlace incompleto","Por favor usa el enlace que te envió MOSS. Si tienes dudas escríbenos a care@mosscolombia.com.co");
+}else{
+  fetch(SCRIPT_URL+"?hoja=cron")
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var obras=data.obras||{};
+    var o=obras[obraId];
+    if(!o){mostrarError("Proyecto no encontrado","Verifica que el enlace sea correcto o contacta a MOSS.");return;}
+    if(!o.clienteToken||o.clienteToken!==token){
+      mostrarError("Acceso no autorizado","Este enlace no es válido. Contacta a tu equipo MOSS para obtener tu enlace personal.");
+      return;
+    }
+    // Construir lista de videos del proyecto
+    var vidsRaw=data.videos&&data.videos[obraId]?data.videos[obraId]:{};
+    var videos=Object.values(vidsRaw).filter(function(v){return v&&v.link;}).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+    videos=videos.map(function(v){
+      var semana=v.ts?new Date(v.ts).toLocaleDateString("es-CO",{day:"numeric",month:"long",year:"numeric"}):"";
+      return{link:v.link,coment:v.coment||"",semana:semana};
+    });
+    render({obra:o,cron:(data.cronograma&&data.cronograma[obraId])||{},videos:videos});
+  })
+  .catch(function(){mostrarError("Sin conexión","No pudimos cargar tu proyecto en este momento. Intenta de nuevo en unos minutos.");});
+}
+</script>
+</body>
+</html>
