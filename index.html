@@ -5449,7 +5449,7 @@ function guardarCronogramaRemoto(cb){
   _cronTimer=setTimeout(function(){
     _guardandoPendiente=true;
     _enviarCronASheets();
-  },1500); // aumentado de 300ms a 1500ms para mayor confiabilidad
+  },2500); // v52: anti-bucle
 }
 
 function _enviarCronASheets(){
