@@ -1,0 +1,823 @@
+{
+  "publicado": "2026-09-16T23:10:59.692Z",
+  "por": "Juan Manuel Guevara — CEO",
+  "aiu_pct": 0.15,
+  "items": [
+    {
+      "codigo": "NUEVO-98787",
+      "nombre": "Meson en sinterizado ",
+      "unidad": "ml ",
+      "pvp": 1020000,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "NUEVO-52980",
+      "nombre": "Meson en quarztone color a eleccion ",
+      "unidad": "ml ",
+      "pvp": 790000,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "NUEVO-13016",
+      "nombre": "Griferia lavaplatos monocontrol (puede elegir extraible)",
+      "unidad": "un",
+      "pvp": 280000,
+      "espacio": "Cocina",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "OBLANCA-004",
+      "nombre": "Revoque de muros y techos en mortero",
+      "unidad": "m²",
+      "pvp": 20240,
+      "espacio": "Obra blanca y generales",
+      "grupo": "Obra blanca (todo el apartamento)"
+    },
+    {
+      "codigo": "OBLANCA-005",
+      "nombre": "Estuco en muros y techos, dos manos",
+      "unidad": "m²",
+      "pvp": 31500,
+      "espacio": "Obra blanca y generales",
+      "grupo": "Obra blanca (todo el apartamento)"
+    },
+    {
+      "codigo": "OBLANCA-008",
+      "nombre": "Pintura en vinilo tipo 1, tres manos",
+      "unidad": "m²",
+      "pvp": 31096,
+      "espacio": "Obra blanca y generales",
+      "grupo": "Obra blanca (todo el apartamento)"
+    },
+    {
+      "codigo": "OBLANCA-007",
+      "nombre": "Nivelación de piso en mortero, hasta 4 cm",
+      "unidad": "m²",
+      "pvp": 36800,
+      "espacio": "Obra blanca y generales",
+      "grupo": "Obra blanca (todo el apartamento)"
+    },
+    {
+      "codigo": "OBLANCA-006",
+      "nombre": "Esquineros metálicos para filos y aristas",
+      "unidad": "un",
+      "pvp": 7360,
+      "espacio": "Obra blanca y generales",
+      "grupo": "Obra blanca (todo el apartamento)"
+    },
+    {
+      "codigo": "OBLANCA-003",
+      "nombre": "Demolición y retiro de escombros",
+      "unidad": "m²",
+      "pvp": 32200,
+      "espacio": "Obra blanca y generales",
+      "grupo": "Obra blanca (todo el apartamento)"
+    },
+    {
+      "codigo": "GENERALES-001",
+      "nombre": "Piso en SPC German Technology 8 mm",
+      "unidad": "m²",
+      "pvp": 93900,
+      "espacio": "Obra blanca y generales",
+      "grupo": "Pisos y cielo raso"
+    },
+    {
+      "codigo": "GENERALES-002",
+      "nombre": "Guardaescobas laminado, perfiles y transiciones",
+      "unidad": "ml",
+      "pvp": 18400,
+      "espacio": "Obra blanca y generales",
+      "grupo": "Pisos y cielo raso"
+    },
+    {
+      "codigo": "OBLANCA-002",
+      "nombre": "Cielo raso en drywall con estuco y pintura",
+      "unidad": "m²",
+      "pvp": 90000,
+      "espacio": "Obra blanca y generales",
+      "grupo": "Pisos y cielo raso"
+    },
+    {
+      "codigo": "OBLANCA-009",
+      "nombre": "Panel LED de incrustar en muro o techo",
+      "unidad": "un",
+      "pvp": 38640,
+      "espacio": "Obra blanca y generales",
+      "grupo": "Eléctrico general"
+    },
+    {
+      "codigo": "OBLANCA-001",
+      "nombre": "Panel LED de sobreponer en muro o techo",
+      "unidad": "un",
+      "pvp": 38640,
+      "espacio": "Obra blanca y generales",
+      "grupo": "Eléctrico general"
+    },
+    {
+      "codigo": "GENERALES-027",
+      "nombre": "Regata para adecuación eléctrica",
+      "unidad": "un",
+      "pvp": 120000,
+      "espacio": "Obra blanca y generales",
+      "grupo": "Eléctrico general"
+    },
+    {
+      "codigo": "COCINA-009",
+      "nombre": "Enchape cerámico 30x60 en cocina",
+      "unidad": "m²",
+      "pvp": 89900,
+      "espacio": "Cocina",
+      "grupo": "Enchapes"
+    },
+    {
+      "codigo": "COCINA-010",
+      "nombre": "Enchape 60x60 para salpicadero de cocina",
+      "unidad": "m²",
+      "pvp": 150000,
+      "espacio": "Cocina",
+      "grupo": "Enchapes"
+    },
+    {
+      "codigo": "COCINA-007",
+      "nombre": "Enchape en porcelanato 120x60",
+      "unidad": "m²",
+      "pvp": 170000,
+      "espacio": "Cocina",
+      "grupo": "Enchapes"
+    },
+    {
+      "codigo": "COCINA-020",
+      "nombre": "Mueble inferior cocina fabricado en Madecor RH",
+      "unidad": "ml",
+      "pvp": 998200,
+      "espacio": "Cocina",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "COCINA-022",
+      "nombre": "Mueble superior cocina fabricado en Madecor RH, con platillero cromado",
+      "unidad": "ml",
+      "pvp": 1048800,
+      "espacio": "Cocina",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "COCINA-021",
+      "nombre": "Mueble isla-barra cocina fabricado en Madecor RH, 35 cm de profundidad",
+      "unidad": "ml",
+      "pvp": 869400,
+      "espacio": "Cocina",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "COCINA-027",
+      "nombre": "Mueble superior sobre nevera fabricado en Madecor RH",
+      "unidad": "ml",
+      "pvp": 724500,
+      "espacio": "Cocina",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "COCINA-016",
+      "nombre": "Mesón de cocina en granito",
+      "unidad": "m²",
+      "pvp": 637300,
+      "espacio": "Cocina",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "COCINA-023",
+      "nombre": "Shut de basuras para mueble inferior",
+      "unidad": "un",
+      "pvp": 531300,
+      "espacio": "Cocina",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "COCINA-028",
+      "nombre": "Mueble para escobas fabricado en Madecor RH",
+      "unidad": "un",
+      "pvp": 690000,
+      "espacio": "Cocina",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "COCINA-037",
+      "nombre": "Condimentero extraíble en acero inoxidable",
+      "unidad": "un",
+      "pvp": 463680,
+      "espacio": "Cocina",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "COCINA-001",
+      "nombre": "Campana extractora recirculadora 60 cm, color negro",
+      "unidad": "un",
+      "pvp": 429870,
+      "espacio": "Cocina",
+      "grupo": "Equipos y grifería"
+    },
+    {
+      "codigo": "COCINA-035",
+      "nombre": "Lavaplatos doble poceta en acero inoxidable",
+      "unidad": "un",
+      "pvp": 901600,
+      "espacio": "Cocina",
+      "grupo": "Equipos y grifería"
+    },
+    {
+      "codigo": "COCINA-036",
+      "nombre": "Grifería  para lavaplatos solo agua fria color negro",
+      "unidad": "un",
+      "pvp": 132700,
+      "espacio": "Cocina",
+      "grupo": "Equipos y grifería"
+    },
+    {
+      "codigo": "COCINA-046",
+      "nombre": "Estufa de empotrar a gas, 2 puestos",
+      "unidad": "un",
+      "pvp": 598900,
+      "espacio": "Cocina",
+      "grupo": "Equipos y grifería"
+    },
+    {
+      "codigo": "COCINA-0020",
+      "nombre": "Estufa de inducción",
+      "unidad": "un",
+      "pvp": 2600000,
+      "espacio": "Cocina",
+      "grupo": "Equipos y grifería"
+    },
+    {
+      "codigo": "COCINA-0022",
+      "nombre": "Instalación de estufa, campana y horno  solo si el cliente suministra los electrodomesticos ",
+      "unidad": "un",
+      "pvp": 200000,
+      "espacio": "Cocina",
+      "grupo": "Equipos y grifería"
+    },
+    {
+      "codigo": "COCINA-015",
+      "nombre": "Lavaplatos sencillo en acero inoxidable",
+      "unidad": "un",
+      "pvp": 202400,
+      "espacio": "Cocina",
+      "grupo": "Equipos y grifería"
+    },
+    {
+      "codigo": "COCINA-003",
+      "nombre": "Estufa de empotrar a gas, 4 puestos",
+      "unidad": "un",
+      "pvp": 570400,
+      "espacio": "Cocina",
+      "grupo": "Equipos y grifería"
+    },
+    {
+      "codigo": "COCINA-012",
+      "nombre": "lavaplatos especial o color negro ",
+      "unidad": "un",
+      "pvp": 480000,
+      "espacio": "Cocina",
+      "grupo": "Equipos y grifería"
+    },
+    {
+      "codigo": "COCINA-024",
+      "nombre": "Punto eléctrico nuevo o traslado de punto existente",
+      "unidad": "un",
+      "pvp": 110400,
+      "espacio": "Cocina",
+      "grupo": "Eléctrico"
+    },
+    {
+      "codigo": "COCINA-026",
+      "nombre": "Punto de gas nuevo o traslado de punto existente",
+      "unidad": "un",
+      "pvp": 395600,
+      "espacio": "Cocina",
+      "grupo": "Eléctrico"
+    },
+    {
+      "codigo": "COCINA-017",
+      "nombre": "Set de dos lámparas sobre barra",
+      "unidad": "un",
+      "pvp": 400000,
+      "espacio": "Cocina",
+      "grupo": "Eléctrico"
+    },
+    {
+      "codigo": "HABIT-003",
+      "nombre": "traslado de puntos hidraulicos ",
+      "unidad": "un",
+      "pvp": 200000,
+      "espacio": "Cocina",
+      "grupo": "Eléctrico"
+    },
+    {
+      "codigo": "COCINA-009",
+      "nombre": "Enchape cerámico 60x60 en cocina",
+      "unidad": "m²",
+      "pvp": 86940,
+      "espacio": "Baño",
+      "grupo": "Enchapes"
+    },
+    {
+      "codigo": "OBRA BLANCA-038",
+      "nombre": "Afinado de piso para instalación de enchape",
+      "unidad": "m²",
+      "pvp": 30000,
+      "espacio": "Baño",
+      "grupo": "Enchapes"
+    },
+    {
+      "codigo": "BAÑO-039",
+      "nombre": "Lavamanos empotrado en mueble",
+      "unidad": "un",
+      "pvp": 800000,
+      "espacio": "Baño",
+      "grupo": "Mobiliario y aparatos"
+    },
+    {
+      "codigo": "BAÑO-005",
+      "nombre": "Sanitario una pieza en porcelana, ahorrador de agua",
+      "unidad": "un",
+      "pvp": 637560,
+      "espacio": "Baño",
+      "grupo": "Mobiliario y aparatos"
+    },
+    {
+      "codigo": "BAÑO-024",
+      "nombre": "Combo cerámico: lavamanos, grifería y accesorios",
+      "unidad": "un",
+      "pvp": 600000,
+      "espacio": "Baño",
+      "grupo": "Mobiliario y aparatos"
+    },
+    {
+      "codigo": "BAÑO-0010",
+      "nombre": "Mueble espejo con almacenamiento y cinta LED",
+      "unidad": "ml",
+      "pvp": 1100000,
+      "espacio": "Baño",
+      "grupo": "Mobiliario y aparatos"
+    },
+    {
+      "codigo": "BAÑO-027",
+      "nombre": "Puerta de baño en vidrio templado",
+      "unidad": "un",
+      "pvp": 1365000,
+      "espacio": "Baño",
+      "grupo": "Mobiliario y aparatos"
+    },
+    {
+      "codigo": "BAÑO-012",
+      "nombre": "Puerta entamborada en madera",
+      "unidad": "un",
+      "pvp": 874000,
+      "espacio": "Baño",
+      "grupo": "Mobiliario y aparatos"
+    },
+    {
+      "codigo": "BAÑO-006",
+      "nombre": "Mueble de lavamanos fabricado en Madecor RH",
+      "unidad": "un",
+      "pvp": 717600,
+      "espacio": "Baño",
+      "grupo": "Mobiliario y aparatos"
+    },
+    {
+      "codigo": "BAÑO-004",
+      "nombre": "Lavamanos de sobreponer",
+      "unidad": "un",
+      "pvp": 364500,
+      "espacio": "Baño",
+      "grupo": "Mobiliario y aparatos"
+    },
+    {
+      "codigo": "BAÑO-014",
+      "nombre": "Nicho en ducha con iluminación",
+      "unidad": "un",
+      "pvp": 366080,
+      "espacio": "Baño",
+      "grupo": "Mobiliario y aparatos"
+    },
+    {
+      "codigo": "BAÑO-021",
+      "nombre": "Ducha con mezclador para agua fría y caliente",
+      "unidad": "un",
+      "pvp": 199500,
+      "espacio": "Baño",
+      "grupo": "Grifería y accesorios"
+    },
+    {
+      "codigo": "BAÑO-003",
+      "nombre": "Kit completo de ducha, herrajes en negro",
+      "unidad": "un",
+      "pvp": 644000,
+      "espacio": "Baño",
+      "grupo": "Grifería y accesorios"
+    },
+    {
+      "codigo": "BAÑO-0015",
+      "nombre": "Grifería alta monocontrol para lavamanos",
+      "unidad": "un",
+      "pvp": 280000,
+      "espacio": "Baño",
+      "grupo": "Grifería y accesorios"
+    },
+    {
+      "codigo": "BAÑO-025",
+      "nombre": "Sifón lineal invisible para ducha",
+      "unidad": "un",
+      "pvp": 180000,
+      "espacio": "Baño",
+      "grupo": "Grifería y accesorios"
+    },
+    {
+      "codigo": "BAÑO-014",
+      "nombre": "Nicho en ducha con iluminación",
+      "unidad": "un",
+      "pvp": 366080,
+      "espacio": "Baño",
+      "grupo": "Grifería y accesorios"
+    },
+    {
+      "codigo": "BAÑO-030",
+      "nombre": "Repisas para ducha",
+      "unidad": "un",
+      "pvp": 139000,
+      "espacio": "Baño",
+      "grupo": "Grifería y accesorios"
+    },
+    {
+      "codigo": "BAÑO-010",
+      "nombre": "Ducha monocontrol",
+      "unidad": "un",
+      "pvp": 276000,
+      "espacio": "Baño",
+      "grupo": "Grifería y accesorios"
+    },
+    {
+      "codigo": "BAÑO-013",
+      "nombre": "Kit de accesorios de baño, 5 piezas",
+      "unidad": "un",
+      "pvp": 202400,
+      "espacio": "Baño",
+      "grupo": "Grifería y accesorios"
+    },
+    {
+      "codigo": "BAÑO-019",
+      "nombre": "Bala LED de incrustar",
+      "unidad": "un",
+      "pvp": 36800,
+      "espacio": "Baño",
+      "grupo": "Eléctrico"
+    },
+    {
+      "codigo": "BAÑO-018",
+      "nombre": "Extractor de aire para baño",
+      "unidad": "un",
+      "pvp": 130000,
+      "espacio": "Baño",
+      "grupo": "Eléctrico"
+    },
+    {
+      "codigo": "BAÑO-045",
+      "nombre": "Lámpara colgante",
+      "unidad": "un",
+      "pvp": 309200,
+      "espacio": "Baño",
+      "grupo": "Eléctrico"
+    },
+    {
+      "codigo": "BAÑO-009",
+      "nombre": "Bala LED de empotrar en drywall",
+      "unidad": "un",
+      "pvp": 36800,
+      "espacio": "Baño",
+      "grupo": "Eléctrico"
+    },
+    {
+      "codigo": "HABIT-001",
+      "nombre": "Closet tipo esqueleto fabricado en Madecor, herrajería Ducasse y sistema corredizo",
+      "unidad": "m²",
+      "pvp": 782000,
+      "espacio": "Habitación",
+      "grupo": "Closets y mobiliario"
+    },
+    {
+      "codigo": "HABIT-006",
+      "nombre": "Closet con fondo diseñado a medida",
+      "unidad": "m²",
+      "pvp": 800000,
+      "espacio": "Habitación",
+      "grupo": "Closets y mobiliario"
+    },
+    {
+      "codigo": "HABIT-009",
+      "nombre": "Closet vestier con fondo diseñado a medida",
+      "unidad": "m²",
+      "pvp": 993600,
+      "espacio": "Habitación",
+      "grupo": "Closets y mobiliario"
+    },
+    {
+      "codigo": "HABIT-002",
+      "nombre": "Puerta entamborada en madera con chapa y tope",
+      "unidad": "un",
+      "pvp": 1026400,
+      "espacio": "Habitación",
+      "grupo": "Closets y mobiliario"
+    },
+    {
+      "codigo": "HABIT-0010",
+      "nombre": "Mesas de noche flotantes fabricadas en Madecor",
+      "unidad": "un",
+      "pvp": 250000,
+      "espacio": "Habitación",
+      "grupo": "Closets y mobiliario"
+    },
+    {
+      "codigo": "HABIT-041",
+      "nombre": "Escritorio de trabajo con cajoneras fabricado en Madecor",
+      "unidad": "ml",
+      "pvp": 980000,
+      "espacio": "Habitación",
+      "grupo": "Closets y mobiliario"
+    },
+    {
+      "codigo": "HAB-012",
+      "nombre": "Puerta entamborada en madera",
+      "unidad": "un",
+      "pvp": 874000,
+      "espacio": "Habitación",
+      "grupo": "Closets y mobiliario"
+    },
+    {
+      "codigo": "HABIT-007",
+      "nombre": "Cabecero para cama Queen con iluminación LED y mesas de noche",
+      "unidad": "un",
+      "pvp": 1800000,
+      "espacio": "Habitación",
+      "grupo": "Closets y mobiliario"
+    },
+    {
+      "codigo": "HABIT-008",
+      "nombre": "Centro de TV fabricado en Madecor",
+      "unidad": "ml",
+      "pvp": 900000,
+      "espacio": "Habitación",
+      "grupo": "Closets y mobiliario"
+    },
+    {
+      "codigo": "HABIT-011",
+      "nombre": "Mueble de nicho fabricado en Madecor",
+      "unidad": "un",
+      "pvp": 500000,
+      "espacio": "Habitación",
+      "grupo": "Closets y mobiliario"
+    },
+    {
+      "codigo": "HABIT-003",
+      "nombre": "Set de dos lámparas descolgadas",
+      "unidad": "un",
+      "pvp": 386400,
+      "espacio": "Habitación",
+      "grupo": "Iluminación y detalles"
+    },
+    {
+      "codigo": "HABI-002",
+      "nombre": "Iluminación LED en closet con sensor y regulación",
+      "unidad": "un",
+      "pvp": 92000,
+      "espacio": "Habitación",
+      "grupo": "Iluminación y detalles"
+    },
+    {
+      "codigo": "HAB-045",
+      "nombre": "Papel de colgadura",
+      "unidad": "m²",
+      "pvp": 270000,
+      "espacio": "Habitación",
+      "grupo": "Iluminación y detalles"
+    },
+    {
+      "codigo": "LAV-003",
+      "nombre": "Mueble de lavadero fabricado en Madecor RH",
+      "unidad": "ml",
+      "pvp": 736000,
+      "espacio": "Zona de ropas",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "LAV-004",
+      "nombre": "Lavadero en granito",
+      "unidad": "un",
+      "pvp": 193200,
+      "espacio": "Zona de ropas",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "LAV-001",
+      "nombre": "Mueble de linos fabricado en Madecor RH",
+      "unidad": "un",
+      "pvp": 690000,
+      "espacio": "Zona de ropas",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "LAV-002",
+      "nombre": "Puerta invisible",
+      "unidad": "m²",
+      "pvp": 1300000,
+      "espacio": "Zona de ropas",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "General-030",
+      "nombre": "Puerta invisible corrediza tipo granero",
+      "unidad": "un",
+      "pvp": 1500000,
+      "espacio": "Zona de ropas",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "COCINA-009",
+      "nombre": "Enchape cerámico 60x60 en cocina",
+      "unidad": "m²",
+      "pvp": 86940,
+      "espacio": "Zona de ropas",
+      "grupo": "Mobiliario"
+    },
+    {
+      "codigo": "LAV-006",
+      "nombre": "Grifería para lavadero, acoples y desagües",
+      "unidad": "un",
+      "pvp": 184000,
+      "espacio": "Zona de ropas",
+      "grupo": "Instalaciones"
+    },
+    {
+      "codigo": "LAV-005",
+      "nombre": "Calentador a gas 5 litros",
+      "unidad": "un",
+      "pvp": 920000,
+      "espacio": "Zona de ropas",
+      "grupo": "Instalaciones"
+    },
+    {
+      "codigo": "LAV-004",
+      "nombre": "Lavadero en granito",
+      "unidad": "un",
+      "pvp": 193200,
+      "espacio": "Zona de ropas",
+      "grupo": "Instalaciones"
+    },
+    {
+      "codigo": "HABIT-044",
+      "nombre": "Mueble divisorio estudio-sala en Madecor, con LED y entrepaños",
+      "unidad": "ml",
+      "pvp": 1330000,
+      "espacio": "Sala - Comedor",
+      "grupo": "Mobiliario y detalles"
+    },
+    {
+      "codigo": "HABIT-008",
+      "nombre": "Centro de TV fabricado en Madecor",
+      "unidad": "ml",
+      "pvp": 900000,
+      "espacio": "Sala - Comedor",
+      "grupo": "Mobiliario y detalles"
+    },
+    {
+      "codigo": "HABIT-011",
+      "nombre": "Mueble de nicho fabricado en Madecor",
+      "unidad": "un",
+      "pvp": 500000,
+      "espacio": "Sala - Comedor",
+      "grupo": "Mobiliario y detalles"
+    },
+    {
+      "codigo": "GENERALES-004",
+      "nombre": "Mueble especial fabricado en Madecor: recibidor, centro de TV o alacena",
+      "unidad": "un",
+      "pvp": 1550000,
+      "espacio": "Sala - Comedor",
+      "grupo": "Mobiliario y detalles"
+    },
+    {
+      "codigo": "ADICIONALES-001",
+      "nombre": "Escritorio con cajones y credenza fabricado en Madecor",
+      "unidad": "un",
+      "pvp": 985320,
+      "espacio": "Sala - Comedor",
+      "grupo": "Mobiliario y detalles"
+    },
+    {
+      "codigo": "HABIT-003",
+      "nombre": "Set de dos lámparas descolgadas",
+      "unidad": "un",
+      "pvp": 386400,
+      "espacio": "Sala - Comedor",
+      "grupo": "Iluminación"
+    },
+    {
+      "codigo": "GENERALES-029",
+      "nombre": "Cinta LED",
+      "unidad": "un",
+      "pvp": 120000,
+      "espacio": "Sala - Comedor",
+      "grupo": "Iluminación"
+    },
+    {
+      "codigo": "OBLANCA-011",
+      "nombre": "Red eléctrica completa del apartamento, cableado y puntos",
+      "unidad": "un",
+      "pvp": 120000,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "OBLANCA-010",
+      "nombre": "Red hidrosanitaria completa para obra gris",
+      "unidad": "un",
+      "pvp": 110400,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "OBLANCA-009",
+      "nombre": "Panel LED de incrustar en muro o techo",
+      "unidad": "ml",
+      "pvp": 38640,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "GENERALES-008",
+      "nombre": "Puerta de seguridad en madera maciza",
+      "unidad": "un",
+      "pvp": 2944000,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "GENERALES-039",
+      "nombre": "Chapa de seguridad y ojo mágico",
+      "unidad": "un",
+      "pvp": 450000,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "GENERALES-009",
+      "nombre": "Ventanería en aluminio con vidrio estándar",
+      "unidad": "m²",
+      "pvp": 487600,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "GENERALES-031",
+      "nombre": "Muro en superboard",
+      "unidad": "m²",
+      "pvp": 170000,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "GENERALES-005",
+      "nombre": "Muro en mampostería",
+      "unidad": "m²",
+      "pvp": 77300,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "OBLANCA-021",
+      "nombre": "Traslado de contador eléctrico",
+      "unidad": "un",
+      "pvp": 1785000,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "GENERALES-043",
+      "nombre": "Trasciego de material por escalera",
+      "unidad": "un",
+      "pvp": 735000,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    },
+    {
+      "codigo": "GENERALES-047",
+      "nombre": "Recargo por lejanía, obra fuera del casco urbano",
+      "unidad": "un",
+      "pvp": 100000,
+      "espacio": "Adicionales",
+      "grupo": "Extras"
+    }
+  ]
+}
