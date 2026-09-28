@@ -604,36 +604,36 @@ function cargarDemo(){
 // vendió; COCINA-016 hoy es mesón en granito, no en sinterizado) también se cargan
 // como especiales para no representar el producto equivocado.
 const DEMO_AKTIVO = {
-  cliente:'Alexandra Lagos', proyecto:'Aktivo, Bogotá', asesor:'Comercial 1',
-  areaTotal:27.7, tipo:'usada',
+  cliente:'Alexandra Lagos', proyecto:'Aktivo, Bogotá', asesor:'juan M',
+  areaTotal:32, tipo:'gris',
+  descPct:0, descFijo:0, descNota:'',
   espacios:{
-    general:{area:27.7, items:{
-      'OBLANCA-004':126.00,'OBLANCA-005':126.00,'OBLANCA-006':15.00,'OBLANCA-007':32.00,
-      'OBLANCA-008':126.00,'OBLANCA-003':10.00,'GENERALES-001':27.70,'GENERALES-002':31.00,
-      'OBLANCA-002':5.00,'OBLANCA-001':6.00 }, custom:[]},
-    cocina:{area:5.0, legs:[1.80,1.35,0], forma:'l', items:{
-      'COCINA-021':1.30,'COCINA-022':1.80,'COCINA-020':2.50,'COCINA-015':1,
-      'COCINA-012':1,'COCINA-003':1,'COCINA-001':1,'COCINA-017':1 },
+    general:{area:32, items:{
+      'OBLANCA-004':96,'OBLANCA-008':96,'OBLANCA-007':32,
+      'OBLANCA-006':15,'OBLANCA-003':8,'GENERALES-001':30,
+      'GENERALES-002':96,'OBLANCA-001':6,'GENERALES-027':1 }, custom:[]},
+    cocina:{area:6.55, legs:[4.0,2.0,0], forma:'l', items:{
+      'COCINA-007':2.86,'COCINA-020':4,'COCINA-022':4.77,'COCINA-027':0.7,
+      'COCINA-016B':5.5,'COCINA-023':1,'COCINA-028':1,'COCINA-001':1,
+      'COCINA-036':1,'COCINA-015':1,'COCINA-003':1,'COCINA-026':1,'COCINA-017':1 },
       custom:[
-        {nombre:'Punto hidráulico movimiento lavaplatos (sin código en catálogo)',unidad:'un',pvp:150000,cant:1},
-        {nombre:'Mesón en sinterizado (catálogo tiene solo mesón en granito, otro material)',unidad:'ml',pvp:930000,cant:3.10},
-        {nombre:'Enchape porcelanato 60x60, formato 1.20x0.60 (sin código propio)',unidad:'m²',pvp:300000,cant:2.00},
+        {nombre:'HORNO ELÉCTRICO MEDIO FORMATO',unidad:'un',pvp:1800000,cant:1,nota:''},
       ]},
-    bano:{area:3.0, items:{ 'BAÑO-012':1,'BAÑO-006':1,'BAÑO-009':2 },
+    bano:{area:2.6, items:{ 'BAÑO-027':1.5,'BAÑO-012':1,'BAÑO-006':1,'BAÑO-019':1 },
       custom:[
-        {nombre:'Enchape porcelanato 60x60, fuera de cabina de ducha (sin código propio)',unidad:'m²',pvp:150000,cant:18.00},
-        {nombre:'Espejo 1x1m (sin código en catálogo)',unidad:'m²',pvp:276000,cant:1},
-        {nombre:'División corrediza 6mm herrajes cromados (catálogo BAÑO-003 hoy es un kit de ducha distinto)',unidad:'ml',pvp:750000,cant:1.10},
+        {nombre:'Enchape porcelanato 60x60, fuera de cabina de ducha',unidad:'m²',pvp:150000,cant:4,nota:''},
+        {nombre:'Espejo 1x1m',unidad:'m²',pvp:276000,cant:1,nota:''},
+        {nombre:'Pintura antihongos',unidad:'un',pvp:120000,cant:1,nota:''},
       ]},
-    habitacion:{area:9.0, items:{ 'HAB-012':1,'HABIT-001':5.75 }, custom:[]},
-    ropas:{area:2.0, items:{ 'LAV-003':1 },
+    habitacion:{area:11.72, items:{ 'HAB-012':1,'HABIT-001':5.75 }, custom:[]},
+    ropas:{area:3.12, items:{ 'LAV-003':1 },
       custom:[
-        {nombre:'División en madera alistonada pivoteable, nevera/zona de lavado (sin código propio)',unidad:'un',pvp:1159200,cant:1.20},
-        {nombre:'Enchape zona de ropas, altura 1.20 (reutilizaba el código del piso SPC por error)',unidad:'m²',pvp:90000,cant:6.00},
+        {nombre:'División en madera alistonada pivoteable, nevera/zona de lavado',unidad:'un',pvp:1159200,cant:1.20,nota:''},
+        {nombre:'Enchape zona de ropas, altura 1.20',unidad:'m²',pvp:90000,cant:6.00,nota:''},
       ]},
-    sala:{area:8.3, items:{},
+    sala:{area:18.24, items:{},
       custom:[
-        {nombre:'Mueble escritorio + credenza + biblioteca 1.50x2m (alcance mayor al ítem base del catálogo)',unidad:'un',pvp:2500000,cant:1},
+        {nombre:'Mueble escritorio + credenza + biblioteca 1.50x2m',unidad:'un',pvp:2500000,cant:1,nota:''},
       ]},
   }
 };
@@ -644,29 +644,34 @@ function cargarDemoAktivo(){
   document.getElementById('f-ven').value=DEMO_AKTIVO.asesor;
   document.getElementById('f-area').value=DEMO_AKTIVO.areaTotal;
   tipoSel=DEMO_AKTIVO.tipo; FACTOR_MUROS=(TIPOS.find(x=>x.id===tipoSel)||TIPOS[0]).factor;
+  DESC_PCT=DEMO_AKTIVO.descPct||0; DESC_FIJO=DEMO_AKTIVO.descFijo||0; DESC_NOTA=DEMO_AKTIVO.descNota||'';
+  document.getElementById('descPct').value=DESC_PCT||'';
+  document.getElementById('descFijo').value=DESC_FIJO||'';
+  document.getElementById('descNota').value=DESC_NOTA;
+  // Primero: resetear todo y dejar que aplicarDerivados corra
   DATA.espacios.forEach(esp=>{
     const s=st[esp.id];
     const d=DEMO_AKTIVO.espacios[esp.id];
-    Object.values(s.items).forEach(si=>{si.on=false;si.cant=0;});
+    Object.values(s.items).forEach(si=>{si.on=false;si.cant=0;si.nota='';});
     s.custom=[];
     if(!d){ s.on=false; s.open=false; return; }
-    s.on=true; s.area=d.area||0; s.open=false;
+    s.on=true; s.area=d.area||0; s.open=true;
     if(d.forma) s.forma=d.forma;
     if(d.legs) s.legs=d.legs.slice();
+    aplicarDerivados(esp);
+    // Después del auto-cálculo: forzar las cantidades exactas del PDF
     Object.entries(d.items).forEach(([cod,cant])=>{
       if(s.items[cod]){ s.items[cod].on=true; s.items[cod].cant=cant; }
     });
     (d.custom||[]).forEach(c=>{
       s.custom.push({codigo:'ESP-'+Math.random().toString(36).slice(2,8),
-        nombre:c.nombre, unidad:c.unidad, pvp:c.pvp, cant:c.cant, on:true});
+        nombre:c.nombre, unidad:c.unidad, pvp:c.pvp, cant:c.cant, on:true, nota:c.nota||''});
     });
   });
-  renderTipo();renderStyles();renderRooms();updateAll();
-  alert('S00666 (Aktivo) cargada con los precios actuales del catálogo.\n\n'+
-        'Total con catálogo de hoy: '+money(totalGeneral())+'\n'+
-        'Total de la cotización entregada: $43.341.919\n\n'+
-        '4 ítems se cargaron como "especiales" (sin código permanente aún) y 3 usaban un código '+
-        'que hoy apunta a otro producto (quedaron marcados en el nombre). Revísalos antes de enviar.');
+  renderTipo();renderStyles();renderRooms();updateAll();renderDescPreview();
+  alert('Cotización Aktivo (Alexandra Lagos) cargada.\n\n'+
+        'Total: '+money(totalConDescuento())+'\n\n'+
+        'Ahora puedes modificar cantidades, agregar notas, ajustar el descuento y generar la propuesta.');
   document.getElementById('rooms').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
