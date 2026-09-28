@@ -291,6 +291,11 @@ body.cliente .desglose{display:none;}
 .saved h4{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--olive2);margin-bottom:8px;font-weight:700;}
 .sv{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer;}
 .sv:hover{color:var(--camel);}
+.cotbanner{display:none;margin:0 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:12.5px;line-height:1.6;}
+.cotbanner button{background:none;border:0;color:var(--camel);text-decoration:underline;cursor:pointer;font:inherit;padding:0;margin-left:8px;}
+.svq{width:100%;margin:0 0 8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:13px;background:var(--paper);}
+.sv small{display:block;opacity:.6;font-size:11px;margin-top:2px;}
+.svnota{font-size:11.5px;color:var(--mute);margin:0 0 8px;}
 </style>
 </head>
 <body>
@@ -414,10 +419,12 @@ body.cliente .desglose{display:none;}
       </div>
       <div class="calc" id="descPreview"></div>
     </div>
+    <div class="cotbanner" id="cotBanner"></div>
     <div class="summary" id="summary"></div>
     <pre id="out"></pre>
     <div class="saved">
       <h4>Cotizaciones guardadas</h4>
+      <input class="svq" id="svQ" placeholder="Buscar por cliente, proyecto o número…">
       <div id="svList"><div class="sum-empty">Ninguna todavía.</div></div>
     </div>
   </div>
@@ -447,7 +454,10 @@ const CONFIG = {
   // Archivo de precios publicado desde el Tablero Maestro.
   catalogo: 'catalogo-moss.json',
   // URL del Apps Script que lee los planos. Déjala vacía para desactivar la lectura de planos.
-  lectorPlanos: 'https://script.google.com/macros/s/AKfycbxKdYKMMtjW9CMFW_HWMShHC-l9tRf0AwIAf42RTuQqOXmCkvo5FRRmCA5tfIxH-6BJ/exec'
+  lectorPlanos: 'https://script.google.com/macros/s/AKfycbxKdYKMMtjW9CMFW_HWMShHC-l9tRf0AwIAf42RTuQqOXmCkvo5FRRmCA5tfIxH-6BJ/exec',
+  // URL del Apps Script "MOSS Cotizaciones" (guarda las cotizaciones en la nube para todo el equipo).
+  // Mientras esté vacía, las cotizaciones se guardan solo en el navegador de cada computador.
+  cotizaciones: ''
 };
 
 const DATA = {"espacios": [{"id": "general", "nombre": "Obra blanca y generales", "icono": "▦", "estiloKey": "cocina", "global": true, "grupos": [{"titulo": "Obra blanca (todo el apartamento)", "items": [{"codigo": "OBLANCA-004", "nombre": "Revoque de muros y techos en mortero", "unidad": "m²", "pvp": 20240, "auto": "muros", "marcado": true}, {"codigo": "OBLANCA-005", "nombre": "Estuco en muros y techos, dos manos", "unidad": "m²", "pvp": 31500, "auto": "muros", "marcado": true}, {"codigo": "OBLANCA-008", "nombre": "Pintura en vinilo tipo 1, tres manos", "unidad": "m²", "pvp": 31096, "auto": "muros", "marcado": true}, {"codigo": "OBLANCA-007", "nombre": "Nivelación de piso en mortero, hasta 4 cm", "unidad": "m²", "pvp": 36800, "auto": "piso", "marcado": true}, {"codigo": "OBLANCA-006", "nombre": "Esquineros metálicos para filos y aristas", "unidad": "un", "pvp": 7360, "auto": null, "marcado": false}, {"codigo": "OBLANCA-003", "nombre": "Demolición y retiro de escombros", "unidad": "m²", "pvp": 32200, "auto": null, "marcado": false}]}, {"titulo": "Pisos y cielo raso", "items": [{"codigo": "GENERALES-001", "nombre": "Piso en SPC German Technology 8 mm", "unidad": "m²", "pvp": 82800, "auto": "piso", "marcado": true}, {"codigo": "GENERALES-002", "nombre": "Guardaescobas laminado, perfiles y transiciones", "unidad": "ml", "pvp": 18400, "auto": "muros", "marcado": true}, {"codigo": "OBLANCA-002", "nombre": "Cielo raso en drywall con estuco y pintura", "unidad": "m²", "pvp": 85008, "auto": "piso", "marcado": false}]}, {"titulo": "Eléctrico general", "items": [{"codigo": "OBLANCA-009", "nombre": "Panel LED de incrustar en muro o techo", "unidad": "un", "pvp": 38640, "auto": null, "marcado": false}, {"codigo": "OBLANCA-001", "nombre": "Panel LED de sobreponer en muro o techo", "unidad": "un", "pvp": 38640, "auto": null, "marcado": false}, {"codigo": "GENERALES-027", "nombre": "Regata para adecuación eléctrica", "unidad": "un", "pvp": 120000, "auto": null, "marcado": false}]}]}, {"id": "cocina", "nombre": "Cocina", "icono": "◱", "estiloKey": "cocina", "grupos": [{"titulo": "Enchapes", "items": [{"codigo": "COCINA-009", "nombre": "Enchape cerámico 60x60 en cocina", "unidad": "m²", "pvp": 86940, "auto": "fijo", "marcado": true}, {"codigo": "COCINA-010", "nombre": "Enchape 60x60 para salpicadero de cocina", "unidad": "m²", "pvp": 150000.0, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-007", "nombre": "Enchape en porcelanato 120x60", "unidad": "m²", "pvp": 138000.0, "auto": "fijo", "marcado": false}]}, {"titulo": "Mobiliario", "items": [{"codigo": "COCINA-020", "nombre": "Mueble inferior cocina fabricado en Madecor RH", "unidad": "ml", "pvp": 998200.0, "auto": "fijo", "marcado": true}, {"codigo": "COCINA-022", "nombre": "Mueble superior cocina fabricado en Madecor RH, con platillero cromado", "unidad": "ml", "pvp": 1048800.0, "auto": "fijo", "marcado": true}, {"codigo": "COCINA-021", "nombre": "Mueble isla-barra cocina fabricado en Madecor RH, 35 cm de profundidad", "unidad": "ml", "pvp": 869400, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-027", "nombre": "Mueble superior sobre nevera fabricado en Madecor RH", "unidad": "ml", "pvp": 724500, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-016", "nombre": "Mesón de cocina en granito", "unidad": "m²", "pvp": 637300, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-016B", "nombre": "Mesón de cocina en sinterizado", "unidad": "ml", "pvp": 1020000, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-016C", "nombre": "Mesón de cocina en quarztone, color a elección", "unidad": "ml", "pvp": 790000, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-023", "nombre": "Shut de basuras para mueble inferior", "unidad": "un", "pvp": 531300, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-028", "nombre": "Mueble para escobas fabricado en Madecor RH", "unidad": "un", "pvp": 690000.0, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-037", "nombre": "Condimentero extraíble en acero inoxidable", "unidad": "un", "pvp": 463680, "auto": null, "marcado": false}]}, {"titulo": "Equipos y grifería", "items": [{"codigo": "COCINA-001", "nombre": "Campana extractora recirculadora 60 cm, color negro", "unidad": "un", "pvp": 429870, "auto": "fijo", "marcado": true}, {"codigo": "COCINA-035", "nombre": "Lavaplatos doble poceta en acero inoxidable", "unidad": "un", "pvp": 901600.0, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-036", "nombre": "Grifería extraíble para lavaplatos", "unidad": "un", "pvp": 154560, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-046", "nombre": "Estufa de empotrar a gas, 2 puestos", "unidad": "un", "pvp": 598900.0, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-0020", "nombre": "Estufa de inducción", "unidad": "un", "pvp": 2600000.0, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-0022", "nombre": "Instalación de estufa, campana y horno", "unidad": "un", "pvp": 200000.0, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-015", "nombre": "Lavaplatos sencillo en acero inoxidable", "unidad": "un", "pvp": 202400, "auto": null, "marcado": true}, {"codigo": "COCINA-003", "nombre": "Estufa de empotrar a gas, 4 puestos", "unidad": "un", "pvp": 570400, "auto": null, "marcado": true}, {"codigo": "COCINA-012", "nombre": "Grifería monocontrol para lavaplatos", "unidad": "un", "pvp": 257600, "auto": null, "marcado": false}]}, {"titulo": "Eléctrico", "items": [{"codigo": "COCINA-024", "nombre": "Punto eléctrico nuevo o traslado de punto existente", "unidad": "un", "pvp": 110400.0, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-026", "nombre": "Punto de gas nuevo o traslado de punto existente", "unidad": "un", "pvp": 395600.0, "auto": "fijo", "marcado": false}, {"codigo": "COCINA-017", "nombre": "Set de dos lámparas sobre barra", "unidad": "un", "pvp": 400000.0, "auto": "fijo", "marcado": false}, {"codigo": "HABIT-003", "nombre": "Set de dos lámparas descolgadas", "unidad": "un", "pvp": 386400, "auto": null, "marcado": false}]}]}, {"id": "bano", "nombre": "Baño", "icono": "◔", "estiloKey": "bano", "grupos": [{"titulo": "Enchapes", "items": [{"codigo": "COCINA-009", "nombre": "Enchape cerámico 60x60 en cocina", "unidad": "m²", "pvp": 86940, "auto": "fijo", "marcado": true}, {"codigo": "OBRA BLANCA-038", "nombre": "Afinado de piso para instalación de enchape", "unidad": "m²", "pvp": 30000.0, "auto": "piso", "marcado": false}]}, {"titulo": "Mobiliario y aparatos", "items": [{"codigo": "BAÑO-039", "nombre": "Lavamanos empotrado en mueble", "unidad": "un", "pvp": 800000.0, "auto": "fijo", "marcado": true}, {"codigo": "BAÑO-005", "nombre": "Sanitario una pieza en porcelana, ahorrador de agua", "unidad": "un", "pvp": 637560, "auto": "fijo", "marcado": true}, {"codigo": "BAÑO-024", "nombre": "Combo cerámico: lavamanos, grifería y accesorios", "unidad": "un", "pvp": 600000.0, "auto": "fijo", "marcado": false}, {"codigo": "BAÑO-0010", "nombre": "Mueble espejo con almacenamiento y cinta LED", "unidad": "ml", "pvp": 1100000, "auto": "fijo", "marcado": false}, {"codigo": "BAÑO-027", "nombre": "Puerta de baño en vidrio templado", "unidad": "un", "pvp": 1365000.0, "auto": "fijo", "marcado": false}, {"codigo": "BAÑO-012", "nombre": "Puerta entamborada en madera", "unidad": "un", "pvp": 874000.0, "auto": "fijo", "marcado": false}, {"codigo": "BAÑO-006", "nombre": "Mueble de lavamanos fabricado en Madecor RH", "unidad": "un", "pvp": 717600, "auto": null, "marcado": true}, {"codigo": "BAÑO-004", "nombre": "Lavamanos de sobreponer", "unidad": "un", "pvp": 364500, "auto": null, "marcado": true}, {"codigo": "BAÑO-014", "nombre": "Nicho en ducha con iluminación", "unidad": "un", "pvp": 366080, "auto": null, "marcado": false}]}, {"titulo": "Grifería y accesorios", "items": [{"codigo": "BAÑO-021", "nombre": "Ducha con mezclador para agua fría y caliente", "unidad": "un", "pvp": 199500, "auto": "fijo", "marcado": true}, {"codigo": "BAÑO-003", "nombre": "Kit completo de ducha, herrajes en negro", "unidad": "un", "pvp": 644000, "auto": "fijo", "marcado": false}, {"codigo": "BAÑO-0015", "nombre": "Grifería alta monocontrol para lavamanos", "unidad": "un", "pvp": 280000.0, "auto": "fijo", "marcado": false}, {"codigo": "BAÑO-025", "nombre": "Sifón lineal invisible para ducha", "unidad": "un", "pvp": 180000.0, "auto": "fijo", "marcado": false}, {"codigo": "BAÑO-014", "nombre": "Nicho en ducha con iluminación", "unidad": "un", "pvp": 366080, "auto": "fijo", "marcado": false}, {"codigo": "BAÑO-030", "nombre": "Repisas para ducha", "unidad": "un", "pvp": 139000.0, "auto": "fijo", "marcado": false}, {"codigo": "BAÑO-010", "nombre": "Ducha monocontrol", "unidad": "un", "pvp": 276000, "auto": null, "marcado": true}, {"codigo": "BAÑO-013", "nombre": "Kit de accesorios de baño, 5 piezas", "unidad": "un", "pvp": 202400, "auto": null, "marcado": true}]}, {"titulo": "Eléctrico", "items": [{"codigo": "BAÑO-019", "nombre": "Bala LED de incrustar", "unidad": "un", "pvp": 36800.0, "auto": "fijo", "marcado": false}, {"codigo": "BAÑO-018", "nombre": "Extractor de aire para baño", "unidad": "un", "pvp": 130000.0, "auto": "fijo", "marcado": false}, {"codigo": "BAÑO-045", "nombre": "Lámpara colgante", "unidad": "un", "pvp": 309200.0, "auto": "fijo", "marcado": false}, {"codigo": "BAÑO-009", "nombre": "Bala LED de empotrar en drywall", "unidad": "un", "pvp": 36800, "auto": null, "marcado": false}]}]}, {"id": "habitacion", "nombre": "Habitación", "icono": "▤", "estiloKey": "cocina", "grupos": [{"titulo": "Closets y mobiliario", "items": [{"codigo": "HABIT-001", "nombre": "Closet tipo esqueleto fabricado en Madecor, herrajería Ducasse y sistema corredizo", "unidad": "m²", "pvp": 782000, "auto": "fijo", "marcado": true}, {"codigo": "HABIT-006", "nombre": "Closet con fondo diseñado a medida", "unidad": "m²", "pvp": 800000.0, "auto": "fijo", "marcado": false}, {"codigo": "HABIT-009", "nombre": "Closet vestier con fondo diseñado a medida", "unidad": "m²", "pvp": 993600.0, "auto": "fijo", "marcado": false}, {"codigo": "HABIT-002", "nombre": "Puerta entamborada en madera con chapa y tope", "unidad": "un", "pvp": 1026400.0, "auto": "fijo", "marcado": false}, {"codigo": "HABIT-0010", "nombre": "Mesas de noche flotantes fabricadas en Madecor", "unidad": "un", "pvp": 250000.0, "auto": "fijo", "marcado": false}, {"codigo": "HABIT-041", "nombre": "Escritorio de trabajo con cajoneras fabricado en Madecor", "unidad": "ml", "pvp": 980000.0, "auto": "fijo", "marcado": false}, {"codigo": "HAB-012", "nombre": "Puerta entamborada en madera", "unidad": "un", "pvp": 874000, "auto": null, "marcado": true}, {"codigo": "HABIT-007", "nombre": "Cabecero para cama Queen con iluminación LED y mesas de noche", "unidad": "un", "pvp": 1800000, "auto": null, "marcado": false}, {"codigo": "HABIT-008", "nombre": "Centro de TV fabricado en Madecor", "unidad": "ml", "pvp": 900000, "auto": null, "marcado": false}, {"codigo": "HABIT-011", "nombre": "Mueble de nicho fabricado en Madecor", "unidad": "un", "pvp": 500000, "auto": null, "marcado": false}]}, {"titulo": "Iluminación y detalles", "items": [{"codigo": "HABIT-003", "nombre": "Set de dos lámparas descolgadas", "unidad": "un", "pvp": 386400, "auto": "fijo", "marcado": false}, {"codigo": "HABI-002", "nombre": "Iluminación LED en closet con sensor y regulación", "unidad": "un", "pvp": 92000.0, "auto": "fijo", "marcado": false}, {"codigo": "HAB-045", "nombre": "Papel de colgadura", "unidad": "m²", "pvp": 270000.0, "auto": "fijo", "marcado": false}]}]}, {"id": "ropas", "nombre": "Zona de ropas", "icono": "◫", "grupos": [{"titulo": "Mobiliario", "items": [{"codigo": "LAV-003", "nombre": "Mueble de lavadero fabricado en Madecor RH", "unidad": "ml", "pvp": 736000, "auto": "fijo", "marcado": true}, {"codigo": "LAV-004", "nombre": "Lavadero en granito", "unidad": "un", "pvp": 193200, "auto": "fijo", "marcado": false}, {"codigo": "LAV-001", "nombre": "Mueble de linos fabricado en Madecor RH", "unidad": "un", "pvp": 690000.0, "auto": "fijo", "marcado": false}, {"codigo": "LAV-002", "nombre": "Puerta invisible", "unidad": "m²", "pvp": 1300000.0, "auto": "fijo", "marcado": false}, {"codigo": "General-030", "nombre": "Puerta invisible corrediza tipo granero", "unidad": "un", "pvp": 1500000, "auto": null, "marcado": false}, {"codigo": "COCINA-009", "nombre": "Enchape cerámico 60x60 en cocina", "unidad": "m²", "pvp": 86940, "auto": null, "marcado": false}]}, {"titulo": "Instalaciones", "items": [{"codigo": "LAV-006", "nombre": "Grifería para lavadero, acoples y desagües", "unidad": "un", "pvp": 184000.0, "auto": "fijo", "marcado": false}, {"codigo": "LAV-005", "nombre": "Calentador a gas 5 litros", "unidad": "un", "pvp": 920000.0, "auto": "fijo", "marcado": false}, {"codigo": "LAV-004", "nombre": "Lavadero en granito", "unidad": "un", "pvp": 193200, "auto": null, "marcado": false}]}], "sinImagen": true}, {"id": "sala", "nombre": "Sala - Comedor", "icono": "▭", "estiloKey": "cocina", "grupos": [{"titulo": "Mobiliario y detalles", "items": [{"codigo": "HABIT-044", "nombre": "Mueble divisorio estudio-sala en Madecor, con LED y entrepaños", "unidad": "ml", "pvp": 1330000, "auto": null, "marcado": false}, {"codigo": "HABIT-008", "nombre": "Centro de TV fabricado en Madecor", "unidad": "ml", "pvp": 900000, "auto": null, "marcado": false}, {"codigo": "HABIT-011", "nombre": "Mueble de nicho fabricado en Madecor", "unidad": "un", "pvp": 500000, "auto": null, "marcado": false}, {"codigo": "GENERALES-004", "nombre": "Mueble especial fabricado en Madecor: recibidor, centro de TV o alacena", "unidad": "un", "pvp": 1550000, "auto": null, "marcado": false}, {"codigo": "ADICIONALES-001", "nombre": "Escritorio con cajones y credenza fabricado en Madecor", "unidad": "un", "pvp": 985320, "auto": null, "marcado": false}]}, {"titulo": "Iluminación", "items": [{"codigo": "HABIT-003", "nombre": "Set de dos lámparas descolgadas", "unidad": "un", "pvp": 386400, "auto": null, "marcado": false}, {"codigo": "GENERALES-029", "nombre": "Cinta LED", "unidad": "un", "pvp": 120000, "auto": null, "marcado": false}]}]}, {"id": "adicionales", "nombre": "Adicionales", "icono": "➕", "sinImagen": true, "grupos": [{"titulo": "Ítems adicionales del proyecto", "items": [{"codigo": "OBLANCA-011", "nombre": "Red eléctrica completa del apartamento, cableado y puntos", "unidad": "un", "pvp": 120000.0, "auto": null, "marcado": false}, {"codigo": "OBLANCA-010", "nombre": "Red hidrosanitaria completa para obra gris", "unidad": "un", "pvp": 110400.0, "auto": null, "marcado": false}, {"codigo": "OBLANCA-009", "nombre": "Panel LED de incrustar en muro o techo", "unidad": "ml", "pvp": 38640, "auto": null, "marcado": false}, {"codigo": "GENERALES-008", "nombre": "Puerta de seguridad en madera maciza", "unidad": "un", "pvp": 2944000.0, "auto": null, "marcado": false}, {"codigo": "GENERALES-039", "nombre": "Chapa de seguridad y ojo mágico", "unidad": "un", "pvp": 450000.0, "auto": null, "marcado": false}, {"codigo": "GENERALES-009", "nombre": "Ventanería en aluminio con vidrio estándar", "unidad": "m²", "pvp": 487600.0, "auto": null, "marcado": false}, {"codigo": "GENERALES-031", "nombre": "Muro en superboard", "unidad": "m²", "pvp": 170000.0, "auto": null, "marcado": false}, {"codigo": "GENERALES-005", "nombre": "Muro en mampostería", "unidad": "m²", "pvp": 77300.0, "auto": null, "marcado": false}, {"codigo": "OBLANCA-021", "nombre": "Traslado de contador eléctrico", "unidad": "un", "pvp": 1785000.0, "auto": null, "marcado": false}, {"codigo": "GENERALES-043", "nombre": "Trasciego de material por escalera", "unidad": "un", "pvp": 735000.0, "auto": null, "marcado": false}, {"codigo": "GENERALES-047", "nombre": "Recargo por lejanía, obra fuera del casco urbano", "unidad": "un", "pvp": 100000.0, "auto": null, "marcado": false}]}]}]};
@@ -901,7 +911,7 @@ async function cargarCatalogoPublicado(){
       const m = mapa[i.codigo];
       if(m){
         if(m.pvp !== i.pvp || m.nombre !== i.nombre || m.unidad !== i.unidad) act++;
-        i.pvp = m.pvp; i.nombre = (m.nombre||'').trim(); i.unidad = (m.unidad||'un').trim();
+        i.pvp = m.pvp; i._pvpCat = m.pvp; i.nombre = (m.nombre||'').trim(); i.unidad = (m.unidad||'un').trim();
         delete mapa[i.codigo];
       }
     })));
@@ -1360,37 +1370,218 @@ document.getElementById('bExp').onclick=()=>{
   o.scrollIntoView({behavior:'smooth',block:'nearest'});
 };
 
-// save / load
+// ══════════════════════════════════════════════════════════
+//  GUARDAR Y ABRIR COTIZACIONES
+//  · Siempre queda una copia en este navegador (respaldo).
+//  · Si CONFIG.cotizaciones tiene la URL del Apps Script, además se guarda
+//    en la nube y todo el equipo la ve.
+//  · Cada 15 s se guarda un borrador; si se cierra la pestaña se puede recuperar.
+// ══════════════════════════════════════════════════════════
+const LS_COT='moss-cot-v2', LS_BORR='moss-cot-borrador', LS_PIN='moss-cot-pin';
+let cotId=null, cotNum=null, cotRecAbierta=null, usandoGuardados=false, firmaGuardada='', cotLista=[], cotErrNube=null;
+
+function lsGet(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// Comunicación con el Apps Script (text/plain evita el bloqueo CORS de Apps Script)
+async function cotApi(action,payload,reintento){
+  if(!CONFIG.cotizaciones) throw new Error('nube no configurada');
+  let pin=''; try{ pin=localStorage.getItem(LS_PIN)||''; }catch(e){}
+  let r;
+  try{
+    r=await fetch(CONFIG.cotizaciones,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(Object.assign({action:action,pin:pin},payload||{}))});
+  }catch(e){ throw new Error('sin conexión'); }
+  let j; try{ j=await r.json(); }catch(e){ throw new Error('respuesta inválida del servidor'); }
+  if(!j.ok){
+    if(j.code==='PIN'){
+      const p=prompt(reintento?'PIN incorrecto. Escríbelo de nuevo:':'PIN del equipo MOSS (te lo da Juan Ma):');
+      if(p){ try{ localStorage.setItem(LS_PIN,p.trim()); }catch(e){} return cotApi(action,payload,true); }
+      throw new Error('falta el PIN');
+    }
+    throw new Error(j.error||'error del servidor');
+  }
+  return j;
+}
+
+// Precios: guardamos con qué precio se cotizó cada ítem
+function fijarPrecios(precios){
+  DATA.espacios.forEach(e=>e.grupos.forEach(g=>g.items.forEach(i=>{
+    if(i._pvpCat===undefined) i._pvpCat=i.pvp;
+    i.pvp=(precios&&precios[i.codigo]!==undefined)?precios[i.codigo]:i._pvpCat;
+  })));
+}
+function difPrecios(precios){
+  let n=0;
+  DATA.espacios.forEach(e=>e.grupos.forEach(g=>g.items.forEach(i=>{
+    if(i._pvpCat===undefined) i._pvpCat=i.pvp;
+    if(precios[i.codigo]!==undefined && precios[i.codigo]!==i._pvpCat) n++;
+  })));
+  return n;
+}
+function alternarPrecios(){
+  if(!cotRecAbierta||!cotRecAbierta.precios) return;
+  usandoGuardados=!usandoGuardados;
+  fijarPrecios(usandoGuardados?cotRecAbierta.precios:null);
+  renderRooms(); updateAll(); mostrarBanner();
+}
+
+function armarRegistro(){
+  const estado={};
+  DATA.espacios.forEach(e=>{
+    const s=st[e.id], items={};
+    Object.keys(s.items).forEach(k=>{ const v=s.items[k]; if(v.on||v.cant>0) items[k]={on:!!v.on,cant:v.cant}; });
+    estado[e.id]=Object.assign(JSON.parse(JSON.stringify(s)),{items:items});
+  });
+  const precios={};
+  DATA.espacios.forEach(e=>e.grupos.forEach(g=>g.items.forEach(i=>{
+    const v=st[e.id].items[i.codigo]; if(v&&(v.on||v.cant>0)) precios[i.codigo]=i.pvp;
+  })));
+  return {
+    id:cotId||('cot_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),
+    consecutivo:cotNum||'',
+    cliente:(document.getElementById('f-cli').value||'').trim()||'Sin nombre',
+    proyecto:(document.getElementById('f-pro').value||'').trim(),
+    asesor:(document.getElementById('f-ven').value||'').trim(),
+    areaCampo:document.getElementById('f-area').value||'', area:areaTotal(),
+    estilo:estiloSel, tipo:tipoSel, entregaLarga:entregaLarga,
+    descuento:{pct:DESC_PCT,fijo:DESC_FIJO,nota:DESC_NOTA},
+    subtotal:Math.round(totalGeneral()), descuentoValor:Math.round(valorDescuento()), total:Math.round(totalConDescuento()),
+    catalogo:(catalogoInfo&&!catalogoInfo.error)?catalogoInfo.fecha:null,
+    precios:precios, estado:estado, fecha:new Date().toISOString(), version:2
+  };
+}
+function firma(){ const r=armarRegistro(); delete r.fecha; delete r.id; delete r.consecutivo; return JSON.stringify(r); }
+
+function guardarLocal(rec){
+  const lista=lsGet(LS_COT,[]);
+  const i=lista.findIndex(x=>x.id===rec.id);
+  if(i>=0) lista[i]=rec; else lista.unshift(rec);
+  return lsSet(LS_COT,lista.slice(0,60));
+}
+
+function aplicarRegistro(rec){
+  cotId=rec.id; cotNum=rec.consecutivo||null; cotRecAbierta=rec;
+  document.getElementById('f-cli').value=rec.cliente||'';
+  document.getElementById('f-pro').value=rec.proyecto||'';
+  document.getElementById('f-ven').value=rec.asesor||'';
+  document.getElementById('f-area').value=(rec.areaCampo!==undefined)?rec.areaCampo:(rec.areaTotal||'');
+  estiloSel=rec.estilo||'esencia'; tipoSel=rec.tipo||'gris';
+  FACTOR_MUROS=(TIPOS.find(x=>x.id===tipoSel)||TIPOS[0]).factor;
+  entregaLarga=!!rec.entregaLarga; document.getElementById('chkEntrega').checked=entregaLarga;
+  const d=rec.descuento||{}; DESC_PCT=+d.pct||0; DESC_FIJO=+d.fijo||0; DESC_NOTA=d.nota||'';
+  document.getElementById('descPct').value=DESC_PCT||'';
+  document.getElementById('descFijo').value=DESC_FIJO||'';
+  document.getElementById('descNota').value=DESC_NOTA;
+  DATA.espacios.forEach(e=>{
+    const s=st[e.id], de=rec.estado&&rec.estado[e.id];
+    Object.values(s.items).forEach(v=>{ v.on=false; v.cant=0; });
+    s.custom=[]; s.on=false; s.open=false;
+    if(!de) return;
+    const it=de.items||{}, resto=Object.assign({},de); delete resto.items;
+    Object.assign(s,resto);
+    Object.keys(it).forEach(k=>{ if(s.items[k]) Object.assign(s.items[k],it[k]); });
+    s.open=false;
+  });
+  fijarPrecios(rec.precios||null); usandoGuardados=!!rec.precios;
+  renderTipo(); renderStyles(); renderRooms(); updateAll(); mostrarBanner();
+  firmaGuardada=firma();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function mostrarBanner(){
+  const b=document.getElementById('cotBanner'); if(!b) return;
+  if(!cotId){ b.style.display='none'; b.innerHTML=''; return; }
+  let h='Abierta: <b>'+esc(cotNum||'cotización guardada solo en este computador')+'</b>';
+  const rec=cotRecAbierta;
+  if(rec&&rec.precios){
+    const n=difPrecios(rec.precios);
+    if(n>0){
+      const f=rec.fecha?new Date(rec.fecha).toLocaleDateString('es-CO',{day:'2-digit',month:'short'}):'';
+      h+=usandoGuardados
+        ? ' · con los precios del '+f+' ('+n+(n>1?' ítems cambiaron':' ítem cambió')+' desde entonces) <button type="button" onclick="alternarPrecios()">Usar precios actuales</button>'
+        : ' · con precios actuales <button type="button" onclick="alternarPrecios()">Volver a los precios guardados</button>';
+    }
+  }
+  h+=' <button type="button" onclick="nuevaCotizacion()">Empezar una nueva</button>';
+  b.innerHTML=h; b.style.display='block';
+}
+function nuevaCotizacion(){
+  if(!confirm('¿Empezar una cotización nueva?\n\nLo que no hayas guardado se pierde.')) return;
+  lsDel(LS_BORR); location.reload();
+}
+
 document.getElementById('bSave').onclick=async()=>{
   if(totalGeneral()<=0){alert('Activa al menos un espacio.');return;}
-  const rec={id:'cot_'+Date.now(),cliente:document.getElementById('f-cli').value||'Sin nombre',
-    proyecto:document.getElementById('f-pro').value||'',asesor:document.getElementById('f-ven').value||'',
-    estilo:estiloSel,tipo:tipoSel,entregaLarga:entregaLarga,areaTotal:areaTotal(),fecha:new Date().toISOString(),estado:JSON.parse(JSON.stringify(st)),total:totalGeneral(),version:1};
-  try{await window.storage.set('cot:'+rec.id,JSON.stringify(rec),false);await loadSaved();alert('Cotización guardada.');}
-  catch(e){alert('No se pudo guardar (almacenamiento no disponible aquí).');}
+  if(cotId && !confirm('Estás editando '+(cotNum||'una cotización guardada')+'.\n\nAceptar = actualizarla\nCancelar = guardarla como una cotización nueva')){ cotId=null; cotNum=null; cotRecAbierta=null; }
+  const rec=armarRegistro();
+  let nube=null, errNube=null;
+  if(CONFIG.cotizaciones){
+    try{ const r=await cotApi('save',{record:rec}); rec.consecutivo=r.consecutivo; nube=r; }
+    catch(e){ errNube=e.message; }
+  }
+  const okLocal=guardarLocal(rec);
+  cotId=rec.id; cotNum=rec.consecutivo||null; cotRecAbierta=rec;
+  firmaGuardada=firma(); lsDel(LS_BORR);
+  mostrarBanner();
+  await loadSaved();
+  if(nube) alert('Cotización '+rec.consecutivo+' guardada. Todo el equipo puede abrirla.');
+  else if(errNube) alert('Quedó guardada solo en este computador. No se pudo subir a la nube: '+errNube+'.\n\nVuelve a pulsar Guardar cuando tengas conexión.');
+  else alert(okLocal?'Guardada en este computador.\n(La nube del equipo todavía no está conectada.)':'No se pudo guardar: el navegador bloqueó el almacenamiento.');
 };
+
 async function loadSaved(){
-  const el=document.getElementById('svList');
+  const locales=lsGet(LS_COT,[]);
+  let nube=[]; cotErrNube=null;
+  if(CONFIG.cotizaciones){
+    try{ nube=(await cotApi('list')).items||[]; }catch(e){ cotErrNube=e.message; }
+  }
+  const idsNube=new Set(nube.map(x=>x.id));
+  cotLista=nube.map(x=>Object.assign({},x,{origen:'nube'})).concat(
+    locales.filter(x=>!idsNube.has(x.id)).map(x=>({id:x.id,consecutivo:x.consecutivo||'',actualizada:x.fecha,
+      cliente:x.cliente,proyecto:x.proyecto,asesor:x.asesor,total:x.total,origen:'local'})));
+  pintarLista();
+}
+function pintarLista(){
+  const el=document.getElementById('svList'); if(!el) return;
+  const q=(document.getElementById('svQ').value||'').toLowerCase().trim();
+  const l=cotLista.filter(x=>!q||((x.cliente||'')+' '+(x.proyecto||'')+' '+(x.consecutivo||'')+' '+(x.asesor||'')).toLowerCase().includes(q));
+  let nota='';
+  if(!CONFIG.cotizaciones) nota='Se guardan solo en este computador (la nube del equipo aún no está conectada).';
+  else if(cotErrNube) nota='No se pudo leer la nube ('+esc(cotErrNube)+'). Mostrando lo guardado en este computador.';
+  el.innerHTML=(nota?'<div class="svnota">'+nota+'</div>':'')+(l.length?'':'<div class="sum-empty">'+(q?'Sin resultados.':'Ninguna todavía.')+'</div>');
+  l.forEach(x=>{
+    const f=x.actualizada?new Date(x.actualizada).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):'';
+    const d=document.createElement('div'); d.className='sv';
+    d.innerHTML='<span>'+esc(x.consecutivo?x.consecutivo+' · ':'')+esc(x.cliente||'Sin nombre')+' — '+esc(x.proyecto||'s/proyecto')
+      +'<small>'+f+(x.asesor?' · '+esc(x.asesor):'')+(x.origen==='local'&&CONFIG.cotizaciones?' · solo en este computador':'')+'</small></span><span>'+money(x.total||0)+'</span>';
+    d.onclick=()=>abrirDeLista(x);
+    el.appendChild(d);
+  });
+}
+async function abrirDeLista(x){
+  if(totalGeneral()>0 && !confirm('Se reemplazará lo que tienes en pantalla.\n¿Abrir '+(x.consecutivo||x.cliente)+'?')) return;
   try{
-    const r=await window.storage.list('cot:',false);
-    if(!r||!r.keys||!r.keys.length){el.innerHTML='<div class="sum-empty">Ninguna todavía.</div>';return;}
-    el.innerHTML='';
-    for(const k of r.keys){
-      const g=await window.storage.get(k,false);if(!g)continue;
-      const rec=JSON.parse(g.value);
-      const d=document.createElement('div');d.className='sv';
-      d.innerHTML=`<span>${rec.cliente} — ${rec.proyecto||'s/proyecto'}</span><span>${money(rec.total)}</span>`;
-      d.onclick=()=>{
-        document.getElementById('f-cli').value=rec.cliente;
-        document.getElementById('f-pro').value=rec.proyecto;
-        document.getElementById('f-ven').value=rec.asesor||'';
-        estiloSel=rec.estilo||'esencia';tipoSel=rec.tipo||'gris';FACTOR_MUROS=(TIPOS.find(x=>x.id===tipoSel)||TIPOS[0]).factor;renderTipo();entregaLarga=!!rec.entregaLarga;document.getElementById('chkEntrega').checked=entregaLarga;if(rec.areaTotal)document.getElementById('f-area').value=rec.areaTotal;
-        Object.keys(rec.estado).forEach(k2=>{if(st[k2])Object.assign(st[k2],rec.estado[k2]);});
-        renderStyles();renderRooms();updateAll();window.scrollTo({top:0,behavior:'smooth'});
-      };
-      el.appendChild(d);
-    }
-  }catch(e){el.innerHTML='<div class="sum-empty">Ninguna todavía.</div>';}
+    let rec;
+    if(x.origen==='nube') rec=(await cotApi('get',{id:x.id})).record;
+    else rec=lsGet(LS_COT,[]).find(r=>r.id===x.id);
+    if(!rec) throw new Error('no se encontró');
+    await catalogoListo;
+    aplicarRegistro(rec);
+  }catch(e){ alert('No se pudo abrir la cotización: '+e.message); }
+}
+
+// Borrador automático
+setInterval(()=>{
+  try{ if(totalGeneral()>0 && firma()!==firmaGuardada) lsSet(LS_BORR,armarRegistro()); }catch(e){}
+},15000);
+function recuperarBorrador(){
+  const b=lsGet(LS_BORR,null);
+  if(!b||!b.total) return;
+  if(confirm('Hay una cotización sin guardar de "'+(b.cliente||'Sin nombre')+'"'+(b.proyecto?' — '+b.proyecto:'')+' ('+money(b.total)+').\n\n¿Quieres recuperarla?')) aplicarRegistro(b);
+  else lsDel(LS_BORR);
 }
 
 
@@ -1537,7 +1728,9 @@ document.getElementById('chkInterno').addEventListener('change',(e)=>{
   document.body.classList.toggle('cliente', !e.target.checked);
 });
 renderTipo();aplicarTipo();renderStyles();renderRooms();updateAll();loadSaved();
-cargarCatalogoPublicado();
+document.getElementById('svQ').addEventListener('input',()=>pintarLista());
+const catalogoListo=cargarCatalogoPublicado();
+catalogoListo.then(()=>{ firmaGuardada=firma(); recuperarBorrador(); });
 </script>
 </body>
 </html>
