@@ -353,6 +353,10 @@ body.cliente .desglose{display:none;}
         <div class="dt"><b>Cotización de prueba — Aktivo, Alexandra Lagos (S00666)</b><br>Carga el alcance real de la cotización S00666 con los precios actuales del catálogo. 4 ítems no tienen código permanente todavía (se cargan como "especiales") y 3 usaban un código de otro producto — quedan marcados para revisar.</div>
         <button id="btnDemoAktivo">Cargar S00666 (Aktivo)</button>
       </div>
+      <div class="demo">
+        <div class="dt"><b>Apartamento tipo Artiko — Las Galias (S00622)</b><br>Carga la cotización del webinar con su alcance completo: obra blanca, cocina, dos baños, dos habitaciones y zona de ropas. Debe dar $38.381.801 con el AIU ya repartido en cada ítem. Quedan como ítems "especiales": puedes cambiar cantidades, quitar o agregar ítems.</div>
+        <button id="btnDemoArtiko">Cargar Artiko ($38,4M)</button>
+      </div>
       <div class="warn"><b>Esto no reemplaza la visita técnica.</b> La lectura es una estimación a partir de lo que se alcanza a ver en el plano; siempre revisa cada cantidad antes de aplicarla y confírmala en sitio antes de comprar material.</div>
     </div>
   </div>
@@ -676,6 +680,103 @@ function cargarDemoAktivo(){
   alert('Cotización Aktivo (Alexandra Lagos) cargada.\n\n'+
         'Total: '+money(totalConDescuento())+'\n\n'+
         'Ahora puedes modificar cantidades, agregar notas, ajustar el descuento y generar la propuesta.');
+  document.getElementById('rooms').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+
+// ── Artiko · Las Galias — apartamento tipo (cotización S00622, webinar propietarios) ──
+// Precios de la S00622 con el AIU repartido dentro de cada ítem (factor 1,0951),
+// para que el total dé $38.381.801 sin sumar AIU encima. Todo va como "especial":
+// se pueden cambiar cantidades, quitar ítems o agregar otros del tablero de precios.
+const DEMO_ARTIKO = {
+  cliente:'Apartamento tipo Artiko', proyecto:'Artiko - Las Galias', asesor:'',
+  tipo:'gris',
+  espacios:{
+    general:{custom:[
+      {nombre:"Estuco/masilla supermastick, 2 manos",unidad:"m²",pvp:31209.59,cant:111},
+      {nombre:"Vinilo tipo 1, 3 manos (muros y techos)",unidad:"m²",pvp:32349.78,cant:111},
+      {nombre:"Mortero de nivelación de piso",unidad:"m²",pvp:38283.77,cant:37},
+      {nombre:"Demoliciones y retiro de escombros",unidad:"m²",pvp:33498.29,cant:10},
+      {nombre:"Esquineros agujerados",unidad:"un",pvp:8039.59,cant:20},
+      {nombre:"Cielo raso en drywall",unidad:"m²",pvp:88435.5,cant:10},
+      {nombre:"Piso SPC con neopreno 8 mm",unidad:"m²",pvp:90445.4,cant:24},
+      {nombre:"Guardaescobas laminado",unidad:"m²",pvp:20098.98,cant:36},
+      {nombre:"Enchape cerámica 30x60 cocina y zona de ropas",unidad:"m²",pvp:90445.4,cant:10},
+      {nombre:"Bala LED de incrustar",unidad:"un",pvp:38283.77,cant:12},
+    ]},
+    cocina:{custom:[
+      {nombre:"Mueble superior RH con iluminación LED",unidad:"ml",pvp:832255.77,cant:2.15},
+      {nombre:"Mueble inferior RH",unidad:"ml",pvp:884271.76,cant:2.15},
+      {nombre:"Mesón en granito",unidad:"m²",pvp:622111.19,cant:2.15},
+      {nombre:"Mesón en granito para isla con soporte metálico",unidad:"m²",pvp:728223.8,cant:1.5},
+      {nombre:"Campana extractora recirculadora negra",unidad:"un",pvp:447202.24,cant:1},
+      {nombre:"Estufa de empotrar a gas 4 puestos",unidad:"un",pvp:623068.28,cant:1},
+      {nombre:"Lavaplatos sencillo",unidad:"un",pvp:228870.34,cant:1},
+      {nombre:"Grifería lavaplatos monocontrol",unidad:"un",pvp:291289.52,cant:1},
+      {nombre:"Enchape 60x60 salpicadero cocina/lavadero",unidad:"m²",pvp:156047.96,cant:4},
+    ]},
+    bano:{custom:[
+      {nombre:"Baño principal: puerta entamborada",unidad:"un",pvp:936287.74,cant:1},
+      {nombre:"Baño principal: enchape cerámica 30x60",unidad:"m²",pvp:90445.4,cant:12},
+      {nombre:"Baño principal: división corrediza 6 mm",unidad:"ml",pvp:669965.9,cant:1},
+      {nombre:"Baño principal: sanitario una pieza",unidad:"un",pvp:260079.93,cant:1},
+      {nombre:"Baño principal: mueble lavamanos",unidad:"un",pvp:572175.84,cant:1},
+      {nombre:"Baño principal: lavamanos de sobreponer",unidad:"un",pvp:191418.83,cant:1},
+      {nombre:"Baño principal: grifería lavamanos",unidad:"un",pvp:156047.96,cant:1},
+      {nombre:"Baño principal: espejo con LED",unidad:"un",pvp:422078.51,cant:1},
+      {nombre:"Baño principal: ducha monocontrol",unidad:"un",pvp:328522.02,cant:1},
+      {nombre:"Baño social: puerta entamborada",unidad:"un",pvp:936287.74,cant:1},
+      {nombre:"Baño social: enchape cerámica 30x60",unidad:"m²",pvp:90445.4,cant:12},
+      {nombre:"Baño social: división corrediza 6 mm",unidad:"ml",pvp:669965.9,cant:1},
+      {nombre:"Baño social: mueble lavamanos",unidad:"un",pvp:572175.84,cant:1},
+    ]},
+    habitacion:{custom:[
+      {nombre:"Hab. principal: puerta entamborada",unidad:"un",pvp:936287.74,cant:1},
+      {nombre:"Hab. principal: walk-in closet",unidad:"m²",pvp:572175.84,cant:4.6},
+      {nombre:"Hab. principal: muro en drywall",unidad:"m²",pvp:114435.17,cant:2},
+      {nombre:"Hab. secundaria: puerta entamborada",unidad:"un",pvp:936287.74,cant:1},
+      {nombre:"Hab. secundaria: closet esqueleto 0,85 x 2,30 m",unidad:"m²",pvp:624191.83,cant:2},
+    ]},
+    ropas:{custom:[
+      {nombre:"División en madera alistonada pivoteable",unidad:"un",pvp:1205938.61,cant:1},
+      {nombre:"Mueble de lavadero en melamina",unidad:"un",pvp:572175.84,cant:1},
+      {nombre:"Lavadero plástico",unidad:"un",pvp:208063.94,cant:1},
+      {nombre:"Grifería de lavadero",unidad:"un",pvp:83225.58,cant:1},
+    ]},
+  }
+};
+
+function cargarDemoArtiko(){
+  if(totalGeneral()>0 && !confirm('Se reemplazará lo que tienes en pantalla.\n¿Cargar la cotización de Artiko?')) return;
+  // Es una cotización nueva: no debe heredar el consecutivo de otra abierta (evita sobrescribirla al guardar)
+  cotId=null; cotNum=null; cotRecAbierta=null;
+  document.getElementById('f-cli').value=DEMO_ARTIKO.cliente;
+  document.getElementById('f-tel').value='';
+  document.getElementById('f-email').value='';
+  document.getElementById('f-pro').value=DEMO_ARTIKO.proyecto;
+  document.getElementById('f-ven').value=DEMO_ARTIKO.asesor;
+  document.getElementById('f-area').value='';
+  tipoSel=DEMO_ARTIKO.tipo; FACTOR_MUROS=(TIPOS.find(x=>x.id===tipoSel)||TIPOS[0]).factor;
+  DESC_PCT=0; DESC_FIJO=0; DESC_NOTA='';
+  document.getElementById('descPct').value='';
+  document.getElementById('descFijo').value='';
+  document.getElementById('descNota').value='';
+  DATA.espacios.forEach(esp=>{
+    const s=st[esp.id];
+    const d=DEMO_ARTIKO.espacios[esp.id];
+    Object.values(s.items).forEach(si=>{si.on=false;si.cant=0;si.nota='';});
+    s.custom=[];
+    if(!d){ s.on=false; s.open=false; return; }
+    s.on=true; s.open=true;
+    d.custom.forEach(c=>{
+      s.custom.push({codigo:'ESP-'+Math.random().toString(36).slice(2,8),
+        nombre:c.nombre, unidad:c.unidad, pvp:c.pvp, cant:c.cant, on:true, nota:''});
+    });
+  });
+  renderTipo();renderStyles();renderRooms();updateAll();renderDescPreview();mostrarBanner();
+  alert('Cotización Artiko cargada.\n\nTotal: '+money(totalConDescuento())+'\n\n'+
+        'Puedes cambiar cantidades, quitar ítems (✓) o agregar ítems con "+ Agregar ítem especial". '+
+        'Escribe el nombre del cliente antes de guardar.');
   document.getElementById('rooms').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
@@ -1781,6 +1882,7 @@ document.getElementById('f-area').addEventListener('input',(e)=>{
 document.getElementById('chkEntrega').addEventListener('change',(e)=>{entregaLarga=e.target.checked;renderPago();});
 document.getElementById('btnDemo').onclick=cargarDemo;
 document.getElementById('btnDemoAktivo').onclick=cargarDemoAktivo;
+document.getElementById('btnDemoArtiko').onclick=cargarDemoArtiko;
 
 function renderDescPreview(){
   const box=document.getElementById('descPreview');
